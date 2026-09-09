@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ශිෂ්‍ය ලියාපදිංචිය - Class Management</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; }
         .form-container { max-width: 450px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -48,14 +50,10 @@
     <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
-
+<script>
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
         authDomain: "class-management-system-8c1a1.firebaseapp.com",
-        databaseURL: "https://class-management-system-8c1a1-default-rtdb.firebaseio.com",
         projectId: "class-management-system-8c1a1",
         storageBucket: "class-management-system-8c1a1.firebasestorage.app",
         messagingSenderId: "759521896885",
@@ -63,15 +61,8 @@
         measurementId: "G-XZW2VLFXT2"
     };
 
-    let app;
-    let database;
-
-    try {
-        app = initializeApp(firebaseConfig);
-        database = getDatabase(app);
-    } catch (e) {
-        showStatus("Firebase Init Error: " + e.message, false);
-    }
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
     document.getElementById('regMonth').value = new Date().toISOString().slice(0, 7);
 
@@ -82,7 +73,7 @@
         statusDiv.innerText = msg;
     }
 
-    document.getElementById('regBtn').addEventListener('click', async () => {
+    document.getElementById('regBtn').addEventListener('click', function() {
         const id = document.getElementById('studentId').value.trim();
         const name = document.getElementById('studentName').value.trim();
         const phone = document.getElementById('phone').value.trim();
@@ -103,16 +94,17 @@
         };
         studentData.fees[month] = feeStatus;
 
-        try {
-            await set(ref(database, 'students/' + id), studentData);
+        database.ref('students/' + id).set(studentData)
+        .then(function() {
             showStatus("✅ ශිෂ්‍යයා සාර්ථකව ලියාපදිංචි කරන ලදී!", true);
             document.getElementById('studentId').value = '';
             document.getElementById('studentName').value = '';
             document.getElementById('phone').value = '';
-        } catch (error) {
+        })
+        .catch(function(error) {
             console.error(error);
             showStatus("❌ Save වුණේ නැත. දෝෂය: " + error.message, false);
-        }
+        });
     });
 </script>
 
