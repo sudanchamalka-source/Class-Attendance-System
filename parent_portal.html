@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Portal - English with Sudan Sir</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #0056b3, #00c6ff); min-height: 100vh; color: #333; }
+        .container { max-width: 500px; margin: auto; background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
+        .logo { width: 120px; height: 120px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom: 10px; }
+        h2 { color: #0056b3; margin-top: 5px; }
+        label { font-weight: bold; display: block; margin-top: 15px; text-align: left; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 8px; border: 1px solid #ccc; font-size: 1em; }
+        .btn-search { background: linear-gradient(45deg, #0056b3, #00aaff); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-search:hover { opacity: 0.9; transform: translateY(-2px); }
+        .info-card { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-top: 20px; text-align: left; display: none; border-left: 5px solid #0056b3; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.85em; color: white; }
+        .badge-paid { background-color: #28a745; }
+        .badge-pending { background-color: #ffc107; color: #212529; }
+        .badge-present { background-color: #17a2b8; }
+        .nav-links { margin-top: 20px; text-align: center; }
+        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; }
+        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 8px; display: none; font-weight: bold; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="logo.png" alt="English with Sudan Sir" class="logo">
+    <h2>👨‍👩‍👧‍👦 දෙමාපිය පෝටලය (Parent Portal)</h2>
+    <p style="font-size: 0.9em; color: #666;">ඔබගේ දරුවාගේ පන්ති පැමිණීම සහ ගාස්තු තත්ත්වය පහසුවෙන්ම පරීක්ෂා කරන්න.</p>
+
+    <label>ශිෂ්‍ය ID අංකය ඇතුළත් කරන්න:</label>
+    <input type="text" id="parentStudentId" placeholder="උදා: STU1001">
+    <button class="btn-search" onclick="checkStudentStatus()">විස්තර බලන්න 🔍</button>
+
+    <div id="statusMsg"></div>
+
+    <div id="studentDetailCard" class="info-card">
+        <h3 id="pStudentName" style="margin-top:0; color:#0056b3;">-</h3>
+        <p><strong>ශිෂ්‍ය ID:</strong> <span id="pStudentId">-</span></p>
+        <p><strong>දුරකථන අංකය:</strong> <span id="pStudentPhone">-</span></p>
+        <hr>
+        <h4>💳 මේ මාසයේ ගාස්තු තත්ත්වය:</h4>
+        <p>මාසය: <strong id="pCurrentMonth">-</strong></p>
+        <p>තත්ත්වය: <span id="pFeeBadge" class="badge">-</span></p>
+        <hr>
+        <h4>📅 අවසාන පැමිණීමේ සටහන:</h4>
+        <p>දිනය & වේලාව: <strong id="pLastAttendance">දත්ත නොමැත</strong></p>
+    </div>
+
+    <div class="nav-links">
+        <a href="index.html">← Attendance Scanner වෙත</a>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+    }
+
+    function checkStudentStatus() {
+        const id = document.getElementById('parentStudentId').value.trim();
+        const statusMsg = document.getElementById('statusMsg');
+        const card = document.getElementById('studentDetailCard');
+
+        if(!id) {
+            statusMsg.style.display = 'block';
+            statusMsg.className = 'error';
+            statusMsg.innerText = 'කරුණාකර ශිෂ්‍ය ID එක ඇතුළත් කරන්න!';
+            card.style.display = 'none';
+            return;
+        }
+
+        database.ref('students/' + id).once('value').then((snapshot) => {
+            if(snapshot.exists()) {
+                const data = snapshot.val();
+                statusMsg.style.display = 'none';
+                card.style.display = 'block';
+
+                document.getElementById('pStudentName').innerText = data.name;
+                document.getElementById('pStudentId').innerText = id;
+                document.getElementById('pStudentPhone').innerText = data.phone;
+
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                document.getElementById('pCurrentMonth').innerText = currentMonth;
+                
+                const feeStatus = (data.fees && data.fees[currentMonth]) ? data.fees[currentMonth] : "Pending";
+                const badge = document.getElementById('pFeeBadge');
+                if(feeStatus === "Paid") {
+                    badge.className = "badge badge-paid";
+                    badge.innerText = "ගෙවා ඇත (Paid) ✅";
+                } else {
+                    badge.className = "badge badge-pending";
+                    badge.innerText = "ගෙවීමට ඇත (Pending) ⚠️";
+                }
+
+                // Get last attendance
+                database.ref('attendance').limitToLast(10).once('value').then((attSnap) => {
+                    let lastRecord = "දත්ත නොමැත";
+                    if(attSnap.exists()) {
+                        attSnap.forEach((dateSnap) => {
+                            const date = dateSnap.key;
+                            if(dateSnap.hasChild(id)) {
+                                const time = dateSnap.child(id).val().time;
+                                lastRecord = `${date} වන දින පෙ.ව/ප.ව ${time}`;
+                            }
+                        });
+                    }
+                    document.getElementById('pLastAttendance').innerText = lastRecord;
+                });
+
+            } else {
+                statusMsg.style.display = 'block';
+                statusMsg.className = 'error';
+                statusMsg.innerText = 'මෙම ID එක සහිත ශිෂ්‍යයෙකු පද්ධතියේ නොමැත!';
+                card.style.display = 'none';
+            }
+        });
+    }
+</script>
+</body>
+</html>
