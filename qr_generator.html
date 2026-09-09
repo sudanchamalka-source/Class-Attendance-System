@@ -1,29 +1,6 @@
 <!DOCTYPE html>
 <html lang="si">
 <head>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
-    authDomain: "class-management-system-8c1a1.firebaseapp.com",
-    projectId: "class-management-system-8c1a1",
-    storageBucket: "class-management-system-8c1a1.firebasestorage.app",
-    messagingSenderId: "759521896885",
-    appId: "1:759521896885:web:ab834180d9ab45968791fc",
-    measurementId: "G-XZW2VLFXT2"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Generator - Student ID</title>
@@ -45,7 +22,7 @@
 <div class="box">
     <h2>Student QR Generator</h2>
     <input type="text" id="studentIdInput" placeholder="ශිෂ්‍ය ID එක (උදා: STU1001)">
-    <button onclick="generateQR()">QR Code එක සාදන්න</button>
+    <button id="genBtn">QR Code එක සාදන්න</button>
 
     <div id="qrcode"></div>
     <button class="print-btn" onclick="window.print()" style="display:none;" id="printBtn">Print කරන්න</button>
@@ -53,12 +30,9 @@
 </div>
 
 <script>
-    let qrcode = new QRCode(document.getElementById("qrcode"), {
-        width: 200,
-        height: 200
-    });
+    let qrcode = new QRCode(document.getElementById("qrcode"), { width: 200, height: 200 });
 
-    function generateQR() {
+    document.getElementById('genBtn').addEventListener('click', () => {
         const idText = document.getElementById("studentIdInput").value.trim();
         if (idText === "") {
             alert("කරුණාකර ශිෂ්‍ය ID අංකය ඇතුළත් කරන්න!");
@@ -66,7 +40,7 @@
         }
         qrcode.makeCode(idText);
         document.getElementById("printBtn").style.display = "block";
-    }
+    });
 </script>
 
 </body>
