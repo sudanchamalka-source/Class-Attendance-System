@@ -14,15 +14,12 @@
         label { font-weight: bold; color: #495057; display: block; margin-top: 12px; }
         input, select, button { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 6px; }
         button { background-color: #17a2b8; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #138496; }
         .btn-qr { background-color: #6c757d; margin-bottom: 10px; }
-        .btn-qr:hover { background-color: #5a6268; }
         #reader { width: 100%; margin-top: 10px; display: none; border-radius: 8px; overflow: hidden; }
         .student-info { margin-top: 15px; padding: 15px; background: #e9ecef; border-radius: 8px; display: none; text-align: left; }
         .save-btn { background-color: #28a745; margin-top: 12px; }
-        .save-btn:hover { background-color: #218838; }
         .back-link { text-align: center; display: block; margin-top: 15px; color: #007bff; text-decoration: none; }
-        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; word-break: break-word; }
+        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; }
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
@@ -54,7 +51,7 @@
             <option value="Pending">ගෙවීමට ඇත (Pending)</option>
         </select>
 
-        <button class="save-btn" id="saveFeeBtn" type="button">තත්ත්වය වෙනස් කරන්න</button>
+        <button class="save-btn" id="saveFeeBtn" type="button">තත්ත්වය වෙනස් කර Message යවන්න</button>
     </div>
 
     <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
@@ -76,6 +73,7 @@
     const database = firebase.database();
 
     let currentStudentId = "";
+    let currentStudentData = null;
     let html5QrcodeScanner = null;
 
     document.getElementById('selectedMonth').value = new Date().toISOString().slice(0, 7);
@@ -105,7 +103,6 @@
     });
 
     document.getElementById('searchBtn').addEventListener('click', searchStudent);
-    document.getElementById('selectedMonth').addEventListener('change', loadMonthFeeStatus);
 
     function searchStudent() {
         currentStudentId = document.getElementById('searchId').value.trim();
@@ -116,9 +113,9 @@
 
         database.ref('students/' + currentStudentId).once('value').then((snapshot) => {
             if (snapshot.exists()) {
-                const data = snapshot.val();
-                document.getElementById('displayName').innerText = data.name;
-                document.getElementById('displayPhone').innerText = data.phone;
+                currentStudentData = snapshot.val();
+                document.getElementById('displayName').innerText = currentStudentData.name;
+                document.getElementById('displayPhone').innerText = currentStudentData.phone;
                 document.getElementById('studentInfo').style.display = "block";
                 document.getElementById('statusMsg').style.display = "none";
                 loadMonthFeeStatus();
@@ -126,8 +123,6 @@
                 showStatus("⚠️ මෙම ID එකට අදාළ ශිෂ්‍යයෙකු සොයාගත නොහැකි විය!", false);
                 document.getElementById('studentInfo').style.display = "none";
             }
-        }).catch((error) => {
-            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
         });
     }
 
@@ -155,7 +150,20 @@
 
         database.ref('students/' + currentStudentId + '/fees/' + selectedMonth).set(newStatus)
         .then(() => {
-            showStatus(`✅ ${selectedMonth} මාසය සඳහා ගාස්තු තත්ත්වය සාර්ථකව Update විය!`, true);
+            showStatus(`✅ ${selectedMonth} ගාස්තු Update විය! WhatsApp වෙත යොමු කෙරේ...`, true);
+            
+            const statusText = newStatus === "Paid" ? "ලැබී ඇත (Paid) ✅" : "ලැබී නොමැත (Pending) ⚠️";
+            const message = encodeURIComponent(
+                `*පන්ති ගාස්තු රිසිට්පත*\n\n` +
+                `නම: ${currentStudentData.name}\n` +
+                `අදාළ මාසය: ${selectedMonth}\n` +
+                `ගාස්තු තත්ත්වය: ${statusText}\n\n` +
+                `ස්තූතියි!`
+            );
+
+            setTimeout(() => {
+                window.location.href = `https://wa.me/${currentStudentData.phone}?text=${message}`;
+            }, 1000);
         })
         .catch((error) => {
             showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
