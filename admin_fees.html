@@ -20,6 +20,9 @@
         .save-btn { background-color: #28a745; margin-top: 12px; }
         .save-btn:hover { background-color: #218838; }
         .back-link { text-align: center; display: block; margin-top: 15px; color: #007bff; text-decoration: none; }
+        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; word-break: break-word; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
@@ -27,12 +30,14 @@
 <div class="container">
     <h2>ගාස්තු තත්ත්වය Update කිරීම</h2>
 
-    <button class="btn-qr" id="qrBtn">QR Code Scan කරන්න 📷</button>
+    <button class="btn-qr" id="qrBtn" type="button">QR Code Scan කරන්න 📷</button>
     <div id="reader"></div>
 
     <label>ශිෂ්‍ය ID එක ඇතුළත් කරන්න:</label>
     <input type="text" id="searchId" placeholder="උදා: STU1001">
-    <button id="searchBtn">සොයන්න</button>
+    <button id="searchBtn" type="button">සොයන්න</button>
+
+    <div id="statusMsg"></div>
 
     <div id="studentInfo" class="student-info">
         <p><strong>නම:</strong> <span id="displayName">-</span></p>
@@ -47,7 +52,7 @@
             <option value="Pending">ගෙවීමට ඇත (Pending)</option>
         </select>
 
-        <button class="save-btn" id="saveFeeBtn">තත්ත්වය වෙනස් කරන්න</button>
+        <button class="save-btn" id="saveFeeBtn" type="button">තත්ත්වය වෙනස් කරන්න</button>
     </div>
 
     <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
@@ -60,6 +65,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
         authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.firebaseio.com",
         projectId: "class-management-system-8c1a1",
         storageBucket: "class-management-system-8c1a1.firebasestorage.app",
         messagingSenderId: "759521896885",
@@ -74,6 +80,13 @@
     let html5QrcodeScanner = null;
 
     document.getElementById('selectedMonth').value = new Date().toISOString().slice(0, 7);
+
+    function showStatus(msg, isSuccess) {
+        const statusDiv = document.getElementById('statusMsg');
+        statusDiv.style.display = 'block';
+        statusDiv.className = isSuccess ? 'success' : 'error';
+        statusDiv.innerText = msg;
+    }
 
     document.getElementById('qrBtn').addEventListener('click', () => {
         const readerDiv = document.getElementById("reader");
@@ -98,7 +111,7 @@
     async function searchStudent() {
         currentStudentId = document.getElementById('searchId').value.trim();
         if (!currentStudentId) {
-            alert("කරුණාකර ID අංකයක් ඇතුළත් කරන්න!");
+            showStatus("කරුණාකර ID අංකයක් ඇතුළත් කරන්න!", false);
             return;
         }
 
@@ -110,13 +123,14 @@
                 document.getElementById('displayName').innerText = data.name;
                 document.getElementById('displayPhone').innerText = data.phone;
                 document.getElementById('studentInfo').style.display = "block";
+                document.getElementById('statusMsg').style.display = "none";
                 loadMonthFeeStatus();
             } else {
-                alert("මෙම ID එකට අදාළ ශිෂ්‍යයෙකු සොයාගත නොහැකි විය!");
+                showStatus("⚠️ මෙම ID එකට අදාළ ශිෂ්‍යයෙකු සොයාගත නොහැකි විය!", false);
                 document.getElementById('studentInfo').style.display = "none";
             }
         } catch (error) {
-            alert("දෝෂයක් සිදු විය: " + error.message);
+            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
         }
     }
 
@@ -142,15 +156,15 @@
         const newStatus = document.getElementById('updateFeeStatus').value;
 
         if (!selectedMonth) {
-            alert("කරුණාකර මාසය තෝරන්න!");
+            showStatus("කරුණාකර මාසය තෝරන්න!", false);
             return;
         }
 
         try {
             await set(ref(database, 'students/' + currentStudentId + '/fees/' + selectedMonth), newStatus);
-            alert(`${selectedMonth} මාසය සඳහා ගාස්තු තත්ත්වය සාර්ථකව Update විය!`);
+            showStatus(`✅ ${selectedMonth} මාසය සඳහා ගාස්තු තත්ත්වය සාර්ථකව Update විය!`, true);
         } catch (error) {
-            alert("දෝෂයක් සිදු විය: " + error.message);
+            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
         }
     });
 </script>

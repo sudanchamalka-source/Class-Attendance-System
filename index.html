@@ -14,6 +14,9 @@
         .nav-links { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-around; }
         .nav-links a { text-decoration: none; color: #495057; font-weight: 600; font-size: 0.9em; }
         .nav-links a:hover { color: #007bff; }
+        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; word-break: break-word; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
@@ -22,6 +25,7 @@
     <h2>QR Attendance & Fee System</h2>
     <div id="reader"></div>
     <p id="result">QR කේතය Scan කිරීමට Camera එක පෙන්වන්න</p>
+    <div id="statusMsg"></div>
 
     <div class="nav-links">
         <a href="register.html">ලියාපදිංචිය</a>
@@ -37,6 +41,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
         authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.firebaseio.com",
         projectId: "class-management-system-8c1a1",
         storageBucket: "class-management-system-8c1a1.firebasestorage.app",
         messagingSenderId: "759521896885",
@@ -46,6 +51,13 @@
 
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
+
+    function showStatus(msg, isSuccess) {
+        const statusDiv = document.getElementById('statusMsg');
+        statusDiv.style.display = 'block';
+        statusDiv.className = isSuccess ? 'success' : 'error';
+        statusDiv.innerText = msg;
+    }
 
     function onScanSuccess(decodedText) {
         document.getElementById('result').innerText = "Scan කළ අංකය: " + decodedText;
@@ -62,10 +74,10 @@
                 time: time,
                 status: "Present"
             });
-            alert("පැමිණීම සටහන් විය!");
+            showStatus("✅ පැමිණීම සටහන් විය!", true);
             sendWhatsAppMsg(studentId, date, month, time);
         } catch (error) {
-            alert("දෝෂයක් සිදු විය: " + error.message);
+            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
         }
     }
 
@@ -98,10 +110,10 @@
                     window.open(url, '_blank');
                 }
             } else {
-                alert("මෙම ID එකට අදාළ ශිෂ්‍යයෙකු සොයාගත නොහැකි විය!");
+                showStatus("⚠️ මෙම ID එකට අදාළ ශිෂ්‍යයෙකු සොයාගත නොහැකි විය!", false);
             }
         } catch (error) {
-            alert("දෝෂයක් සිදු විය: " + error.message);
+            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
         }
     }
 

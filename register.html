@@ -6,13 +6,16 @@
     <title>ශිෂ්‍ය ලියාපදිංචිය - Class Management</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; }
-        .form-container { max-width: 400px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .form-container { max-width: 450px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { color: #2c3e50; text-align: center; }
         label { font-weight: bold; color: #495057; display: block; margin-top: 10px; }
         input, select, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 6px; }
         button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1em; }
         button:hover { background-color: #218838; }
         .back-link { text-align: center; display: block; margin-top: 15px; color: #007bff; text-decoration: none; }
+        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; word-break: break-word; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
@@ -21,13 +24,13 @@
     <h2>නව ශිෂ්‍යයෙකු ඇතුළත් කිරීම</h2>
     
     <label>ශිෂ්‍ය ID (QR Code එකේ අංකය):</label>
-    <input type="text" id="studentId" placeholder="උදා: STU1001" required>
+    <input type="text" id="studentId" placeholder="උදා: STU1001">
 
     <label>සම්පූර්ණ නම:</label>
-    <input type="text" id="studentName" placeholder="උදා: කසුන් පෙරේරා" required>
+    <input type="text" id="studentName" placeholder="උදා: කසුන් පෙරේරා">
 
     <label>WhatsApp දුරකථන අංකය (සමඟ 94):</label>
-    <input type="text" id="phone" placeholder="9477XXXXXXX" required>
+    <input type="text" id="phone" placeholder="9477XXXXXXX">
 
     <label>වත්මන් මාසය:</label>
     <input type="month" id="regMonth">
@@ -38,7 +41,10 @@
         <option value="Pending">ගෙවීමට ඇත (Pending)</option>
     </select>
 
-    <button id="regBtn">දත්ත ඇතුළත් කරන්න</button>
+    <button type="button" id="regBtn">දත්ත ඇතුළත් කරන්න</button>
+
+    <div id="statusMsg"></div>
+
     <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
 </div>
 
@@ -49,6 +55,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
         authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.firebaseio.com",
         projectId: "class-management-system-8c1a1",
         storageBucket: "class-management-system-8c1a1.firebasestorage.app",
         messagingSenderId: "759521896885",
@@ -56,10 +63,24 @@
         measurementId: "G-XZW2VLFXT2"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
+    let app;
+    let database;
+
+    try {
+        app = initializeApp(firebaseConfig);
+        database = getDatabase(app);
+    } catch (e) {
+        showStatus("Firebase Init Error: " + e.message, false);
+    }
 
     document.getElementById('regMonth').value = new Date().toISOString().slice(0, 7);
+
+    function showStatus(msg, isSuccess) {
+        const statusDiv = document.getElementById('statusMsg');
+        statusDiv.style.display = 'block';
+        statusDiv.className = isSuccess ? 'success' : 'error';
+        statusDiv.innerText = msg;
+    }
 
     document.getElementById('regBtn').addEventListener('click', async () => {
         const id = document.getElementById('studentId').value.trim();
@@ -69,9 +90,11 @@
         const feeStatus = document.getElementById('feeStatus').value;
 
         if (!id || !name || !phone || !month) {
-            alert("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න!");
+            showStatus("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න!", false);
             return;
         }
+
+        showStatus("දත්ත ඇතුළත් කරමින් පවති... කරුණාකර රැඳී සිටින්න.", true);
 
         let studentData = {
             name: name,
@@ -82,12 +105,13 @@
 
         try {
             await set(ref(database, 'students/' + id), studentData);
-            alert("ශිෂ්‍යයා සාර්ථකව ලියාපදිංචි කරන ලදී!");
+            showStatus("✅ ශිෂ්‍යයා සාර්ථකව ලියාපදිංචි කරන ලදී!", true);
             document.getElementById('studentId').value = '';
             document.getElementById('studentName').value = '';
             document.getElementById('phone').value = '';
         } catch (error) {
-            alert("දෝෂයක් සිදු විය: " + error.message);
+            console.error(error);
+            showStatus("❌ Save වුණේ නැත. දෝෂය: " + error.message, false);
         }
     });
 </script>
