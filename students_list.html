@@ -3,27 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>සියලුම සිසුන්ගේ ලැයිස්තුව - Teacher Panel</title>
+    <title>සියලුම සිසුන්ගේ ලැයිස්තුව & Filter</title>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
-        .search-box { width: 100%; padding: 12px; font-size: 1em; margin-bottom: 20px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #2C3E50, #4CA1AF); min-height: 100vh; }
+        .container { max-width: 1050px; margin: auto; background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        h2 { color: #2C3E50; text-align: center; margin-top: 0; }
+        
+        .filter-section { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; background: #eef2f5; padding: 15px; border-radius: 10px; }
+        .filter-section input, .filter-section select { flex: 1; min-width: 180px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6; }
-        th { background-color: #007bff; color: white; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #dee2e6; font-size: 0.9em; }
+        th { background: linear-gradient(45deg, #007bff, #00c6ff); color: white; }
         tr:hover { background-color: #f1f3f5; }
-        .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; }
-        .btn-edit { background-color: #ffc107; color: #212529; }
-        .btn-delete { background-color: #dc3545; }
-        .btn-save { background-color: #28a745; }
-        .btn-cancel { background-color: #6c757d; }
-        input[type="text"] { width: 90%; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        .btn { padding: 6px 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 0.85em; }
+        .btn-edit { background: linear-gradient(45deg, #ffc107, #fd7e14); color: #212529; }
+        .btn-delete { background: linear-gradient(45deg, #dc3545, #bd2130); }
+        .btn-qr { background: linear-gradient(45deg, #6f42c1, #a100f4); }
+        .btn-save { background: linear-gradient(45deg, #28a745, #20c997); }
+        .btn-cancel { background: linear-gradient(45deg, #6c757d, #495057); }
+        .badge { padding: 4px 8px; border-radius: 12px; font-weight: bold; font-size: 0.8em; color: white; }
+        .badge-paid { background-color: #28a745; }
+        .badge-pending { background-color: #ffc107; color: #212529; }
+        
         .nav-links { margin-top: 20px; text-align: center; }
         .nav-links a { margin: 0 10px; text-decoration: none; color: #007bff; font-weight: 600; }
-        #statusMsg { padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; font-weight: bold; }
+        #statusMsg { padding: 10px; border-radius: 8px; display: none; margin-bottom: 15px; font-weight: bold; }
         .success { background-color: #d4edda; color: #155724; }
         .error { background-color: #f8d7da; color: #721c24; }
     </style>
@@ -31,11 +39,19 @@
 <body>
 
 <div class="container">
-    <h2>සියලුම සිසුන්ගේ ලැයිස්තුව</h2>
+    <h2>👥 සියලුම සිසුන්ගේ ලැයිස්තුව & Filter Panel</h2>
     
     <div id="statusMsg"></div>
 
-    <input type="text" id="searchInput" class="search-box" placeholder="නමින් හෝ ID එකෙන් සොයන්න (Search)...">
+    <div class="filter-section">
+        <input type="text" id="searchInput" placeholder="🔍 නමින් හෝ ID එකෙන් සොයන්න...">
+        <input type="month" id="filterMonth">
+        <select id="filterFeeStatus">
+            <option value="ALL">සියලුම ගාස්තු තත්ත්ව (All Fee Status)</option>
+            <option value="Paid">ගෙවා ඇති අය පමණක් (Paid)</option>
+            <option value="Pending">ගෙවීමට ඇති අය පමණක් (Pending)</option>
+        </select>
+    </div>
 
     <table>
         <thead>
@@ -43,11 +59,12 @@
                 <th>ID</th>
                 <th>නම</th>
                 <th>දුරකථන අංකය</th>
+                <th>අදාළ මාසයේ ගාස්තු</th>
                 <th>ක්‍රියාමාර්ග (Actions)</th>
             </tr>
         </thead>
         <tbody id="studentsTable">
-            <tr><td colspan="4" style="text-align:center;">ලෝඩ් වෙමින් පවතී...</td></tr>
+            <tr><td colspan="5" style="text-align:center;">ලෝඩ් වෙමින් පවතී...</td></tr>
         </tbody>
     </table>
 
@@ -74,6 +91,7 @@
     const database = firebase.database();
 
     let allStudents = {};
+    document.getElementById('filterMonth').value = new Date().toISOString().slice(0, 7);
 
     function showStatus(msg, isSuccess) {
         const statusDiv = document.getElementById('statusMsg');
@@ -85,33 +103,63 @@
 
     database.ref('students').on('value', (snapshot) => {
         allStudents = snapshot.val() || {};
-        renderTable(allStudents);
+        applyFilters();
     });
+
+    function applyFilters() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const selectedMonth = document.getElementById('filterMonth').value;
+        const feeStatus = document.getElementById('filterFeeStatus').value;
+
+        const filtered = {};
+
+        for (let id in allStudents) {
+            const student = allStudents[id];
+            const matchesQuery = id.toLowerCase().includes(query) || student.name.toLowerCase().includes(query) || student.phone.includes(query);
+            
+            const monthFee = (student.fees && student.fees[selectedMonth]) ? student.fees[selectedMonth] : "Pending";
+            const matchesFee = (feeStatus === "ALL") || (feeStatus === monthFee);
+
+            if (matchesQuery && matchesFee) {
+                filtered[id] = { ...student, currentMonthStatus: monthFee };
+            }
+        }
+        renderTable(filtered);
+    }
 
     function renderTable(data) {
         const tbody = document.getElementById('studentsTable');
         tbody.innerHTML = '';
 
         if (Object.keys(data).length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">සිසුන් කිසිවෙකු සොයාගත නොහැකි විය.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">සිසුන් කිසිවෙකු සොයාගත නොහැකි විය.</td></tr>';
             return;
         }
 
         for (let id in data) {
             const student = data[id];
+            const badgeClass = student.currentMonthStatus === "Paid" ? "badge-paid" : "badge-pending";
+            const badgeText = student.currentMonthStatus === "Paid" ? "Paid ✅" : "Pending ⚠️";
+
             const tr = document.createElement('tr');
             tr.id = `row-${id}`;
             tr.innerHTML = `
                 <td><strong>${id}</strong></td>
                 <td class="stu-name">${student.name}</td>
                 <td class="stu-phone">${student.phone}</td>
+                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
                 <td>
+                    <button class="btn btn-qr" onclick="getQR('${id}', '${student.name}')">QR Card 🎴</button>
                     <button class="btn btn-edit" onclick="editRow('${id}')">Edit ✏️</button>
                     <button class="btn btn-delete" onclick="deleteStudent('${id}')">Delete 🗑️</button>
                 </td>
             `;
             tbody.appendChild(tr);
         }
+    }
+
+    function getQR(id, name) {
+        window.location.href = `qr_generator.html?id=${id}&name=${encodeURIComponent(name)}`;
     }
 
     function editRow(id) {
@@ -125,7 +173,7 @@
         nameCell.innerHTML = `<input type="text" id="edit-name-${id}" value="${currentName}">`;
         phoneCell.innerHTML = `<input type="text" id="edit-phone-${id}" value="${currentPhone}">`;
 
-        const actionCell = row.children[3];
+        const actionCell = row.children[4];
         actionCell.innerHTML = `
             <button class="btn btn-save" onclick="saveRow('${id}')">Save 💾</button>
             <button class="btn btn-cancel" onclick="cancelEdit('${id}', '${currentName}', '${currentPhone}')">Cancel ✖</button>
@@ -152,13 +200,7 @@
     }
 
     function cancelEdit(id, name, phone) {
-        const row = document.getElementById(`row-${id}`);
-        row.querySelector('.stu-name').innerText = name;
-        row.querySelector('.stu-phone').innerText = phone;
-        row.children[3].innerHTML = `
-            <button class="btn btn-edit" onclick="editRow('${id}')">Edit ✏️</button>
-            <button class="btn btn-delete" onclick="deleteStudent('${id}')">Delete 🗑️</button>
-        `;
+        applyFilters();
     }
 
     function deleteStudent(id) {
@@ -169,18 +211,9 @@
         }
     }
 
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const filtered = {};
-
-        for (let id in allStudents) {
-            const student = allStudents[id];
-            if (id.toLowerCase().includes(query) || student.name.toLowerCase().includes(query) || student.phone.includes(query)) {
-                filtered[id] = student;
-            }
-        }
-        renderTable(filtered);
-    });
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('filterMonth').addEventListener('change', applyFilters);
+    document.getElementById('filterFeeStatus').addEventListener('change', applyFilters);
 </script>
 
 </body>

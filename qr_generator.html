@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student ID Card Generator</title>
+    <title>Student ID Card Generator & Search</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #eef2f5; }
-        .wrapper { max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; margin-bottom: 20px; }
-        input { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 6px; }
-        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
-        .btn-gen { background-color: #007bff; }
-        .btn-gen:hover { background-color: #0056b3; }
-        .btn-jpg { background-color: #28a745; display: none; }
-        .btn-pdf { background-color: #dc3545; display: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; background: linear-gradient(135deg, #4e54c8, #8f94fb); min-height: 100vh; }
+        .wrapper { max-width: 480px; margin: auto; background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        h2 { color: #4e54c8; margin-top: 0; }
+        input, select { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; }
+        button { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
+        .btn-gen { background: linear-gradient(45deg, #4e54c8, #8f94fb); }
+        .btn-gen:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-jpg { background: linear-gradient(45deg, #ff9900, #ff5500); display: none; }
+        .btn-pdf { background: linear-gradient(45deg, #dc3545, #bd2130); display: none; }
         
         .card-container { display: flex; justify-content: center; margin-top: 25px; }
         #idCard {
@@ -25,7 +27,7 @@
             border-radius: 14px;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             color: white;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             position: relative;
             box-sizing: border-box;
             padding: 12px 15px;
@@ -34,77 +36,31 @@
             justify-content: space-between;
             overflow: hidden;
         }
-        #idCard::before {
-            content: "";
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 140px;
-            height: 140px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 50%;
-        }
-        .card-header {
-            font-size: 0.85em;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #00d2ff;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-            padding-bottom: 5px;
-            margin-bottom: 5px;
-            text-align: left;
-        }
-        .card-body {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .student-details {
-            text-align: left;
-            max-width: 170px;
-        }
-        .student-name {
-            font-size: 1em;
-            font-weight: bold;
-            color: #ffffff;
-            margin-bottom: 4px;
-            word-wrap: break-word;
-        }
-        .student-id {
-            font-size: 0.85em;
-            color: #f1c40f;
-            font-weight: 600;
-        }
-        .qr-box {
-            background: white;
-            padding: 5px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .card-footer {
-            font-size: 0.75em;
-            font-weight: bold;
-            color: #00d2ff;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            padding-top: 4px;
-            text-align: right;
-            letter-spacing: 0.5px;
-        }
-        .back-link { text-align: center; display: block; margin-top: 20px; color: #007bff; text-decoration: none; }
+        .card-header { font-size: 0.85em; font-weight: 700; letter-spacing: 1px; color: #00d2ff; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; text-align: left; }
+        .card-body { display: flex; align-items: center; justify-content: space-between; }
+        .student-details { text-align: left; max-width: 170px; }
+        .student-name { font-size: 0.95em; font-weight: bold; color: #ffffff; margin-bottom: 4px; }
+        .student-id { font-size: 0.85em; color: #f1c40f; font-weight: 600; }
+        .qr-box { background: white; padding: 4px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .card-footer { font-size: 0.75em; font-weight: bold; color: #00d2ff; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px; text-align: right; }
+        
+        .back-link { text-align: center; display: block; margin-top: 20px; color: #4e54c8; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
-    <h2>Student ID Card Generator</h2>
+    <h2>🪪 ID Card & QR Retrieval</h2>
     
-    <input type="text" id="stuName" placeholder="ශිෂ්‍යයාගේ නම (උදා: Kasun Perera)">
+    <label>ශිෂ්‍යයා තෝරන්න නැතහොත් ID එක ගහන්න:</label>
+    <select id="studentSelect">
+        <option value="">-- ලියාපදිංචි සිසුන්ගෙන් තෝරන්න --</option>
+    </select>
+
     <input type="text" id="stuId" placeholder="ශිෂ්‍ය ID එක (උදා: STU1001)">
+    <input type="text" id="stuName" placeholder="ශිෂ්‍යයාගේ නම">
     
-    <button class="btn-gen" id="genBtn">ID Card එක සාදන්න</button>
+    <button class="btn-gen" id="genBtn">ID Card එක නැවත ලබාගන්න 🎴</button>
 
     <div class="card-container">
         <div id="idCard">
@@ -122,14 +78,51 @@
         </div>
     </div>
 
-    <button class="btn-jpg" id="downloadJpg">Download as JPG Image 🖼️</button>
-    <button class="btn-pdf" id="downloadPdf">Download as PDF 📄</button>
+    <div style="display: flex; justify-content: space-between; gap: 10px;">
+        <button class="btn-jpg" id="downloadJpg">Download JPG 🖼️</button>
+        <button class="btn-pdf" id="downloadPdf">Download PDF 📄</button>
+    </div>
 
     <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
 </div>
 
 <script>
-    let qrcode = new QRCode(document.getElementById("qrcode"), { width: 85, height: 85 });
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    let qrcode = new QRCode(document.getElementById("qrcode"), { width: 80, height: 80 });
+    let studentsData = {};
+
+    // Load registered students into dropdown
+    database.ref('students').on('value', (snapshot) => {
+        studentsData = snapshot.val() || {};
+        const select = document.getElementById('studentSelect');
+        select.innerHTML = '<option value="">-- ලියාපදිංචි සිසුන්ගෙන් තෝරන්න --</option>';
+        for(let id in studentsData) {
+            let opt = document.createElement('option');
+            opt.value = id;
+            opt.innerText = `${id} - ${studentsData[id].name}`;
+            select.appendChild(opt);
+        }
+    });
+
+    document.getElementById('studentSelect').addEventListener('change', (e) => {
+        const id = e.target.value;
+        if(id && studentsData[id]) {
+            document.getElementById('stuId').value = id;
+            document.getElementById('stuName').value = studentsData[id].name;
+        }
+    });
 
     document.getElementById('genBtn').addEventListener('click', () => {
         const name = document.getElementById('stuName').value.trim();

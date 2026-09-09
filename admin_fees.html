@@ -8,18 +8,19 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; }
-        .container { max-width: 450px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; text-align: center; }
-        label { font-weight: bold; color: #495057; display: block; margin-top: 12px; }
-        input, select, button { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 6px; }
-        button { background-color: #17a2b8; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-qr { background-color: #6c757d; margin-bottom: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #f857a6, #ff5858); min-height: 100vh; }
+        .container { max-width: 480px; margin: auto; padding: 25px; background: rgba(255, 255, 255, 0.95); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        h2 { color: #d63384; text-align: center; margin-top: 0; }
+        label { font-weight: bold; color: #333; display: block; margin-top: 12px; }
+        input, select, button { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; }
+        .btn-action { background: linear-gradient(45deg, #007bff, #00c6ff); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-qr { background: linear-gradient(45deg, #6f42c1, #a100f4); color: white; margin-bottom: 10px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-action:hover, .btn-qr:hover { opacity: 0.9; transform: translateY(-2px); }
         #reader { width: 100%; margin-top: 10px; display: none; border-radius: 8px; overflow: hidden; }
-        .student-info { margin-top: 15px; padding: 15px; background: #e9ecef; border-radius: 8px; display: none; text-align: left; }
-        .save-btn { background-color: #28a745; margin-top: 12px; }
-        .back-link { text-align: center; display: block; margin-top: 15px; color: #007bff; text-decoration: none; }
-        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; }
+        .student-info { margin-top: 15px; padding: 15px; background: #f1f3f5; border-radius: 10px; display: none; text-align: left; }
+        .save-btn { background: linear-gradient(45deg, #28a745, #20c997); color: white; margin-top: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .back-link { text-align: center; display: block; margin-top: 15px; color: #d63384; text-decoration: none; font-weight: bold; }
+        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 8px; display: none; font-weight: bold; font-size: 0.9em; }
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
@@ -27,14 +28,14 @@
 <body>
 
 <div class="container">
-    <h2>ගාස්තු තත්ත්වය Update කිරීම</h2>
+    <h2>💳 ගාස්තු තත්ත්වය Update කිරීම</h2>
 
     <button class="btn-qr" id="qrBtn" type="button">QR Code Scan කරන්න 📷</button>
     <div id="reader"></div>
 
     <label>ශිෂ්‍ය ID එක ඇතුළත් කරන්න:</label>
     <input type="text" id="searchId" placeholder="උදා: STU1001">
-    <button id="searchBtn" type="button">සොයන්න</button>
+    <button class="btn-action" id="searchBtn" type="button">සොයන්න 🔍</button>
 
     <div id="statusMsg"></div>
 
@@ -47,11 +48,11 @@
 
         <label>ගාස්තු තත්ත්වය:</label>
         <select id="updateFeeStatus">
-            <option value="Paid">ගෙවා ඇත (Paid)</option>
-            <option value="Pending">ගෙවීමට ඇත (Pending)</option>
+            <option value="Paid">ගෙවා ඇත (Paid) ✅</option>
+            <option value="Pending">ගෙවීමට ඇත (Pending) ⚠️</option>
         </select>
 
-        <button class="save-btn" id="saveFeeBtn" type="button">තත්ත්වය වෙනස් කර Message යවන්න</button>
+        <button class="save-btn" id="saveFeeBtn" type="button">තත්ත්වය වෙනස් කර Message යවන්න 📩</button>
     </div>
 
     <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
