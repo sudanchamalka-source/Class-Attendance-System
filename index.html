@@ -13,7 +13,7 @@
         h2 { color: #2c3e50; }
         #reader { width: 100%; max-width: 320px; margin: 20px auto; border-radius: 8px; overflow: hidden; }
         #result { font-weight: bold; font-size: 1.1em; color: #007bff; margin-top: 15px; }
-        .nav-links { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-around; }
+        .nav-links { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; }
         .nav-links a { text-decoration: none; color: #495057; font-weight: 600; font-size: 0.9em; }
         #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; }
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -32,6 +32,7 @@
         <a href="register.html">ලියාපදිංචිය</a>
         <a href="qr_generator.html">QR Generator</a>
         <a href="admin_fees.html">Admin Panel</a>
+        <a href="students_list.html">සියලු සිසුන්</a>
     </div>
 </div>
 
@@ -60,12 +61,12 @@
 
     function onScanSuccess(decodedText) {
         if(!isScanning) return;
-        isScanning = false; // Prevent multiple scans at once
+        isScanning = false;
 
         document.getElementById('result').innerText = "Scan කළ අංකය: " + decodedText;
         markAttendance(decodedText);
 
-        setTimeout(() => { isScanning = true; }, 3000); // Reset scanner delay
+        setTimeout(() => { isScanning = true; }, 3000);
     }
 
     function markAttendance(studentId) {
@@ -93,12 +94,20 @@
                     const statusText = monthFee === "Paid" ? "ගෙවා ඇත ✅" : "ගෙවීමට ඇත ⚠️";
                     
                     const message = encodeURIComponent(
-                        `*පන්ති පැමිණීමේ සටහන*\n\n` +
-                        `නම: ${student.name}\n` +
-                        `දිනය: ${date}\n` +
-                        `වේලාව: ${time}\n` +
-                        `${month} මාසයේ ගාස්තු: ${statusText}\n\n` +
-                        `ස්තූතියි!`
+                        `*පන්ති පැමිණීමේ සටහන*
+
+` +
+                        `නම: ${student.name}
+` +
+                        `දිනය: ${date}
+` +
+                        `වේලාව: ${time}
+` +
+                        `${month} මාසයේ ගාස්තු: ${statusText}
+
+` +
+                        `ස්තූතියි!
+- R.M.S.Chamalka Sir`
                     );
                     
                     window.location.href = `https://wa.me/${student.phone}?text=${message}`;

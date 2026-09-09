@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>සියලුම සිසුන්ගේ ලැයිස්තුව - Teacher Panel</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
+        .search-box { width: 100%; padding: 12px; font-size: 1em; margin-bottom: 20px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f1f3f5; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-edit { background-color: #ffc107; color: #212529; }
+        .btn-delete { background-color: #dc3545; }
+        .btn-save { background-color: #28a745; }
+        .btn-cancel { background-color: #6c757d; }
+        input[type="text"] { width: 90%; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        .nav-links { margin-top: 20px; text-align: center; }
+        .nav-links a { margin: 0 10px; text-decoration: none; color: #007bff; font-weight: 600; }
+        #statusMsg { padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; font-weight: bold; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>සියලුම සිසුන්ගේ ලැයිස්තුව</h2>
+    
+    <div id="statusMsg"></div>
+
+    <input type="text" id="searchInput" class="search-box" placeholder="නමින් හෝ ID එකෙන් සොයන්න (Search)...">
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>නම</th>
+                <th>දුරකථන අංකය</th>
+                <th>ක්‍රියාමාර්ග (Actions)</th>
+            </tr>
+        </thead>
+        <tbody id="studentsTable">
+            <tr><td colspan="4" style="text-align:center;">ලෝඩ් වෙමින් පවතී...</td></tr>
+        </tbody>
+    </table>
+
+    <div class="nav-links">
+        <a href="index.html">← Attendance Scanner</a> |
+        <a href="register.html">නව සිසුවෙකු ඇතුළත් කිරීම</a> |
+        <a href="admin_fees.html">Admin Fee Panel</a>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    let allStudents = {};
+
+    function showStatus(msg, isSuccess) {
+        const statusDiv = document.getElementById('statusMsg');
+        statusDiv.style.display = 'block';
+        statusDiv.className = isSuccess ? 'success' : 'error';
+        statusDiv.innerText = msg;
+        setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
+    }
+
+    database.ref('students').on('value', (snapshot) => {
+        allStudents = snapshot.val() || {};
+        renderTable(allStudents);
+    });
+
+    function renderTable(data) {
+        const tbody = document.getElementById('studentsTable');
+        tbody.innerHTML = '';
+
+        if (Object.keys(data).length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">සිසුන් කිසිවෙකු සොයාගත නොහැකි විය.</td></tr>';
+            return;
+        }
+
+        for (let id in data) {
+            const student = data[id];
+            const tr = document.createElement('tr');
+            tr.id = `row-${id}`;
+            tr.innerHTML = `
+                <td><strong>${id}</strong></td>
+                <td class="stu-name">${student.name}</td>
+                <td class="stu-phone">${student.phone}</td>
+                <td>
+                    <button class="btn btn-edit" onclick="editRow('${id}')">Edit ✏️</button>
+                    <button class="btn btn-delete" onclick="deleteStudent('${id}')">Delete 🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+    }
+
+    function editRow(id) {
+        const row = document.getElementById(`row-${id}`);
+        const nameCell = row.querySelector('.stu-name');
+        const phoneCell = row.querySelector('.stu-phone');
+
+        const currentName = nameCell.innerText;
+        const currentPhone = phoneCell.innerText;
+
+        nameCell.innerHTML = `<input type="text" id="edit-name-${id}" value="${currentName}">`;
+        phoneCell.innerHTML = `<input type="text" id="edit-phone-${id}" value="${currentPhone}">`;
+
+        const actionCell = row.children[3];
+        actionCell.innerHTML = `
+            <button class="btn btn-save" onclick="saveRow('${id}')">Save 💾</button>
+            <button class="btn btn-cancel" onclick="cancelEdit('${id}', '${currentName}', '${currentPhone}')">Cancel ✖</button>
+        `;
+    }
+
+    function saveRow(id) {
+        const newName = document.getElementById(`edit-name-${id}`).value.trim();
+        const newPhone = document.getElementById(`edit-phone-${id}`).value.trim();
+
+        if (!newName || !newPhone) {
+            showStatus("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න!", false);
+            return;
+        }
+
+        database.ref('students/' + id).update({
+            name: newName,
+            phone: newPhone
+        }).then(() => {
+            showStatus("✅ විස්තර සාර්ථකව Update විය!", true);
+        }).catch((err) => {
+            showStatus("❌ දෝෂයක් සිදු විය: " + err.message, false);
+        });
+    }
+
+    function cancelEdit(id, name, phone) {
+        const row = document.getElementById(`row-${id}`);
+        row.querySelector('.stu-name').innerText = name;
+        row.querySelector('.stu-phone').innerText = phone;
+        row.children[3].innerHTML = `
+            <button class="btn btn-edit" onclick="editRow('${id}')">Edit ✏️</button>
+            <button class="btn btn-delete" onclick="deleteStudent('${id}')">Delete 🗑️</button>
+        `;
+    }
+
+    function deleteStudent(id) {
+        if (confirm(`ඔබට ${id} ශිෂ්‍යයාගේ විස්තර පද්ධතියෙන් ඉවත් කිරීමට අවශ්‍යද?`)) {
+            database.ref('students/' + id).remove().then(() => {
+                showStatus("🗑️ ශිෂ්‍යයා ඉවත් කරන ලදී!", true);
+            });
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = {};
+
+        for (let id in allStudents) {
+            const student = allStudents[id];
+            if (id.toLowerCase().includes(query) || student.name.toLowerCase().includes(query) || student.phone.includes(query)) {
+                filtered[id] = student;
+            }
+        }
+        renderTable(filtered);
+    });
+</script>
+
+</body>
+</html>

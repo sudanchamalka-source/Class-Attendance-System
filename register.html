@@ -3,47 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ශිෂ්‍ය ලියාපදිංචිය - Class Management</title>
+    <title>ශිෂ්‍ය ලියාපදිංචිය</title>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f8f9fa; }
-        .form-container { max-width: 450px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; text-align: center; }
-        label { font-weight: bold; color: #495057; display: block; margin-top: 10px; }
-        input, select, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 6px; }
-        button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 1em; }
-        button:hover { background-color: #218838; }
+        .container { max-width: 450px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 20px; }
+        label { font-weight: bold; color: #495057; display: block; margin-top: 12px; }
+        input, button { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 6px; }
+        button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
         .back-link { text-align: center; display: block; margin-top: 15px; color: #007bff; text-decoration: none; }
-        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; word-break: break-word; }
+        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 6px; display: none; font-weight: bold; font-size: 0.9em; }
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2>නව ශිෂ්‍යයෙකු ඇතුළත් කිරීම</h2>
+<div class="container">
+    <h2>ශිෂ්‍ය ලියාපදිංචිය</h2>
     
-    <label>ශිෂ්‍ය ID (QR Code එකේ අංකය):</label>
-    <input type="text" id="studentId" placeholder="උදා: STU1001">
+    <label>ශිෂ්‍ය ID එක:</label>
+    <input type="text" id="stuId" placeholder="උදා: STU1001">
 
-    <label>සම්පූර්ණ නම:</label>
-    <input type="text" id="studentName" placeholder="උදා: කසුන් පෙරේරා">
+    <label>ශිෂ්‍යයාගේ නම:</label>
+    <input type="text" id="stuName" placeholder="උදා: Kasun Perera">
 
-    <label>WhatsApp දුරකථන අංකය (සමඟ 94):</label>
-    <input type="text" id="phone" placeholder="9477XXXXXXX">
+    <label>මව්පියන්ගේ WhatsApp අංකය (රටේ කේතය සමඟ):</label>
+    <input type="text" id="stuPhone" placeholder="උදා: 94771234567">
 
-    <label>වත්මන් මාසය:</label>
-    <input type="month" id="regMonth">
-
-    <label>මාසික ගාස්තු ගෙවීම් තත්ත්වය:</label>
-    <select id="feeStatus">
-        <option value="Paid">ගෙවා ඇත (Paid)</option>
-        <option value="Pending">ගෙවීමට ඇත (Pending)</option>
-    </select>
-
-    <button type="button" id="regBtn">දත්ත ඇතුළත් කරන්න</button>
+    <button id="registerBtn" type="button">ලියාපදිංචි කරන්න</button>
 
     <div id="statusMsg"></div>
 
@@ -65,8 +55,6 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    document.getElementById('regMonth').value = new Date().toISOString().slice(0, 7);
-
     function showStatus(msg, isSuccess) {
         const statusDiv = document.getElementById('statusMsg');
         statusDiv.style.display = 'block';
@@ -74,37 +62,32 @@
         statusDiv.innerText = msg;
     }
 
-    document.getElementById('regBtn').addEventListener('click', function() {
-        const id = document.getElementById('studentId').value.trim();
-        const name = document.getElementById('studentName').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const month = document.getElementById('regMonth').value;
-        const feeStatus = document.getElementById('feeStatus').value;
+    document.getElementById('registerBtn').addEventListener('click', () => {
+        const id = document.getElementById('stuId').value.trim();
+        const name = document.getElementById('stuName').value.trim();
+        let phone = document.getElementById('stuPhone').value.trim();
 
-        if (!id || !name || !phone || !month) {
-            showStatus("කරුණාකර සියලු විස්තර ඇතුළත් කරන්න!", false);
+        if (!id || !name || !phone) {
+            showStatus("කරුණාකර සියලුම තොරතුරු ඇතුළත් කරන්න!", false);
             return;
         }
 
-        showStatus("දත්ත ඇතුළත් කරමින් පවති... කරුණාකර රැඳී සිටින්න.", true);
+        // Clean phone number format
+        phone = phone.replace('+', '').replace(/\s+/g, '');
+        if (phone.startsWith('0')) {
+            phone = '94' + phone.substring(1);
+        }
 
-        let studentData = {
+        database.ref('students/' + id).set({
             name: name,
-            phone: phone,
-            fees: {}
-        };
-        studentData.fees[month] = feeStatus;
-
-        database.ref('students/' + id).set(studentData)
-        .then(function() {
+            phone: phone
+        }).then(() => {
             showStatus("✅ ශිෂ්‍යයා සාර්ථකව ලියාපදිංචි කරන ලදී!", true);
-            document.getElementById('studentId').value = '';
-            document.getElementById('studentName').value = '';
-            document.getElementById('phone').value = '';
-        })
-        .catch(function(error) {
-            console.error(error);
-            showStatus("❌ Save වුණේ නැත. දෝෂය: " + error.message, false);
+            document.getElementById('stuId').value = '';
+            document.getElementById('stuName').value = '';
+            document.getElementById('stuPhone').value = '';
+        }).catch((error) => {
+            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
         });
     });
 </script>
