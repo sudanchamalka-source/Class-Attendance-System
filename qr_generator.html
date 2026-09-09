@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+    authDomain: "class-management-system-8c1a1.firebaseapp.com",
+    projectId: "class-management-system-8c1a1",
+    storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+    messagingSenderId: "759521896885",
+    appId: "1:759521896885:web:ab834180d9ab45968791fc",
+    measurementId: "G-XZW2VLFXT2"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator - Student ID</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f8f9fa; }
+        .box { max-width: 350px; margin: auto; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ced4da; border-radius: 6px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; width: 100%; margin-top: 5px; }
+        button:hover { background-color: #0056b3; }
+        #qrcode { margin-top: 20px; display: flex; justify-content: center; }
+        .print-btn { background-color: #28a745; margin-top: 15px; }
+        .back-link { text-align: center; display: block; margin-top: 15px; color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Student QR Generator</h2>
+    <input type="text" id="studentIdInput" placeholder="ශිෂ්‍ය ID එක (උදා: STU1001)">
+    <button onclick="generateQR()">QR Code එක සාදන්න</button>
+
+    <div id="qrcode"></div>
+    <button class="print-btn" onclick="window.print()" style="display:none;" id="printBtn">Print කරන්න</button>
+    <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
+</div>
+
+<script>
+    let qrcode = new QRCode(document.getElementById("qrcode"), {
+        width: 200,
+        height: 200
+    });
+
+    function generateQR() {
+        const idText = document.getElementById("studentIdInput").value.trim();
+        if (idText === "") {
+            alert("කරුණාකර ශිෂ්‍ය ID අංකය ඇතුළත් කරන්න!");
+            return;
+        }
+        qrcode.makeCode(idText);
+        document.getElementById("printBtn").style.display = "block";
+    }
+</script>
+
+</body>
+</html>
