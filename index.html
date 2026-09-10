@@ -10,11 +10,26 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; min-height: 100vh; }
         .container { max-width: 450px; margin: auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
         .logo { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; }
         #reader { width: 100%; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 2px solid #003366; }
-        #result { font-weight: bold; font-size: 1.1em; margin-top: 15px; padding: 10px; border-radius: 8px; }
+        #result { font-weight: bold; font-size: 1em; margin-top: 15px; }
+        
+        .whatsapp-btn {
+            background-color: #25D366;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+            transition: 0.2s;
+        }
+        .whatsapp-btn:hover { background-color: #1ebc57; }
+
         .nav-links { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
         .nav-links a { text-decoration: none; background: #f0f4f8; padding: 10px; border-radius: 8px; color: #003366; font-weight: bold; }
     </style>
@@ -52,15 +67,47 @@
 
     function onScanSuccess(decodedText) {
         const date = new Date().toISOString().split('T')[0];
+        const time = new Date().toLocaleTimeString();
         const res = document.getElementById('result');
         
-        firebase.database().ref('attendance/' + date + '/' + decodedText).set({
-            time: new Date().toLocaleTimeString(),
-            status: "Present"
-        }).then(() => {
-            res.style.background = "#d4edda";
-            res.style.color = "#155724";
-            res.innerText = `✅ ID: ${decodedText} පැමිණීම සාර්ථකව සටහන් විය!`;
+        // 1. Firebase එකෙන් ශිෂ්‍යයාගේ විස්තර ලබා ගැනීම
+        firebase.database().ref('students/' + decodedText).once('value', (snapshot) => {
+            if(snapshot.exists()) {
+                const student = snapshot.val();
+                let phone = student.phone ? student.phone.trim() : "";
+                const name = student.name || decodedText;
+
+                // Phone number Format සැකසීම (077XXXXXXX ➔ 9477XXXXXXX)
+                if (phone.startsWith("0")) {
+                    phone = "94" + phone.substring(1);
+                }
+
+                // 2. පැමිණීම Database එකට Save කිරීම
+                firebase.database().ref('attendance/' + date + '/' + decodedText).set({
+                    time: time,
+                    status: "Present"
+                }).then(() => {
+                    // WhatsApp Message එක පිළියෙල කිරීම
+                    const msg = `Dear Parent, Your child *${name}* (${decodedText}) has safely arrived at *English with Sudan Sir* class today (${date}) at ${time}.`;
+                    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+
+                    // UI එක යාවත්කාලීන කිරීම
+                    res.innerHTML = `
+                        <div style="background:#d4edda; color:#155724; padding:15px; border-radius:10px; border:1px solid #c3e6cb;">
+                            ✅ <strong>${name}</strong> පැමිණීම සටහන් විය!<br><br>
+                            <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">
+                                📲 WhatsApp පණිවිඩය යවන්න
+                            </a>
+                        </div>
+                    `;
+                });
+            } else {
+                res.innerHTML = `
+                    <div style="background:#f8d7da; color:#721c24; padding:12px; border-radius:8px;">
+                        ❌ <strong>${decodedText}</strong> - මෙවැනි ශිෂ්‍යයෙකු නොමැත!
+                    </div>
+                `;
+            }
         });
     }
 
