@@ -4,33 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Registration - English with Sudan Sir</title>
-    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 450px; margin: auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
-        .logo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
-        h2 { color: #003366; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 450px; margin: auto; background: #fff; padding: 25px; border-radius: 16px; text-align: center; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
         #cardArea { display: none; margin-top: 20px; padding: 15px; border: 2px dashed #003366; border-radius: 12px; background: #f9f9f9; }
         #qrcode { display: flex; justify-content: center; margin: 15px 0; }
-        .print-btn { background: #0056b3; }
         a { text-decoration: none; color: #0056b3; font-weight: bold; display: inline-block; margin-top: 15px; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <img src="logo.png" alt="Logo" class="logo">
     <h2>📝 ශිෂ්‍ය ලියාපදිංචිය</h2>
-
     <input type="text" id="stuId" placeholder="ශිෂ්‍ය ID (උදා: STU1001)">
     <input type="text" id="stuName" placeholder="සම්පූර්ණ නම">
-    <input type="text" id="stuPhone" placeholder="WhatsApp දුරකථන අංකය (උදා: 94771234567)">
+    <input type="text" id="stuPhone" placeholder="WhatsApp දුරකථන අංකය">
     <button onclick="registerStudent()">ලියාපදිංචි කරන්න</button>
 
     <div id="cardArea">
@@ -38,12 +31,10 @@
         <p style="margin:5px 0;"><strong id="cardName"></strong></p>
         <p style="margin:0; color:#666;">ID: <span id="cardId"></span></p>
         <div id="qrcode"></div>
-        <button class="print-btn" onclick="window.print()">🖨️ ID Card එක Print කරන්න</button>
+        <button onclick="window.print()" style="background:#0056b3;">🖨️ ID Card Print</button>
     </div>
-
     <a href="index.html">← Scanner වෙත ආපසු යන්න</a>
 </div>
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
@@ -64,10 +55,7 @@
 
         if(!id || !name || !phone) { alert('සියලු තොරතුරු ඇතුළත් කරන්න!'); return; }
 
-        firebase.database().ref('students/' + id).set({
-            name: name,
-            phone: phone
-        }).then(() => {
+        firebase.database().ref('students/' + id).set({ name: name, phone: phone }).then(() => {
             alert('ලියාපදිංචිය සාර්ථකයි!');
             document.getElementById('cardName').innerText = name;
             document.getElementById('cardId').innerText = id;
