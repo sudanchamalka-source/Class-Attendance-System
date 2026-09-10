@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - English with Sudan Sir</title>
+    <title>Admin Panel - English with Sudan Sir</title>
     <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #eef2f5; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; min-height: 100vh; }
+        .container { max-width: 500px; margin: auto; background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
         h2 { color: #003366; text-align: center; margin-top: 0; }
         
-        /* Tab Styles */
+        /* Navigation Tabs */
         .tab-buttons { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
-        .tab-btn { flex: 1; padding: 12px; border: none; background: none; font-size: 1em; font-weight: bold; color: #666; cursor: pointer; transition: 0.3s; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: none; font-size: 1em; font-weight: bold; color: #666; cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; }
         .tab-btn.active { color: #0056b3; border-bottom: 3px solid #0056b3; }
         
         .tab-content { display: none; }
@@ -23,59 +24,72 @@
         label { font-weight: bold; display: block; margin-top: 12px; color: #444; }
         input, select, button { width: 100%; padding: 12px; margin: 6px 0 12px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 0.95em; }
         
-        /* Days Checkbox Group */
-        .day-checkboxes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0 15px 0; }
-        .day-box { border: 2px solid #0056b3; border-radius: 8px; padding: 10px; text-align: center; background: #f0f7ff; cursor: pointer; user-select: none; }
+        /* Day Tick Boxes */
+        .day-checkboxes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 10px 0 15px 0; }
+        .day-box { border: 2px solid #0056b3; border-radius: 8px; padding: 12px; text-align: center; background: #f0f7ff; cursor: pointer; user-select: none; font-weight: bold; color: #0056b3; transition: 0.2s; }
         .day-box input { display: none; }
-        .day-box.selected { background: #0056b3; color: white; font-weight: bold; }
+        .day-box.selected { background: #0056b3; color: white; }
 
+        #reader { width: 100%; max-width: 320px; margin: 10px auto; border-radius: 12px; overflow: hidden; border: 3px solid #28a745; }
+        
         .btn-submit { background: linear-gradient(45deg, #0056b3, #00aaff); color: white; font-weight: bold; border: none; cursor: pointer; }
         .btn-submit:hover { opacity: 0.9; }
+        .btn-fee { background: linear-gradient(45deg, #28a745, #20c997); }
+        
         a { text-decoration: none; color: #0056b3; display: block; text-align: center; margin-top: 15px; font-weight: bold; }
+        .status-msg { padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; display: none; margin-bottom: 10px; }
+        .success { background: #d4edda; color: #155724; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>🛠️ Admin Panel</h2>
+    <h2>🛠️ Admin Dashboard</h2>
 
     <!-- Navigation Tabs -->
     <div class="tab-buttons">
-        <button class="tab-btn active" onclick="switchTab('attendanceTab', this)">📅 Attendance</button>
-        <button class="tab-btn" onclick="switchTab('feeTab', this)">💳 Class Fee</button>
+        <button class="tab-btn active" onclick="switchTab('attendanceTab', this)">📅 පැමිණීම (Attendance)</button>
+        <button class="tab-btn" onclick="switchTab('feeTab', this)">💳 පන්ති ගාස්තු (Class Fee QR)</button>
     </div>
 
     <!-- TAB 1: Attendance Page -->
     <div id="attendanceTab" class="tab-content active">
+        <div id="attStatus" class="status-msg success"></div>
+
         <label>ශිෂ්‍ය ID අංකය:</label>
         <input type="text" id="attStuId" placeholder="උදා: STU1001">
 
-        <label>දිනය (Auto Selected):</label>
-        <input type="date" id="attDate">
+        <label>දිනය (ස්වයංක්‍රියව ඇඩ් වේ):</label>
+        <input type="date" id="attDate" readonly style="background-color: #e9ecef;">
 
-        <label>පන්ති දින සටහන (Tick Days):</label>
+        <label>පන්ති පැමිණි දිනය (Tick කරන්න):</label>
         <div class="day-checkboxes">
             <label class="day-box" id="labelDay1">
-                <input type="checkbox" id="day1" onchange="toggleBox('labelDay1', this)"> Day 1
+                <input type="checkbox" id="day1" onchange="toggleBox('labelDay1', this)"> 1 වෙනි දවස
             </label>
             <label class="day-box" id="labelDay2">
-                <input type="checkbox" id="day2" onchange="toggleBox('labelDay2', this)"> Day 2
+                <input type="checkbox" id="day2" onchange="toggleBox('labelDay2', this)"> 2 වෙනි දවස
             </label>
             <label class="day-box" id="labelDay3">
-                <input type="checkbox" id="day3" onchange="toggleBox('labelDay3', this)"> Day 3
+                <input type="checkbox" id="day3" onchange="toggleBox('labelDay3', this)"> 3 වෙනි දවස
             </label>
             <label class="day-box" id="labelDay4">
-                <input type="checkbox" id="day4" onchange="toggleBox('labelDay4', this)"> Day 4
+                <input type="checkbox" id="day4" onchange="toggleBox('labelDay4', this)"> 4 වෙනි දවස
             </label>
         </div>
 
-        <button class="btn-submit" onclick="saveAttendance()">පැමිණීම සටහන් කරන්න</button>
+        <button class="btn-submit" onclick="saveAttendance()">පැමිණීම සටහන් කරන්න 📌</button>
     </div>
 
-    <!-- TAB 2: Class Fee Page -->
+    <!-- TAB 2: Class Fee Page (With QR Scanner) -->
     <div id="feeTab" class="tab-content">
+        <div id="feeStatusMsg" class="status-msg success"></div>
+
+        <label>QR එක Scan කරන්න (හෝ ID එක ඇතුළත් කරන්න):</label>
+        <div id="reader"></div>
+
         <label>ශිෂ්‍ය ID අංකය:</label>
-        <input type="text" id="feeStuId" placeholder="උදා: STU1001">
+        <input type="text" id="feeStuId" placeholder="QR Scan කළ විට මෙහි සටහන් වේ">
 
         <label>අදාළ මාසය:</label>
         <input type="month" id="feeMonth">
@@ -86,10 +100,10 @@
             <option value="Pending">Pending (ගෙවීමට ඇත ⚠️)</option>
         </select>
 
-        <button class="btn-submit" style="background: linear-gradient(45deg, #28a745, #20c997);" onclick="saveFee()">ගාස්තු තත්ත්වය සුරකින්න</button>
+        <button class="btn-submit btn-fee" onclick="saveFee()">පන්ති ගාස්තු යාවත්කාලීන කරන්න 💳</button>
     </div>
 
-    <a href="index.html">← Scanner වෙත ආපසු යන්න</a>
+    <a href="index.html">← Attendance Scanner වෙත ආපසු යන්න</a>
 </div>
 
 <script>
@@ -105,15 +119,24 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    // Auto-set current date and month on load
+    // Auto Set Today's Date & Current Month
     document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('feeMonth').value = new Date().toISOString().slice(0, 7);
+
+    let qrScanner;
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         btn.classList.add('active');
+
+        // Start QR scanner when Class Fee tab is active
+        if(tabId === 'feeTab') {
+            startFeeQrScanner();
+        } else if(qrScanner) {
+            qrScanner.clear();
+        }
     }
 
     function toggleBox(labelId, elem) {
@@ -135,13 +158,23 @@
             day4: document.getElementById('day4').checked
         };
 
-        if(!id || !date) { alert('කරුණාකර ශිෂ්‍ය ID සහ දිනය ඇතුළත් කරන්න!'); return; }
+        if(!id) { alert('කරුණාකර ශිෂ්‍ය ID එක ඇතුළත් කරන්න!'); return; }
 
         firebase.database().ref('manual_attendance/' + date + '/' + id).set({
             days: days,
             timestamp: new Date().toLocaleTimeString()
         }).then(() => {
-            alert('පැමිණීම සාර්ථකව සටහන් විය!');
+            const msg = document.getElementById('attStatus');
+            msg.innerText = "✅ පැමිණීම සාර්ථකව සටහන් විය!";
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; }, 3000);
+        });
+    }
+
+    function startFeeQrScanner() {
+        qrScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 220 });
+        qrScanner.render((decodedText) => {
+            document.getElementById('feeStuId').value = decodedText;
         });
     }
 
@@ -150,10 +183,13 @@
         const month = document.getElementById('feeMonth').value;
         const status = document.getElementById('feeStatus').value;
 
-        if(!id || !month) { alert('කරුණාකර ශිෂ්‍ය ID සහ මාසය ඇතුළත් කරන්න!'); return; }
+        if(!id || !month) { alert('කරුණාකර ශිෂ්‍ය ID එක සහ මාසය ඇතුළත් කරන්න!'); return; }
 
         firebase.database().ref('students/' + id + '/fees/' + month).set(status).then(() => {
-            alert('ගාස්තු තත්ත්වය සාර්ථකව යාවත්කාලීන විය!');
+            const msg = document.getElementById('feeStatusMsg');
+            msg.innerText = "✅ පන්ති ගාස්තු සාර්ථකව යාවත්කාලීන විය!";
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; }, 3000);
         });
     }
 </script>
