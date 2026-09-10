@@ -3,59 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ගාස්තු කළමනාකරණය - Admin Panel</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <title>Admin Fees Management</title>
+    <link rel="icon" type="image/png" href="logo.png">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #f857a6, #ff5858); min-height: 100vh; }
-        .container { max-width: 480px; margin: auto; padding: 25px; background: rgba(255, 255, 255, 0.95); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-        h2 { color: #d63384; text-align: center; margin-top: 0; }
-        label { font-weight: bold; color: #333; display: block; margin-top: 12px; }
-        input, select, button { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; }
-        .btn-action { background: linear-gradient(45deg, #007bff, #00c6ff); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-qr { background: linear-gradient(45deg, #6f42c1, #a100f4); color: white; margin-bottom: 10px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-action:hover, .btn-qr:hover { opacity: 0.9; transform: translateY(-2px); }
-        #reader { width: 100%; margin-top: 10px; display: none; border-radius: 8px; overflow: hidden; }
-        .student-info { margin-top: 15px; padding: 15px; background: #f1f3f5; border-radius: 10px; display: none; text-align: left; }
-        .save-btn { background: linear-gradient(45deg, #28a745, #20c997); color: white; margin-top: 12px; border: none; font-weight: bold; cursor: pointer; }
-        .back-link { text-align: center; display: block; margin-top: 15px; color: #d63384; text-decoration: none; font-weight: bold; }
-        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 8px; display: none; font-weight: bold; font-size: 0.9em; }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #003366; text-align: center; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #fd7e14; color: white; font-weight: bold; border: none; cursor: pointer; }
+        a { text-decoration: none; color: #0056b3; display: block; text-align: center; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>💳 ගාස්තු තත්ත්වය Update කිරීම</h2>
-
-    <button class="btn-qr" id="qrBtn" type="button">QR Code Scan කරන්න 📷</button>
-    <div id="reader"></div>
-
-    <label>ශිෂ්‍ය ID එක ඇතුළත් කරන්න:</label>
-    <input type="text" id="searchId" placeholder="උදා: STU1001">
-    <button class="btn-action" id="searchBtn" type="button">සොයන්න 🔍</button>
-
-    <div id="statusMsg"></div>
-
-    <div id="studentInfo" class="student-info">
-        <p><strong>නම:</strong> <span id="displayName">-</span></p>
-        <p><strong>දුරකථන අංකය:</strong> <span id="displayPhone">-</span></p>
-        
-        <label>අදාළ මාසය (Month):</label>
-        <input type="month" id="selectedMonth">
-
-        <label>ගාස්තු තත්ත්වය:</label>
-        <select id="updateFeeStatus">
-            <option value="Paid">ගෙවා ඇත (Paid) ✅</option>
-            <option value="Pending">ගෙවීමට ඇත (Pending) ⚠️</option>
-        </select>
-
-        <button class="save-btn" id="saveFeeBtn" type="button">තත්ත්වය වෙනස් කර Message යවන්න 📩</button>
-    </div>
-
-    <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
+    <h2>💳 පන්ති ගාස්තු කළමනාකරණය</h2>
+    <input type="text" id="adminStuId" placeholder="ශිෂ්‍ය ID එක ඇතුළත් කරන්න">
+    <input type="month" id="feeMonth">
+    <select id="feeStatus">
+        <option value="Paid">Paid (ගෙවා ඇත)</option>
+        <option value="Pending">Pending (ගෙවීමට ඇත)</option>
+    </select>
+    <button onclick="updateFeeStatus()">තත්ත්වය යාවත්කාලීන කරන්න</button>
+    <a href="index.html">← Scanner වෙත ආපසු යන්න</a>
 </div>
 
 <script>
@@ -69,115 +41,21 @@
         appId: "1:759521896885:web:ab834180d9ab45968791fc",
         measurementId: "G-XZW2VLFXT2"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
 
-    let currentStudentId = "";
-    let currentStudentData = null;
-    let html5QrcodeScanner = null;
+    document.getElementById('feeMonth').value = new Date().toISOString().slice(0, 7);
 
-    document.getElementById('selectedMonth').value = new Date().toISOString().slice(0, 7);
+    function updateFeeStatus() {
+        const id = document.getElementById('adminStuId').value.trim();
+        const month = document.getElementById('feeMonth').value;
+        const status = document.getElementById('feeStatus').value;
 
-    function showStatus(msg, isSuccess) {
-        const statusDiv = document.getElementById('statusMsg');
-        statusDiv.style.display = 'block';
-        statusDiv.className = isSuccess ? 'success' : 'error';
-        statusDiv.innerText = msg;
-    }
+        if(!id || !month) { alert('සියලු තොරතුරු ඇතුළත් කරන්න!'); return; }
 
-    document.getElementById('qrBtn').addEventListener('click', () => {
-        const readerDiv = document.getElementById("reader");
-        if (readerDiv.style.display === "block") {
-            readerDiv.style.display = "none";
-            if (html5QrcodeScanner) html5QrcodeScanner.clear();
-        } else {
-            readerDiv.style.display = "block";
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 220 });
-            html5QrcodeScanner.render((decodedText) => {
-                document.getElementById('searchId').value = decodedText;
-                html5QrcodeScanner.clear();
-                readerDiv.style.display = "none";
-                searchStudent();
-            });
-        }
-    });
-
-    document.getElementById('searchBtn').addEventListener('click', searchStudent);
-
-    function searchStudent() {
-        currentStudentId = document.getElementById('searchId').value.trim();
-        if (!currentStudentId) {
-            showStatus("කරුණාකර ID අංකයක් ඇතුළත් කරන්න!", false);
-            return;
-        }
-
-        database.ref('students/' + currentStudentId).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                currentStudentData = snapshot.val();
-                document.getElementById('displayName').innerText = currentStudentData.name;
-                document.getElementById('displayPhone').innerText = currentStudentData.phone;
-                document.getElementById('studentInfo').style.display = "block";
-                document.getElementById('statusMsg').style.display = "none";
-                loadMonthFeeStatus();
-            } else {
-                showStatus("⚠️ මෙම ID එකට අදාළ ශිෂ්‍යයෙකු සොයාගත නොහැකි විය!", false);
-                document.getElementById('studentInfo').style.display = "none";
-            }
+        firebase.database().ref('students/' + id + '/fees/' + month).set(status).then(() => {
+            alert('ගාස්තු තත්ත්වය සාර්ථකව වෙනස් විය!');
         });
     }
-
-    function loadMonthFeeStatus() {
-        const selectedMonth = document.getElementById('selectedMonth').value;
-        if (!currentStudentId || !selectedMonth) return;
-
-        database.ref('students/' + currentStudentId + '/fees/' + selectedMonth).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                document.getElementById('updateFeeStatus').value = snapshot.val();
-            } else {
-                document.getElementById('updateFeeStatus').value = "Pending";
-            }
-        });
-    }
-
-    document.getElementById('saveFeeBtn').addEventListener('click', () => {
-        const selectedMonth = document.getElementById('selectedMonth').value;
-        const newStatus = document.getElementById('updateFeeStatus').value;
-
-        if (!selectedMonth) {
-            showStatus("කරුණාකර මාසය තෝරන්න!", false);
-            return;
-        }
-
-        database.ref('students/' + currentStudentId + '/fees/' + selectedMonth).set(newStatus)
-        .then(() => {
-            showStatus(`✅ ${selectedMonth} ගාස්තු Update විය! WhatsApp වෙත යොමු කෙරේ...`, true);
-            
-            const statusText = newStatus === "Paid" ? "ලැබී ඇත (Paid) ✅" : "ලැබී නොමැත (Pending) ⚠️";
-            const message = encodeURIComponent(
-                `*පන්ති ගාස්තු රිසිට්පත*
-
-` +
-                `නම: ${currentStudentData.name}
-` +
-                `අදාළ මාසය: ${selectedMonth}
-` +
-                `ගාස්තු තත්ත්වය: ${statusText}
-
-` +
-                `ස්තූතියි!
-- Sudan Sir`
-            );
-
-            setTimeout(() => {
-                window.location.href = `https://wa.me/${currentStudentData.phone}?text=${message}`;
-            }, 1000);
-        })
-        .catch((error) => {
-            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
-        });
-    });
 </script>
-
 </body>
 </html>
