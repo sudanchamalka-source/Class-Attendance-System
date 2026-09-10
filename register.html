@@ -3,94 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ශිෂ්‍ය ලියාපදිංචිය & ID Card</title>
+    <title>Student Registration - English with Sudan Sir</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #11998e, #38ef7d); min-height: 100vh; }
-        .container { max-width: 480px; margin: auto; padding: 25px; background: rgba(255, 255, 255, 0.95); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-        h2 { color: #11998e; text-align: center; margin-top: 0; }
-        label { font-weight: bold; color: #333; display: block; margin-top: 12px; }
-        input, select { width: 100%; padding: 10px; margin: 6px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; }
-        .btn-submit { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; background: linear-gradient(45deg, #11998e, #38ef7d); transition: 0.3s; }
-        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
-        .btn-dl { width: 48%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; margin-top: 10px; }
-        .btn-jpg { background: linear-gradient(45deg, #ff9900, #ff5500); }
-        .btn-pdf { background: linear-gradient(45deg, #dc3545, #bd2130); }
-        
-        .card-container { display: flex; justify-content: center; margin-top: 20px; }
-        #idCard {
-            width: 320px;
-            height: 202px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: white;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            position: relative;
-            box-sizing: border-box;
-            padding: 12px 15px;
-            display: none;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
-        }
-        .card-header { font-size: 0.85em; font-weight: 700; letter-spacing: 1px; color: #00d2ff; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; text-align: left; }
-        .card-body { display: flex; align-items: center; justify-content: space-between; }
-        .student-details { text-align: left; max-width: 170px; }
-        .student-name { font-size: 0.95em; font-weight: bold; color: #ffffff; margin-bottom: 4px; }
-        .student-id { font-size: 0.85em; color: #f1c40f; font-weight: 600; }
-        .qr-box { background: white; padding: 4px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .card-footer { font-size: 0.75em; font-weight: bold; color: #00d2ff; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 4px; text-align: right; }
-        
-        .back-link { text-align: center; display: block; margin-top: 20px; color: #11998e; text-decoration: none; font-weight: bold; }
-        #statusMsg { margin-top: 15px; padding: 10px; border-radius: 8px; display: none; font-weight: bold; font-size: 0.9em; }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 450px; margin: auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
+        .logo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+        h2 { color: #003366; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #cardArea { display: none; margin-top: 20px; padding: 15px; border: 2px dashed #003366; border-radius: 12px; background: #f9f9f9; }
+        #qrcode { display: flex; justify-content: center; margin: 15px 0; }
+        .print-btn { background: #0056b3; }
+        a { text-decoration: none; color: #0056b3; font-weight: bold; display: inline-block; margin-top: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📝 ශිෂ්‍ය ලියාපදිංචිය & ID Card Generator</h2>
-    
-    <label>ශිෂ්‍ය ID එක:</label>
-    <input type="text" id="stuId" placeholder="උදා: STU1001">
+    <img src="logo.png" alt="Logo" class="logo">
+    <h2>📝 ශිෂ්‍ය ලියාපදිංචිය</h2>
 
-    <label>ශිෂ්‍යයාගේ නම:</label>
-    <input type="text" id="stuName" placeholder="උදා: Kasun Perera">
+    <input type="text" id="stuId" placeholder="ශිෂ්‍ය ID (උදා: STU1001)">
+    <input type="text" id="stuName" placeholder="සම්පූර්ණ නම">
+    <input type="text" id="stuPhone" placeholder="WhatsApp දුරකථන අංකය (උදා: 94771234567)">
+    <button onclick="registerStudent()">ලියාපදිංචි කරන්න</button>
 
-    <label>මව්පියන්ගේ WhatsApp අංකය:</label>
-    <input type="text" id="stuPhone" placeholder="උදා: 0771234567">
-
-    <button class="btn-submit" id="registerBtn" type="button">ලියාපදිංචි කර ID Card එක සාදන්න 🚀</button>
-
-    <div id="statusMsg"></div>
-
-    <div class="card-container">
-        <div id="idCard">
-            <div class="card-header">ENGLISH WITH SUDAN SIR</div>
-            <div class="card-body">
-                <div class="student-details">
-                    <div class="student-name" id="cardName">Name</div>
-                    <div class="student-id" id="cardId">ID: STU1001</div>
-                </div>
-                <div class="qr-box">
-                    <div id="qrcode"></div>
-                </div>
-            </div>
-            <div class="card-footer">Sudan Sir</div>
-        </div>
+    <div id="cardArea">
+        <h3 style="color:#003366; margin:0;">English with Sudan Sir</h3>
+        <p style="margin:5px 0;"><strong id="cardName"></strong></p>
+        <p style="margin:0; color:#666;">ID: <span id="cardId"></span></p>
+        <div id="qrcode"></div>
+        <button class="print-btn" onclick="window.print()">🖨️ ID Card එක Print කරන්න</button>
     </div>
 
-    <div style="display: flex; justify-content: space-between;">
-        <button class="btn-dl btn-jpg" id="downloadJpg" style="display:none;">Download JPG 🖼️</button>
-        <button class="btn-dl btn-pdf" id="downloadPdf" style="display:none;">Download PDF 📄</button>
-    </div>
-
-    <a href="index.html" class="back-link">← ආපසු Attendance Scanner වෙත</a>
+    <a href="index.html">← Scanner වෙත ආපසු යන්න</a>
 </div>
 
 <script>
@@ -104,72 +55,27 @@
         appId: "1:759521896885:web:ab834180d9ab45968791fc",
         measurementId: "G-XZW2VLFXT2"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    let qrcode = new QRCode(document.getElementById("qrcode"), { width: 80, height: 80 });
 
-    function showStatus(msg, isSuccess) {
-        const statusDiv = document.getElementById('statusMsg');
-        statusDiv.style.display = 'block';
-        statusDiv.className = isSuccess ? 'success' : 'error';
-        statusDiv.innerText = msg;
-    }
-
-    document.getElementById('registerBtn').addEventListener('click', () => {
+    function registerStudent() {
         const id = document.getElementById('stuId').value.trim();
         const name = document.getElementById('stuName').value.trim();
-        let phone = document.getElementById('stuPhone').value.trim();
+        const phone = document.getElementById('stuPhone').value.trim();
 
-        if (!id || !name || !phone) {
-            showStatus("කරුණාකර සියලුම තොරතුරු ඇතුළත් කරන්න!", false);
-            return;
-        }
+        if(!id || !name || !phone) { alert('සියලු තොරතුරු ඇතුළත් කරන්න!'); return; }
 
-        phone = phone.replace('+', '').replace(/\s+/g, '');
-        if (phone.startsWith('0')) {
-            phone = '94' + phone.substring(1);
-        }
-
-        database.ref('students/' + id).set({
+        firebase.database().ref('students/' + id).set({
             name: name,
             phone: phone
         }).then(() => {
-            showStatus("✅ ලියාපදිංචිය සාර්ථකයි! ID Card එක පහතින් බාගත කරගන්න.", true);
-            
+            alert('ලියාපදිංචිය සාර්ථකයි!');
             document.getElementById('cardName').innerText = name;
-            document.getElementById('cardId').innerText = "ID: " + id;
-            qrcode.makeCode(id);
-
-            document.getElementById('idCard').style.display = 'flex';
-            document.getElementById('downloadJpg').style.display = 'block';
-            document.getElementById('downloadPdf').style.display = 'block';
-        }).catch((error) => {
-            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
+            document.getElementById('cardId').innerText = id;
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), { text: id, width: 128, height: 128 });
+            document.getElementById('cardArea').style.display = 'block';
         });
-    });
-
-    document.getElementById('downloadJpg').addEventListener('click', () => {
-        const card = document.getElementById('idCard');
-        html2canvas(card, { scale: 3 }).then(canvas => {
-            let a = document.createElement('a');
-            a.href = canvas.toDataURL('image/jpeg', 1.0);
-            a.download = `${document.getElementById('stuId').value.trim()}_ID_Card.jpg`;
-            a.click();
-        });
-    });
-
-    document.getElementById('downloadPdf').addEventListener('click', () => {
-        const card = document.getElementById('idCard');
-        html2canvas(card, { scale: 3 }).then(canvas => {
-            const imgData = canvas.toDataURL('image/jpeg', 1.0);
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [85.6, 54] });
-            pdf.addImage(imgData, 'JPEG', 0, 0, 85.6, 54);
-            pdf.save(`${document.getElementById('stuId').value.trim()}_ID_Card.pdf`);
-        });
-    });
+    }
 </script>
-
 </body>
 </html>
