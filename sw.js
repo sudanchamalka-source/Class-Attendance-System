@@ -1,23 +1,19 @@
-
-const CACHE_NAME = 'sudan-sir-app-v1';
-const urlsToCache = [
-  './',
-  './index.html',
-  './register.html',
-  './admin_fees.html',
-  './students_list.html',
-  './parent_portal.html',
-  './logo.png'
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open('sudan-sir-store').then((cache) => cache.addAll([
+      'index.html',
+      'parent_portal.html',
+      'register.html',
+      'admin_fees.html',
+      'students_list.html',
+      'logo.png',
+      'manifest.json'
+    ])),
   );
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((response) => response || fetch(e.request)),
   );
 });
