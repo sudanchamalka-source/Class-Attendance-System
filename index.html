@@ -12,7 +12,7 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; background: linear-gradient(135deg, #003366, #0056b3, #0080ff); min-height: 100vh; color: #fff; }
         .container { max-width: 500px; margin: auto; background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); color: #333; }
-        .brand-logo { width: 130px; height: 130px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .brand-logo { width: 130px; height: 130px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); object-fit: cover; }
         h2 { color: #003366; margin-top: 10px; margin-bottom: 5px; }
         h4 { color: #555; margin-top: 0; font-weight: 500; }
         #reader { width: 100%; max-width: 320px; margin: 15px auto; border-radius: 12px; overflow: hidden; border: 3px solid #0056b3; }
@@ -117,20 +117,12 @@
                     const statusText = monthFee === "Paid" ? "ගෙවා ඇත ✅" : "ගෙවීමට ඇත ⚠️";
                     
                     const message = encodeURIComponent(
-                        `*English with Sudan Sir - පන්ති පැමිණීමේ සටහන*
-
-` +
-                        `නම: ${student.name}
-` +
-                        `දිනය: ${date}
-` +
-                        `වේලාව: ${time}
-` +
-                        `${month} මාසයේ ගාස්තු: ${statusText}
-
-` +
-                        `ස්තූතියි!
-- English with Sudan Sir`
+                        `*English with Sudan Sir - පන්ති පැමිණීමේ සටහන*\n\n` +
+                        `නම: ${student.name}\n` +
+                        `දිනය: ${date}\n` +
+                        `වේලාව: ${time}\n` +
+                        `${month} මාසයේ ගාස්තු: ${statusText}\n\n` +
+                        `ස්තූතියි!\n- English with Sudan Sir`
                     );
                     
                     window.location.href = `https://wa.me/${student.phone}?text=${message}`;
