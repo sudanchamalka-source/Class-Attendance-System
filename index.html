@@ -10,48 +10,30 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 20px; background: linear-gradient(135deg, #003366, #0056b3, #0080ff); min-height: 100vh; color: #fff; }
-        .container { max-width: 500px; margin: auto; background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); color: #333; }
-        .brand-logo { width: 130px; height: 130px; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); object-fit: cover; }
-        h2 { color: #003366; margin-top: 10px; margin-bottom: 5px; }
-        h4 { color: #555; margin-top: 0; font-weight: 500; }
-        #reader { width: 100%; max-width: 320px; margin: 15px auto; border-radius: 12px; overflow: hidden; border: 3px solid #0056b3; }
-        #result { font-weight: bold; font-size: 1.1em; color: #0056b3; margin-top: 15px; }
-        .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .nav-btn { text-decoration: none; color: white; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 0.85em; transition: 0.3s; text-align: center; }
-        .btn-reg { background: linear-gradient(45deg, #28a745, #20c997); }
-        .btn-adm { background: linear-gradient(45deg, #ffc107, #fd7e14); color: #212529; }
-        .btn-lst { background: linear-gradient(45deg, #6f42c1, #e83e8c); }
-        .btn-prn { background: linear-gradient(45deg, #0056b3, #00c6ff); grid-column: span 2; font-size: 0.95em; }
-        .nav-btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        #statusMsg { margin-top: 15px; padding: 12px; border-radius: 8px; display: none; font-weight: bold; font-size: 0.95em; }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .install-pwa { background: #fffae6; border: 1px solid #ffe066; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85em; color: #665200; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 450px; margin: auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
+        .logo { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; }
+        #reader { width: 100%; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 2px solid #003366; }
+        #result { font-weight: bold; font-size: 1.1em; margin-top: 15px; padding: 10px; border-radius: 8px; }
+        .nav-links { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+        .nav-links a { text-decoration: none; background: #f0f4f8; padding: 10px; border-radius: 8px; color: #003366; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <img src="logo.png" alt="English with Sudan Sir" class="brand-logo">
-    <h2>English with Sudan Sir</h2>
-    <h4>📸 QR Attendance System</h4>
-
-    <div class="install-pwa">
-        💡 <strong>Shortcut / App එකක් ලෙස එකතු කරන්න:</strong><br>
-        • Chrome/Mobile: Menu (⋮) ➔ "Add to Home Screen / Install App"<br>
-        • Desktop Chrome: Address Bar එකේ ඇති ⊕ icon එක ක්ලික් කරන්න.
-    </div>
+    <img src="logo.png" alt="Logo" class="logo">
+    <h2 style="color: #003366; margin: 10px 0 5px 0;">English with Sudan Sir</h2>
+    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">QR Scanner - Attendance System</p>
 
     <div id="reader"></div>
-    <p id="result">QR කේතය Scan කිරීමට Camera එක පෙන්වන්න</p>
-    <div id="statusMsg"></div>
+    <div id="result"></div>
 
-    <div class="nav-grid">
-        <a href="register.html" class="nav-btn btn-reg">➕ ලියාපදිංචිය & ID Card</a>
-        <a href="admin_fees.html" class="nav-btn btn-adm">💳 Admin Panel</a>
-        <a href="students_list.html" class="nav-btn btn-lst">👥 සියලු සිසුන්</a>
-        <a href="parent_portal.html" class="nav-btn btn-prn">👨‍👩‍👧‍👦 Parent Portal (දෙමාපිය පෝටලය)</a>
+    <div class="nav-links">
+        <a href="register.html">📝 නව ශිෂ්‍ය ලියාපදිංචිය</a>
+        <a href="admin_fees.html">🛠️ Admin Panel (Attendance & Fees)</a>
+        <a href="students_list.html">👥 සියලුම ශිෂ්‍යයන්ගේ ලැයිස්තුව</a>
+        <a href="parent_portal.html">👨‍👩‍👧‍👦 Parent Portal</a>
     </div>
 </div>
 
@@ -66,78 +48,24 @@
         appId: "1:759521896885:web:ab834180d9ab45968791fc",
         measurementId: "G-XZW2VLFXT2"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    let isScanning = true;
-
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-    }
-
-    function showStatus(msg, isSuccess) {
-        const statusDiv = document.getElementById('statusMsg');
-        statusDiv.style.display = 'block';
-        statusDiv.className = isSuccess ? 'success' : 'error';
-        statusDiv.innerText = msg;
-    }
 
     function onScanSuccess(decodedText) {
-        if(!isScanning) return;
-        isScanning = false;
-
-        document.getElementById('result').innerText = "Scan කළ අංකය: " + decodedText;
-        markAttendance(decodedText);
-
-        setTimeout(() => { isScanning = true; }, 3000);
-    }
-
-    function markAttendance(studentId) {
         const date = new Date().toISOString().split('T')[0];
-        const month = date.slice(0, 7);
-        const time = new Date().toLocaleTimeString();
-
-        database.ref('attendance/' + date + '/' + studentId).set({
-            time: time,
+        const res = document.getElementById('result');
+        
+        firebase.database().ref('attendance/' + date + '/' + decodedText).set({
+            time: new Date().toLocaleTimeString(),
             status: "Present"
         }).then(() => {
-            showStatus("✅ පැමිණීම සටහන් විය! WhatsApp වෙත යොමු කෙරේ...", true);
-            sendWhatsAppMsg(studentId, date, month, time);
-        }).catch((error) => {
-            showStatus("❌ දෝෂයක් සිදු විය: " + error.message, false);
-        });
-    }
-
-    function sendWhatsAppMsg(studentId, date, month, time) {
-        database.ref('students/' + studentId).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                const student = snapshot.val();
-                if (student.phone) {
-                    const monthFee = (student.fees && student.fees[month]) ? student.fees[month] : "Pending";
-                    const statusText = monthFee === "Paid" ? "ගෙවා ඇත ✅" : "ගෙවීමට ඇත ⚠️";
-                    
-                    const message = encodeURIComponent(
-                        `*English with Sudan Sir - පන්ති පැමිණීමේ සටහන*\n\n` +
-                        `නම: ${student.name}\n` +
-                        `දිනය: ${date}\n` +
-                        `වේලාව: ${time}\n` +
-                        `${month} මාසයේ ගාස්තු: ${statusText}\n\n` +
-                        `ස්තූතියි!\n- English with Sudan Sir`
-                    );
-                    
-                    window.location.href = `https://wa.me/${student.phone}?text=${message}`;
-                } else {
-                    showStatus("⚠️ දුරකථන අංකය නොමැත!", false);
-                }
-            } else {
-                showStatus("⚠️ මෙම ID එකට අදාළ ශිෂ්‍යයෙකු සොයාගත නොහැකි විය!", false);
-            }
+            res.style.background = "#d4edda";
+            res.style.color = "#155724";
+            res.innerText = `✅ ID: ${decodedText} පැමිණීම සාර්ථකව සටහන් විය!`;
         });
     }
 
     let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
     html5QrcodeScanner.render(onScanSuccess);
 </script>
-
 </body>
 </html>
