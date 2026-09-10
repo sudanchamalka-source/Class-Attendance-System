@@ -11,7 +11,7 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #0056b3, #00c6ff); min-height: 100vh; color: #333; }
         .container { max-width: 500px; margin: auto; background: rgba(255, 255, 255, 0.96); padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
-        .logo { width: 120px; height: 120px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom: 10px; }
+        .logo { width: 120px; height: 120px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom: 10px; object-fit: cover; }
         h2 { color: #0056b3; margin-top: 5px; }
         label { font-weight: bold; display: block; margin-top: 15px; text-align: left; }
         input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 8px; border: 1px solid #ccc; font-size: 1em; }
@@ -114,7 +114,7 @@
                     badge.innerText = "ගෙවීමට ඇත (Pending) ⚠️";
                 }
 
-                // Get last attendance
+                // Fetch student attendance records only for this ID
                 database.ref('attendance').limitToLast(10).once('value').then((attSnap) => {
                     let lastRecord = "දත්ත නොමැත";
                     if(attSnap.exists()) {
