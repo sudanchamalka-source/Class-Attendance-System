@@ -10,7 +10,6 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; }
-        h2 { color: #003366; text-align: center; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #0056b3; color: white; }
@@ -18,22 +17,16 @@
     </style>
 </head>
 <body>
-
 <div class="container">
-    <h2>👥 සියලුම ශිෂ්‍යයන්ගේ ලැයිස්තුව</h2>
+    <h2 style="color:#003366; text-align:center;">👥 සියලුම ශිෂ්‍යයන්ගේ ලැයිස්තුව</h2>
     <table>
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>නම</th>
-                <th>දුරකථන අංකය</th>
-            </tr>
+            <tr><th>ID</th><th>නම</th><th>දුරකථන අංකය</th></tr>
         </thead>
         <tbody id="studentsTable"></tbody>
     </table>
     <a href="index.html">← Scanner වෙත ආපසු යන්න</a>
 </div>
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
