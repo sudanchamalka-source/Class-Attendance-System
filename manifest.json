@@ -1,16 +1,20 @@
 {
+  "short_name": "SudanSirApp",
   "name": "English with Sudan Sir",
-  "short_name": "Sudan Sir",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": #ffffff",
-  "theme_color": "#0056b3",
   "icons": [
     {
       "src": "logo.png",
-      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": "index.html",
+  "background_color": "#003366",
+  "theme_color": "#0056b3",
+  "display": "standalone"
 }
