@@ -3,30 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Students List</title>
+    <title>සියලුම සිසුන්ගේ වාර්තා - English with Sudan Sir</title>
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #0056b3; color: white; }
-        a { text-decoration: none; color: #0056b3; display: block; text-align: center; margin-top: 15px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: #003366; text-align: center; margin-top: 0; }
+        
+        .table-responsive { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; min-width: 650px; }
+        th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; font-size: 0.95em; }
+        th { background-color: #003366; color: white; font-weight: 600; text-transform: uppercase; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:hover { background-color: #f1f5f9; }
+
+        .badge-id { background: #e3f2fd; color: #0d47a1; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
+        .badge-paid { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.85em; }
+        .badge-pending { background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.85em; }
+        
+        .att-box { font-size: 0.85em; line-height: 1.4; color: #444; }
+        a.back-btn { text-decoration: none; color: #0056b3; display: inline-block; margin-top: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h2 style="color:#003366; text-align:center;">👥 සියලුම ශිෂ්‍යයන්ගේ ලැයිස්තුව</h2>
-    <table>
-        <thead>
-            <tr><th>ID</th><th>නම</th><th>දුරකථන අංකය</th></tr>
-        </thead>
-        <tbody id="studentsTable"></tbody>
-    </table>
-    <a href="index.html">← Scanner වෙත ආපසු යන්න</a>
+    <h2>👥 සියලුම සිසුන්ගේ වාර්තා සටහන</h2>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>QR / Student ID</th>
+                    <th>ශිෂ්‍යයාගේ නම</th>
+                    <th>දුරකථන අංකය</th>
+                    <th>පසුගිය පන්ති ගාස්තු</th>
+                    <th>පැමිණීමේ විස්තර (දින)</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTable">
+                <tr><td colspan="5" style="text-align:center;">තොරතුරු Load වෙමින් පවතියි...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a href="index.html" class="back-btn">← Main Scanner වෙත ආපසු යන්න</a>
 </div>
+
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
@@ -40,13 +65,65 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    firebase.database().ref('students').once('value', (snapshot) => {
+    const db = firebase.database();
+
+    Promise.all([
+        db.ref('students').once('value'),
+        db.ref('manual_attendance').once('value')
+    ]).then(([studentsSnap, attSnap]) => {
+        const students = studentsSnap.val() || {};
+        const attendance = attSnap.val() || {};
         const table = document.getElementById('studentsTable');
         table.innerHTML = '';
-        snapshot.forEach((child) => {
-            const data = child.val();
-            table.innerHTML += `<tr><td>${child.key}</td><td>${data.name}</td><td>${data.phone}</td></tr>`;
-        });
+
+        if(Object.keys(students).length === 0) {
+            table.innerHTML = '<tr><td colspan="5" style="text-align:center;">ලියාපදිංචි වූ සිසුන් නොමැත.</td></tr>';
+            return;
+        }
+
+        for (let id in students) {
+            let s = students[id];
+
+            // 1. Class Fees Data Formatting
+            let feeDetails = '';
+            if (s.fees) {
+                for (let month in s.fees) {
+                    let status = s.fees[month];
+                    let badgeClass = status === 'Paid' ? 'badge-paid' : 'badge-pending';
+                    feeDetails += `<div><strong>${month}:</strong> <span class="${badgeClass}">${status}</span></div>`;
+                }
+            } else {
+                feeDetails = '<span style="color:#888;">සටහන් නොමැත</span>';
+            }
+
+            // 2. Attendance Data Formatting
+            let attDetails = '';
+            for (let date in attendance) {
+                if (attendance[date][id]) {
+                    let record = attendance[date][id];
+                    let daysList = [];
+                    if (record.days) {
+                        if (record.days.day1) daysList.push('1 වෙනි දවස');
+                        if (record.days.day2) daysList.push('2 වෙනි දවස');
+                        if (record.days.day3) daysList.push('3 වෙනි දවස');
+                        if (record.days.day4) daysList.push('4 වෙනි දවස');
+                    }
+                    attDetails += `<div class="att-box">📅 <strong>${date}:</strong> ${daysList.join(', ') || 'පැමිණ ඇත'}</div>`;
+                }
+            }
+            if (!attDetails) attDetails = '<span style="color:#888;">පැමිණීම් නොමැත</span>';
+
+            // Render Row
+            table.innerHTML += `
+                <tr>
+                    <td><span class="badge-id">${id}</span></td>
+                    <td><strong>${s.name || '-'}</strong></td>
+                    <td>${s.phone || '-'}</td>
+                    <td>${feeDetails}</td>
+                    <td>${attDetails}</td>
+                </tr>
+            `;
+        }
     });
 </script>
 </body>
