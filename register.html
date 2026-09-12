@@ -3,114 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Registration & Edit</title>
+    <title>Student Registration & ID Card Generator</title>
     <link rel="icon" type="image/png" href="logo.png">
     
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    
+    <!-- QR Code Generator & HTML2Canvas Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { max-width: 480px; width: 100%; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .main-wrapper { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; width: 100%; max-width: 950px; }
+        .container { max-width: 440px; width: 100%; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { color: #003366; margin-top: 0; text-align: center; }
         
         .form-group { margin-bottom: 12px; }
         label { display: block; font-weight: bold; margin-bottom: 4px; color: #003366; font-size: 0.9em; }
-        
         input[type="text"], select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; box-sizing: border-box; }
         
-        .btn-submit { background: #003366; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; padding: 12px; border-radius: 6px; font-size: 1em; margin-top: 10px; transition: background 0.3s; }
+        .btn-submit { background: #003366; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; padding: 12px; border-radius: 6px; font-size: 1em; margin-top: 10px; transition: 0.3s; }
         .btn-submit:hover { background: #002244; }
-
         .btn-clear { background: #6c757d; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; padding: 8px; border-radius: 6px; font-size: 0.9em; margin-top: 6px; }
-        
-        .nav-links { margin-top: 20px; text-align: center; font-size: 0.9em; }
-        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 5px; }
-        
+
         .status-badge { text-align: center; font-size: 0.85em; font-weight: bold; margin-top: 5px; padding: 6px; border-radius: 4px; display: none; }
         .status-existing { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .status-new { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 
-        /* Camera & Upload Styles */
         .photo-preview-container { text-align: center; margin: 10px 0; }
-        .photo-preview { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid #003366; display: block; margin: 0 auto; }
+        .photo-preview { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #003366; display: block; margin: 0 auto; }
         .camera-box { text-align: center; display: none; margin-bottom: 10px; }
-        video { width: 100%; max-width: 300px; border-radius: 8px; border: 2px solid #003366; }
+        video { width: 100%; max-width: 250px; border-radius: 8px; border: 2px solid #003366; }
         .btn-camera { background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         .btn-capture { background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+
+        /* ================= CREDIT CARD SIZE ID CARD STYLES ================= */
+        .id-section { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+        
+        /* 85.6mm x 53.9mm -> ~325px x 204px at 96 DPI */
+        .id-card {
+            width: 325px;
+            height: 204px;
+            background: linear-gradient(135deg, #002244 0%, #0056b3 60%, #0088ff 100%);
+            border-radius: 12px;
+            color: #fff;
+            padding: 12px;
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Decorative background overlay */
+        .id-card::before {
+            content: "";
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .id-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; }
+        .id-header h3 { margin: 0; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; color: #ffcc00; }
+        .id-header span { font-size: 0.65em; background: #ffcc00; color: #000; font-weight: bold; padding: 2px 6px; border-radius: 10px; }
+
+        .id-body { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+        .id-photo { width: 68px; height: 68px; border-radius: 8px; object-fit: cover; border: 2px solid #ffcc00; background: #fff; }
+        
+        .id-details { flex: 1; font-size: 0.72em; line-height: 1.35; }
+        .id-details div { margin-bottom: 2px; }
+        .id-name { font-weight: bold; font-size: 1.05em; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+        .id-id { color: #ffcc00; font-weight: bold; font-size: 0.95em; }
+
+        .id-footer { display: flex; justify-content: space-between; align-items: flex-end; }
+        .qr-box { background: #fff; padding: 4px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .qr-box img, .qr-box canvas { width: 50px !important; height: 50px !important; }
+
+        .id-institute { font-size: 0.6em; opacity: 0.8; }
+
+        .action-btns { margin-top: 15px; display: flex; gap: 10px; }
+        .btn-action { padding: 10px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; font-size: 0.85em; }
+        .btn-print { background: #28a745; }
+        .btn-download { background: #ff9900; }
+
+        .nav-links { margin-top: 20px; text-align: center; font-size: 0.9em; width: 100%; }
+        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 5px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>📝 Student Register & Edit</h2>
+<div class="main-wrapper">
+    <!-- Registration Form -->
+    <div class="container">
+        <h2>📝 Student Register</h2>
 
-    <form id="regForm" onsubmit="saveOrUpdateStudent(event)">
-        <div class="form-group">
-            <label for="stuId">Student ID (Barcode / QR):</label>
-            <input type="text" id="stuId" placeholder="e.g. STU101" oninput="checkAndLoadExistingStudent()" required autofocus>
-            <div id="statusBadge" class="status-badge"></div>
-        </div>
+        <form id="regForm" onsubmit="saveOrUpdateStudent(event)">
+            <div class="form-group">
+                <label for="stuId">Student ID (Barcode / QR):</label>
+                <input type="text" id="stuId" placeholder="e.g. STU101" oninput="checkAndLoadExistingStudent()" required autofocus>
+                <div id="statusBadge" class="status-badge"></div>
+            </div>
 
-        <!-- Photo Preview Area -->
-        <div class="photo-preview-container">
-            <img id="imgPreview" class="photo-preview" src="logo.png" alt="Student Photo">
-        </div>
+            <div class="photo-preview-container">
+                <img id="imgPreview" class="photo-preview" src="logo.png" alt="Student Photo">
+            </div>
 
-        <!-- Camera Interface -->
-        <div class="camera-box" id="cameraBox">
-            <video id="video" autoplay playsinline></video><br>
-            <button type="button" class="btn-capture" onclick="takeSnapshot()">📸 Take Photo</button>
-        </div>
+            <div class="camera-box" id="cameraBox">
+                <video id="video" autoplay playsinline></video><br>
+                <button type="button" class="btn-capture" onclick="takeSnapshot()">📸 Take Photo</button>
+            </div>
 
-        <div class="form-group">
-            <label>Student Photo (Upload or Camera):</label>
-            <input type="file" id="fileInput" accept="image/*" onchange="previewFileImage(event)">
-            <button type="button" class="btn-camera" onclick="startCamera()">📷 Open Camera</button>
-        </div>
+            <div class="form-group">
+                <label>Student Photo:</label>
+                <input type="file" id="fileInput" accept="image/*" onchange="previewFileImage(event)">
+                <button type="button" class="btn-camera" onclick="startCamera()">📷 Open Camera</button>
+            </div>
 
-        <!-- Hidden input to store final uploaded photo URL -->
-        <input type="hidden" id="stuPhotoUrl" value="logo.png">
+            <input type="hidden" id="stuPhotoUrl" value="logo.png">
 
-        <div class="form-group">
-            <label for="stuName">Full Name:</label>
-            <input type="text" id="stuName" placeholder="Enter Full Name" required>
-        </div>
+            <div class="form-group">
+                <label for="stuName">Full Name:</label>
+                <input type="text" id="stuName" placeholder="Enter Full Name" oninput="updateCardPreview()" required>
+            </div>
 
-        <div class="form-group">
-            <label for="stuGrade">Grade:</label>
-            <select id="stuGrade" required>
-                <option value="Grade 1">Grade 1</option>
-                <option value="Grade 2">Grade 2</option>
-                <option value="Grade 3">Grade 3</option>
-                <option value="Grade 4">Grade 4</option>
-                <option value="Grade 5">Grade 5</option>
-                <option value="Grade 6">Grade 6</option>
-                <option value="Grade 7">Grade 7</option>
-                <option value="Grade 8">Grade 8</option>
-                <option value="Grade 9">Grade 9</option>
-                <option value="Grade 10">Grade 10</option>
-                <option value="Grade 11">Grade 11</option>
-                <option value="A/L">A/L</option>
-                <option value="Other">Other</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label for="stuGrade">Grade:</label>
+                <select id="stuGrade" onchange="updateCardPreview()" required>
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="A/L">A/L</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label for="stuPhone">WhatsApp Phone Number:</label>
-            <input type="text" id="stuPhone" placeholder="07XXXXXXXX" required>
-        </div>
+            <div class="form-group">
+                <label for="stuPhone">WhatsApp Phone Number:</label>
+                <input type="text" id="stuPhone" placeholder="07XXXXXXXX" oninput="updateCardPreview()" required>
+            </div>
 
-        <button type="submit" class="btn-submit" id="saveBtn">💾 Save / Update Student</button>
-        <button type="button" class="btn-clear" onclick="resetForm()">🔄 Clear Form</button>
-    </form>
-
-    <div class="nav-links">
-        <a href="index.html">📸 Scanner</a> | 
-        <a href="fee.html">💳 Fee Payment</a> | 
-        <a href="students_list.html">📚 Admin Panel</a> | 
-        <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
+            <button type="submit" class="btn-submit" id="saveBtn">💾 Save Student & Generate ID</button>
+            <button type="button" class="btn-clear" onclick="resetForm()">🔄 Clear Form</button>
+        </form>
     </div>
+
+    <!-- Live ID Card Preview -->
+    <div class="id-section">
+        <h3 style="color: #003366; margin-top: 0;">🪪 Student ID Card Preview</h3>
+        
+        <div class="id-card" id="studentIdCard">
+            <div class="id-header">
+                <h3>CLASS ADMISSION CARD</h3>
+                <span>STUDENT</span>
+            </div>
+            
+            <div class="id-body">
+                <img id="cardPhoto" class="id-photo" src="logo.png" alt="Photo">
+                <div class="id-details">
+                    <div class="id-id" id="cardId">ID: STU-XXXX</div>
+                    <div class="id-name" id="cardName">Student Name</div>
+                    <div>Grade: <span id="cardGrade">Grade X</span></div>
+                    <div>Phone: <span id="cardPhone">07XXXXXXXX</span></div>
+                </div>
+            </div>
+
+            <div class="id-footer">
+                <div class="id-institute">
+                    <strong>CLASS MANAGEMENT SYSTEM</strong><br>
+                    Official Student Identity Card
+                </div>
+                <div class="qr-box" id="qrcode"></div>
+            </div>
+        </div>
+
+        <div class="action-btns">
+            <button class="btn-action btn-print" onclick="printCard()">🖨️ Print ID Card</button>
+            <button class="btn-action btn-download" onclick="downloadCard()">📥 Download PNG</button>
+        </div>
+    </div>
+</div>
+
+<div class="nav-links">
+    <a href="index.html">📸 Scanner</a> | 
+    <a href="fee.html">💳 Fee Payment</a> | 
+    <a href="students_list.html">📚 Admin Panel</a> | 
+    <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
 </div>
 
 <script>
@@ -127,15 +221,44 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // ImgBB Free API Key (Photo Hosting)
     const IMGBB_API_KEY = "6d700a2080351e3d15d48310ba038173"; 
 
     let typingTimer;
     let cameraStream = null;
     let selectedImageBase64 = null;
+    let qrCodeInstance = null;
 
-    // Load Existing Student Data when ID typed
+    // Initialize QR Code Instance
+    window.onload = function() {
+        qrCodeInstance = new QRCode(document.getElementById("qrcode"), {
+            text: "STU-DEMO",
+            width: 50,
+            height: 50
+        });
+    };
+
+    // Live update ID Card text fields
+    function updateCardPreview() {
+        const id = document.getElementById('stuId').value.trim() || 'STU-XXXX';
+        const name = document.getElementById('stuName').value.trim() || 'Student Name';
+        const grade = document.getElementById('stuGrade').value || 'Grade X';
+        const phone = document.getElementById('stuPhone').value.trim() || '07XXXXXXXX';
+
+        document.getElementById('cardId').innerText = "ID: " + id;
+        document.getElementById('cardName').innerText = name;
+        document.getElementById('cardGrade').innerText = grade;
+        document.getElementById('cardPhone').innerText = phone;
+
+        // Update QR Code
+        if (qrCodeInstance) {
+            qrCodeInstance.clear();
+            qrCodeInstance.makeCode(id);
+        }
+    }
+
+    // Auto load student data if ID exists
     function checkAndLoadExistingStudent() {
+        updateCardPreview();
         clearTimeout(typingTimer);
         const id = document.getElementById('stuId').value.trim();
         const badge = document.getElementById('statusBadge');
@@ -156,10 +279,13 @@
                     const photoUrl = data.photo || 'logo.png';
                     document.getElementById('stuPhotoUrl').value = photoUrl;
                     document.getElementById('imgPreview').src = photoUrl;
+                    document.getElementById('cardPhoto').src = photoUrl;
 
                     badge.className = "status-badge status-existing";
                     badge.innerText = "⚠️ පැරණි ශිෂ්‍යයෙකි! විස්තර වෙනස් කළ හැක (Editable).";
                     badge.style.display = 'block';
+
+                    updateCardPreview();
                 } else {
                     badge.className = "status-badge status-new";
                     badge.innerText = "✨ නව ශිෂ්‍යයෙකි.";
@@ -169,20 +295,19 @@
         }, 400);
     }
 
-    // Handle File Selection (Upload from Phone/PC)
     function previewFileImage(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('imgPreview').src = e.target.result;
-                selectedImageBase64 = e.target.result.split(',')[1]; // Extract Base64 string
+                document.getElementById('cardPhoto').src = e.target.result;
+                selectedImageBase64 = e.target.result.split(',')[1];
             };
             reader.readAsDataURL(file);
         }
     }
 
-    // Start Phone/Web Camera
     async function startCamera() {
         const cameraBox = document.getElementById('cameraBox');
         const video = document.getElementById('video');
@@ -196,7 +321,6 @@
         }
     }
 
-    // Capture Snapshot from Camera
     function takeSnapshot() {
         const video = document.getElementById('video');
         const canvas = document.createElement('canvas');
@@ -208,6 +332,7 @@
         
         const dataUrl = canvas.toDataURL('image/jpeg');
         document.getElementById('imgPreview').src = dataUrl;
+        document.getElementById('cardPhoto').src = dataUrl;
         selectedImageBase64 = dataUrl.split(',')[1];
 
         stopCamera();
@@ -220,7 +345,6 @@
         document.getElementById('cameraBox').style.display = 'none';
     }
 
-    // Upload Image to ImgBB Cloud Hosting
     async function uploadImageToCloud() {
         if (!selectedImageBase64) return document.getElementById('stuPhotoUrl').value;
 
@@ -233,23 +357,17 @@
                 body: formData
             });
             const resData = await response.json();
-            if (resData.success) {
-                return resData.data.url;
-            } else {
-                throw new Error("Image Upload Failed");
-            }
+            return resData.success ? resData.data.url : 'logo.png';
         } catch (err) {
-            console.error("Upload Error:", err);
             return 'logo.png';
         }
     }
 
-    // Save or Update Data to Firebase
     async function saveOrUpdateStudent(e) {
         e.preventDefault();
         
         const saveBtn = document.getElementById('saveBtn');
-        saveBtn.innerText = "⏳ Uploading & Saving...";
+        saveBtn.innerText = "⏳ Saving & Processing ID...";
         saveBtn.disabled = true;
 
         const id = document.getElementById('stuId').value.trim();
@@ -257,7 +375,6 @@
         const grade = document.getElementById('stuGrade').value;
         const phone = document.getElementById('stuPhone').value.trim();
         
-        // Upload photo if new image selected/captured
         const photoUrl = await uploadImageToCloud();
 
         db.ref('students/' + id).update({
@@ -266,13 +383,50 @@
             phone: phone,
             photo: photoUrl
         }).then(() => {
-            alert(`✅ ID: ${id} හි විස්තර සහ Photo එක සාර්ථකව Save / Update විය!`);
-            resetForm();
+            alert(`✅ ID: ${id} - ${name} සාර්ථකව Save විය! ID Card එක සූදානම්.`);
         }).catch((err) => {
             alert(`❌ Error: ${err.message}`);
         }).finally(() => {
-            saveBtn.innerText = "💾 Save / Update Student";
+            saveBtn.innerText = "💾 Save Student & Generate ID";
             saveBtn.disabled = false;
+        });
+    }
+
+    // Download ID Card as Image
+    function downloadCard() {
+        const cardElem = document.getElementById('studentIdCard');
+        const stuId = document.getElementById('stuId').value.trim() || 'Student_ID';
+        
+        html2canvas(cardElem, { scale: 3 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `${stuId}_ID_Card.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        });
+    }
+
+    // Print ID Card Only
+    function printCard() {
+        const cardElem = document.getElementById('studentIdCard');
+        
+        html2canvas(cardElem, { scale: 3 }).then(canvas => {
+            const imgData = canvas.toDataURL("image/png");
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <html>
+                <head>
+                    <title>Print ID Card</title>
+                    <style>
+                        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+                        img { width: 3.375in; height: 2.125in; border-radius: 8px; }
+                    </style>
+                </head>
+                <body onload="window.print(); window.close();">
+                    <img src="${imgData}" />
+                </body>
+                </html>
+            `);
+            printWin.document.close();
         });
     }
 
@@ -281,8 +435,10 @@
         selectedImageBase64 = null;
         document.getElementById('regForm').reset();
         document.getElementById('imgPreview').src = 'logo.png';
+        document.getElementById('cardPhoto').src = 'logo.png';
         document.getElementById('stuPhotoUrl').value = 'logo.png';
         document.getElementById('statusBadge').style.display = 'none';
+        updateCardPreview();
         document.getElementById('stuId').focus();
     }
 </script>
