@@ -225,11 +225,11 @@
                 <label for="studentGrade">Grade / Batch *</label>
                 <select id="studentGrade" required>
                     <option value="">Select Grade</option>
-                    <option value="Grade 1">Grade 6</option>
-                    <option value="Grade 2">Grade 7</option>
-                    <option value="Grade 3">Grade 8</option>
-                    <option value="Grade 4">Grade 9</option>
-                    <option value="Grade 5">Grade 6</option>
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
                     <option value="Grade 6">Grade 6</option>
                     <option value="Grade 7">Grade 7</option>
                     <option value="Grade 8">Grade 8</option>
@@ -285,7 +285,6 @@
     let isEditMode = false;
     let existingPhotoBackup = '';
 
-    // Check if entered Student ID exists in Firebase
     function checkExistingStudent() {
         const id = document.getElementById('studentId').value.trim();
         if (!id) return;
@@ -300,12 +299,10 @@
                 const data = snapshot.val();
                 isEditMode = true;
 
-                // Pre-fill form values
                 document.getElementById('studentName').value = data.name || '';
                 document.getElementById('studentGrade').value = data.grade || '';
                 document.getElementById('studentPhone').value = data.phone || data.whatsapp || '';
 
-                // Load existing photo
                 existingPhotoBackup = data.photo || data.photoUrl || data.imageUrl || '';
                 if (existingPhotoBackup) {
                     const preview = document.getElementById('photoPreview');
@@ -329,7 +326,6 @@
         });
     }
 
-    // Process uploaded file into Base64
     document.getElementById('studentPhoto').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -372,7 +368,6 @@
         }
     });
 
-    // Form submission (Save or Update)
     document.getElementById('registrationForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -381,7 +376,6 @@
         const grade = document.getElementById('studentGrade').value;
         const phone = document.getElementById('studentPhone').value.trim();
 
-        // Determine final photo (new upload or existing backup)
         const finalPhoto = base64Photo || existingPhotoBackup;
 
         if (!finalPhoto) {
@@ -398,12 +392,10 @@
             photo: finalPhoto
         };
 
-        // Use update() so existing attendance & fee records under this student are preserved!
         db.ref('students/' + id).update(studentData).then(() => {
             const msg = isEditMode ? '✅ Student updated successfully!' : '✅ Student registered successfully!';
             alert(msg);
 
-            // Print Preview
             document.getElementById('cardPhoto').src = finalPhoto;
             document.getElementById('cardName').innerText = name;
             document.getElementById('cardDetails').innerText = `ID: ${id} | ${grade}`;
