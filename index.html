@@ -3,52 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English with Sudan Sir - Attendance Scanner</title>
-    <link rel="manifest" href="manifest.json">
+    <title>QR Attendance Scanner - English with Sudan Sir</title>
     <link rel="icon" type="image/png" href="logo.png">
+    
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; min-height: 100vh; }
-        .container { max-width: 450px; margin: auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center; }
-        .logo { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; }
-        #reader { width: 100%; border-radius: 12px; overflow: hidden; margin: 15px 0; border: 2px solid #003366; }
-        #result { font-weight: bold; font-size: 1em; margin-top: 15px; }
-        
-        .whatsapp-btn {
-            background-color: #25D366;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
-            transition: 0.2s;
-        }
-        .whatsapp-btn:hover { background-color: #1ebc57; }
 
-        .nav-links { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
-        .nav-links a { text-decoration: none; background: #f0f4f8; padding: 10px; border-radius: 8px; color: #003366; font-weight: bold; }
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 450px; width: 100%; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        h2 { color: #003366; margin-top: 0; }
+        select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; }
+        .nav-links { margin-top: 15px; }
+        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 10px; }
+        .result-box { margin-top: 15px; padding: 10px; border-radius: 8px; background: #e2e8f0; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <img src="logo.png" alt="Logo" class="logo">
-    <h2 style="color: #003366; margin: 10px 0 5px 0;">English with Sudan Sir</h2>
-    <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">QR Scanner - Attendance System</p>
+    <h2>📸 Attendance QR Scanner</h2>
+
+    <label for="daySelect"><strong>දිනය තෝරන්න (Select Day):</strong></label>
+    <select id="daySelect">
+        <option value="Day 1">Day 1</option>
+        <option value="Day 2">Day 2</option>
+        <option value="Day 3">Day 3</option>
+        <option value="Day 4">Day 4</option>
+    </select>
 
     <div id="reader"></div>
-    <div id="result"></div>
+
+    <div class="result-box" id="result">QR එක Scan කරන්න...</div>
 
     <div class="nav-links">
-        <a href="register.html">📝 නව ශිෂ්‍ය ලියාපදිංචිය</a>
-        <a href="admin_fees.html">🛠️ Admin Panel (Attendance & Fees)</a>
-        <a href="students_list.html">👥 සියලුම ශිෂ්‍යයන්ගේ ලැයිස්තුව</a>
-        <a href="parent_portal.html">👨‍👩‍👧‍👦 Parent Portal</a>
+        <a href="register.html">+ New Register</a> | 
+        <a href="students.html">📚 Admin Panel</a>
     </div>
 </div>
 
@@ -64,54 +56,40 @@
         measurementId: "G-XZW2VLFXT2"
     };
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let lastScannedId = "";
 
     function onScanSuccess(decodedText) {
-        const date = new Date().toISOString().split('T')[0];
-        const time = new Date().toLocaleTimeString();
-        const res = document.getElementById('result');
-        
-        // 1. Firebase එකෙන් ශිෂ්‍යයාගේ විස්තර ලබා ගැනීම
-        firebase.database().ref('students/' + decodedText).once('value', (snapshot) => {
-            if(snapshot.exists()) {
-                const student = snapshot.val();
-                let phone = student.phone ? student.phone.trim() : "";
-                const name = student.name || decodedText;
+        const studentId = decodedText.trim();
+        const selectedDay = document.getElementById('daySelect').value;
 
-                // Phone number Format සැකසීම (077XXXXXXX ➔ 9477XXXXXXX)
-                if (phone.startsWith("0")) {
-                    phone = "94" + phone.substring(1);
-                }
+        if (studentId === lastScannedId) return;
+        lastScannedId = studentId;
 
-                // 2. පැමිණීම Database එකට Save කිරීම
-                firebase.database().ref('attendance/' + date + '/' + decodedText).set({
-                    time: time,
-                    status: "Present"
-                }).then(() => {
-                    // WhatsApp Message එක පිළියෙල කිරීම
-                    const msg = `Dear Parent, Your child *${name}* (${decodedText}) has safely arrived at *English with Sudan Sir* class today (${date}) at ${time}.`;
-                    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+        document.getElementById('result').innerText = `Scanned ID: ${studentId}...`;
 
-                    // UI එක යාවත්කාලීන කිරීම
-                    res.innerHTML = `
-                        <div style="background:#d4edda; color:#155724; padding:15px; border-radius:10px; border:1px solid #c3e6cb;">
-                            ✅ <strong>${name}</strong> පැමිණීම සටහන් විය!<br><br>
-                            <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">
-                                📲 WhatsApp පණිවිඩය යවන්න
-                            </a>
-                        </div>
-                    `;
+        db.ref('students/' + studentId).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                
+                // Attendance data update under the specific day
+                const updateData = {};
+                updateData[`attendance/${selectedDay}`] = true;
+                updateData[`lastDate`] = new Date().toISOString().split('T')[0];
+
+                db.ref('students/' + studentId).update(updateData).then(() => {
+                    document.getElementById('result').innerText = `✅ ${data.name} - ${selectedDay} Attendance Marked!`;
+                    setTimeout(() => { lastScannedId = ""; }, 3000);
                 });
             } else {
-                res.innerHTML = `
-                    <div style="background:#f8d7da; color:#721c24; padding:12px; border-radius:8px;">
-                        ❌ <strong>${decodedText}</strong> - මෙවැනි ශිෂ්‍යයෙකු නොමැත!
-                    </div>
-                `;
+                document.getElementById('result').innerText = `❌ ID ${studentId} හමු නොවීය!`;
+                setTimeout(() => { lastScannedId = ""; }, 3000);
             }
         });
     }
 
-    let html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+    const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
     html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
