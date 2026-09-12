@@ -118,6 +118,26 @@
             object-fit: cover;
             border: 2px solid #28a745;
         }
+
+        .wa-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px 18px;
+            background-color: #25D366;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-size: 0.95em;
+        }
+
+        .wa-btn:hover {
+            background-color: #1eb954;
+        }
     </style>
 </head>
 <body>
@@ -160,14 +180,10 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // WhatsApp UltraMsg Credentials
-    const ULTRAMSG_INSTANCE_ID = "YOUR_INSTANCE_ID"; // Replace with your Instance ID
-    const ULTRAMSG_TOKEN = "YOUR_TOKEN";             // Replace with your Token
-
     let html5QrcodeScanner;
     let audioCtx = null;
 
-    // Built-in Web Audio API sound synthesizer
+    // Web Audio API Audio Feedback
     function playAudioFeedback(type) {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -179,18 +195,16 @@
         gain.connect(audioCtx.destination);
 
         if (type === 'success') {
-            // High double-beep for success
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
             osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.1);
             gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
             osc.start();
             osc.stop(audioCtx.currentTime + 0.25);
         } else if (type === 'error' || type === 'warning') {
-            // Low buzz for error/duplicate
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+            osc.frequency.setValueAtTime(220, audioCtx.currentTime);
             osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.15);
             gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
@@ -199,7 +213,7 @@
         }
     }
 
-    // Determine Day 1 to Day 4 based on calendar date
+    // Auto calculate Day 1 to Day 4 based on day of month
     function getCurrentDayLabel() {
         const currentDate = new Date().getDate();
         if (currentDate <= 7) return "Day 1";
@@ -242,13 +256,11 @@
         const resultDiv = document.getElementById('result');
         const todayDay = getCurrentDayLabel();
 
-        // Check if student already marked attendance for today's session
+        // Check for duplicate scans
         db.ref(`students/${dbKey}/attendance/${todayDay}`).once('value', (attSnap) => {
             if (attSnap.exists() && (attSnap.val() === true || attSnap.val().present === true)) {
-                // Prevent duplicate scan
                 playAudioFeedback('warning');
-                const existingData = attSnap.val();
-                const existingTime = existingData.timestamp || 'Already Marked';
+                const existingTime = attSnap.val().timestamp || 'Already Marked';
 
                 resultDiv.className = 'result-box warning';
                 resultDiv.innerHTML = `
@@ -265,7 +277,6 @@
                 `;
                 setTimeout(restartScanner, 3500);
             } else {
-                // First-time scan for the day -> Process attendance
                 saveAttendance(dbKey, stuData, todayDay);
             }
         });
@@ -285,6 +296,22 @@
 
         db.ref(`students/${dbKey}/attendance/${todayDay}`).set(attendanceRecord).then(() => {
             playAudioFeedback('success');
+
+            // Generate WhatsApp Web link
+            const phone = stuData.whatsapp || stuData.mobile || stuData.phone || stuData.parentPhone || '';
+            const waLink = generateWhatsAppLink(phone, stuData.name, todayDay, formattedDate, formattedTime);
+
+            let waButtonHTML = '';
+            if (phone) {
+                waButtonHTML = `
+                    <a href="${waLink}" target="_blank" class="wa-btn">
+                        📲 Send WhatsApp Message Manually
+                    </a>
+                `;
+            } else {
+                waButtonHTML = `<div style="color:#d9534f; margin-top:10px; font-size:0.85em;">⚠️ No phone number found for manual message.</div>`;
+            }
+
             resultDiv.className = 'result-box success';
             resultDiv.innerHTML = `
                 <div style="font-size: 1.1em; font-weight: bold;">✅ Attendance Marked Successfully!</div>
@@ -299,39 +326,27 @@
                         <div><strong>Time:</strong> ${formattedTime}</div>
                     </div>
                 </div>
+                ${waButtonHTML}
             `;
-            
-            // Trigger WhatsApp Notification
-            const phone = stuData.whatsapp || stuData.mobile || stuData.phone || stuData.parentPhone;
+
+            // Auto-open WhatsApp in a new tab if allowed by browser settings
             if (phone) {
-                sendWhatsAppNotification(phone, stuData.name, todayDay, formattedDate, formattedTime);
+                window.open(waLink, '_blank');
             }
 
-            setTimeout(restartScanner, 3000);
+            setTimeout(restartScanner, 4000);
         });
     }
 
-    function sendWhatsAppNotification(phone, studentName, dayLabel, dateStr, timeStr) {
+    function generateWhatsAppLink(phone, studentName, dayLabel, dateStr, timeStr) {
         let formattedPhone = phone.toString().replace(/[^0-9]/g, '');
         if (formattedPhone.startsWith('0')) {
             formattedPhone = '94' + formattedPhone.substring(1);
         }
 
-        const message = `📚 *English with Sudan Sir*\n\nDear Parent,\nYour child *${studentName}* has arrived at class and marked attendance.\n\n📅 *Session:* ${dayLabel}\n🗓️ *Date:* ${dateStr}\n⏰ *Time:* ${timeStr}`;
-
-        const data = new URLSearchParams();
-        data.append("token", ULTRAMSG_TOKEN);
-        data.append("to", formattedPhone);
-        data.append("body", message);
-
-        fetch(`https://api.ultramsg.com/${ULTRAMSG_INSTANCE_ID}/messages/chat`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: data
-        })
-        .then(response => response.json())
-        .then(res => console.log("WhatsApp message status:", res))
-        .catch(err => console.error("WhatsApp sending error:", err));
+        const rawMessage = `📚 *English with Sudan Sir*\n\nDear Parent,\nYour child *${studentName}* has arrived at class and marked attendance.\n\n📅 *Session:* ${dayLabel}\n🗓️ *Date:* ${dateStr}\n⏰ *Time:* ${timeStr}`;
+        
+        return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(rawMessage)}`;
     }
 
     function restartScanner() {
