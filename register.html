@@ -46,7 +46,7 @@
         }
 
         .container {
-            max-width: 500px;
+            max-width: 520px;
             width: 100%;
             background: white;
             padding: 25px;
@@ -129,9 +129,9 @@
         }
 
         .photo-preview {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
+            width: 90px;
+            height: 100px;
+            border-radius: 6px;
             object-fit: cover;
             border: 2px solid #0056b3;
             display: none;
@@ -154,20 +154,107 @@
             background-color: #003d80;
         }
 
+        /* Structured ID Card Design */
         #idCardPreview {
             display: none;
             margin-top: 25px;
-            padding: 15px;
             border: 2px solid #0056b3;
-            border-radius: 10px;
+            border-radius: 12px;
             background: #fff;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+
+        .id-header {
+            background: #003366;
+            color: white;
+            padding: 12px;
             text-align: center;
         }
 
-        #qrcode {
+        .id-header h4 {
+            margin: 0;
+            font-size: 1.1em;
+            letter-spacing: 0.5px;
+        }
+
+        .id-header p {
+            margin: 2px 0 0 0;
+            font-size: 0.75em;
+            opacity: 0.85;
+        }
+
+        .id-body {
             display: flex;
+            padding: 15px;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .id-photo-box {
+            width: 105px;
+            height: 125px;
+            border: 2px solid #0056b3;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
             justify-content: center;
+        }
+
+        .id-photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .id-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .id-info h3 {
+            margin: 0 0 6px 0;
+            font-size: 1.1em;
+            color: #003366;
+        }
+
+        .id-info p {
+            margin: 3px 0;
+            font-size: 0.85em;
+            color: #333;
+        }
+
+        .id-qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qrcode {
+            margin-bottom: 5px;
+        }
+
+        .id-footer {
+            background: #f0f4f8;
+            border-top: 1px dashed #0056b3;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.75em;
+            color: #222;
+            line-height: 1.4;
+        }
+
+        .id-footer strong {
+            color: #003366;
+        }
+
+        .print-action {
             margin: 15px 0;
+            text-align: center;
         }
 
         .btn-print {
@@ -183,8 +270,8 @@
         @media print {
             body * { visibility: hidden; }
             #idCardPreview, #idCardPreview * { visibility: visible; }
-            #idCardPreview { position: absolute; left: 0; top: 0; width: 100%; border: none; }
-            .btn-print { display: none; }
+            #idCardPreview { position: absolute; left: 0; top: 0; width: 100%; border: 2px solid #003366; }
+            .print-action { display: none; }
         }
     </style>
 </head>
@@ -257,13 +344,36 @@
         </form>
 
         <div id="idCardPreview">
-            <h4 style="margin:0; color:#003366;">English with Sudan Sir</h4>
-            <p style="font-size:0.8em; margin: 3px 0 10px 0; color:#666;">Student Identification Card</p>
-            <img id="cardPhoto" src="" alt="Student Photo" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid #0056b3;">
-            <h3 id="cardName" style="margin:8px 0 2px 0; font-size:1.1em;"></h3>
-            <p id="cardDetails" style="margin:0; font-size:0.85em; color:#444;"></p>
-            <div id="qrcode"></div>
-            <button class="btn-print" onclick="window.print()">🖨️ Print Student ID</button>
+            <div class="id-header">
+                <h4>English with Sudan Sir</h4>
+                <p>STUDENT IDENTIFICATION CARD</p>
+            </div>
+            
+            <div class="id-body">
+                <div class="id-photo-box">
+                    <img id="cardPhoto" src="" alt="Student Photo">
+                </div>
+                
+                <div class="id-info">
+                    <h3 id="cardName"></h3>
+                    <p><strong>ID:</strong> <span id="cardId"></span></p>
+                    <p><strong>Grade:</strong> <span id="cardGrade"></span></p>
+                    <p><strong>Mobile:</strong> <span id="cardPhone"></span></p>
+                </div>
+
+                <div class="id-qr-container">
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+
+            <div class="id-footer">
+                <strong>r.m.s.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)<br>
+                Mobile - 0706562952 &nbsp;|&nbsp; WhatsApp - 0716562952
+            </div>
+
+            <div class="print-action">
+                <button class="btn-print" onclick="window.print()">🖨️ Print Student ID Card</button>
+            </div>
         </div>
     </div>
 
@@ -398,14 +508,16 @@
 
             document.getElementById('cardPhoto').src = finalPhoto;
             document.getElementById('cardName').innerText = name;
-            document.getElementById('cardDetails').innerText = `ID: ${id} | ${grade}`;
+            document.getElementById('cardId').innerText = id;
+            document.getElementById('cardGrade').innerText = grade;
+            document.getElementById('cardPhone').innerText = phone;
             
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             new QRCode(qrContainer, {
                 text: id,
-                width: 120,
-                height: 120
+                width: 75,
+                height: 75
             });
 
             document.getElementById('idCardPreview').style.display = 'block';
