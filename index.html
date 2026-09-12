@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Attendance & Student Details</title>
+    <title>Attendance & QR Scanner</title>
     <link rel="icon" type="image/png" href="logo.png">
     
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -16,53 +16,47 @@
         h2 { color: #003366; margin-top: 0; }
         
         .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-        input[type="text"], select, button { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; }
+        input[type="text"], select, button { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; box-sizing: border-box; }
         input[type="text"] { flex: 1; }
         
         .btn-main { background: #003366; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-wa { background: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; display: none; text-decoration: none; padding: 12px; border-radius: 6px; box-sizing: border-box; }
+        .btn-mark { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; padding: 12px; border-radius: 6px; }
+        .btn-wa { background: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; display: none; text-decoration: none; padding: 12px; border-radius: 6px; box-sizing: border-box; text-align: center; }
         
         #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; }
         
-        /* Student Details Box */
         .student-card { display: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; margin-top: 15px; text-align: left; }
         .student-card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 10px auto; border: 2px solid #003366; }
         .student-info p { margin: 6px 0; font-size: 0.95em; color: #334155; }
         .student-info strong { color: #0f172a; }
-        .fee-paid { color: #16a34a; font-weight: bold; }
-        .fee-notpaid { color: #dc2626; font-weight: bold; }
         
-        .nav-links { margin-top: 20px; }
-        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 10px; }
-        .status-msg { margin-top: 10px; font-weight: bold; }
+        .nav-links { margin-top: 20px; text-align: center; font-size: 0.9em; }
+        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 5px; }
+        .status-msg { margin-top: 10px; font-weight: bold; color: #003366; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📸 Attendance & Details</h2>
+    <h2>📸 Attendance QR Scanner</h2>
 
-    <!-- Manual ID Input -->
     <div class="input-group">
         <input type="text" id="manualIdInput" placeholder="Enter Student ID (e.g. STU101)">
         <button class="btn-main" onclick="searchStudentById()">Search</button>
     </div>
 
-    <!-- Day Select Dropdown -->
-    <div style="text-align: left; margin-bottom: 8px;">
-        <label for="daySelect"><strong>තෝරාගත් දිනය (Day):</strong></label>
+    <div style="text-align: left; margin-bottom: 5px;">
+        <label for="daySelect"><strong>තෝරාගත් දිනය (Select Day):</strong></label>
     </div>
-    <select id="daySelect" style="width: 100%;">
+    <select id="daySelect" style="width: 100%; margin-bottom: 10px;">
         <option value="Day 1">Day 1</option>
         <option value="Day 2">Day 2</option>
         <option value="Day 3">Day 3</option>
         <option value="Day 4">Day 4</option>
     </select>
 
-    <!-- QR Camera Reader -->
     <div id="reader"></div>
 
-    <!-- Student Info Display Area -->
     <div class="student-card" id="studentCard">
         <img id="stuPhoto" src="logo.png" alt="Student Photo">
         <div class="student-info">
@@ -70,18 +64,21 @@
             <p><strong>Name:</strong> <span id="stuName"></span></p>
             <p><strong>Grade:</strong> <span id="stuGrade"></span></p>
             <p><strong>Phone:</strong> <span id="stuPhone"></span></p>
-            <p><strong>Fee Status:</strong> <span id="stuFee"></span></p>
+            <p><strong>Last Fee Record:</strong> <span id="stuFee" style="font-weight: bold; color: #d97706;"></span></p>
         </div>
         
-        <button class="btn-main" style="width: 100%; margin-top: 10px;" onclick="markAttendance()">✅ Mark Attendance</button>
+        <button class="btn-mark" onclick="markAttendance()">✅ Mark Attendance</button>
         <a id="waBtn" class="btn-wa" target="_blank">📲 Send WhatsApp Confirmation</a>
     </div>
 
     <div class="status-msg" id="statusMsg"></div>
 
     <div class="nav-links">
+        <a href="index.html">📸 Scanner</a> | 
         <a href="register.html">+ New Register</a> | 
-        <a href="students_list.html">📚 Admin Panel</a>
+        <a href="fee.html">💳 Fee Payment</a> | 
+        <a href="students_list.html">📚 Admin Panel</a> | 
+        <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
     </div>
 </div>
 
@@ -101,13 +98,10 @@
 
     let currentStudent = null;
 
-    // Scan through QR Camera
     function onScanSuccess(decodedText) {
-        const studentId = decodedText.trim();
-        loadStudentDetails(studentId);
+        loadStudentDetails(decodedText.trim());
     }
 
-    // Search via Manual Input
     function searchStudentById() {
         const studentId = document.getElementById('manualIdInput').value.trim();
         if (studentId) {
@@ -117,7 +111,6 @@
         }
     }
 
-    // Fetch Student Details from Firebase
     function loadStudentDetails(studentId) {
         document.getElementById('statusMsg').innerText = "විස්තර ලබාගනිමින් පවතියි...";
         
@@ -126,20 +119,15 @@
                 currentStudent = snapshot.val();
                 currentStudent.id = studentId;
 
-                // Render Details
                 document.getElementById('stuPhoto').src = currentStudent.photo || 'logo.png';
                 document.getElementById('stuId').innerText = studentId;
                 document.getElementById('stuName').innerText = currentStudent.name || '-';
                 document.getElementById('stuGrade').innerText = currentStudent.grade || '-';
                 document.getElementById('stuPhone').innerText = currentStudent.phone || '-';
-                
-                const feeEl = document.getElementById('stuFee');
-                feeEl.innerText = currentStudent.fee || 'Not Paid';
-                feeEl.className = (currentStudent.fee && currentStudent.fee.toLowerCase().includes('paid')) ? 'fee-paid' : 'fee-notpaid';
+                document.getElementById('stuFee').innerText = currentStudent.fee || 'No Record';
 
-                // Display Card
                 document.getElementById('studentCard').style.display = 'block';
-                document.getElementById('waBtn').style.display = 'none'; // Hide until marked
+                document.getElementById('waBtn').style.display = 'none';
                 document.getElementById('statusMsg').innerText = "ශිෂ්‍යයා සොයා ගන්නා ලදී. Attendance Mark කරන්න.";
             } else {
                 document.getElementById('studentCard').style.display = 'none';
@@ -148,7 +136,6 @@
         });
     }
 
-    // Mark Attendance in Firebase & Prepare WhatsApp Link
     function markAttendance() {
         if (!currentStudent) return;
 
@@ -160,10 +147,9 @@
         db.ref('students/' + currentStudent.id).update(updateData).then(() => {
             document.getElementById('statusMsg').innerText = `✅ ${currentStudent.name} සඳහා ${selectedDay} Attendance සටහන් විය!`;
 
-            // Prepare WhatsApp Message Link
             let phone = currentStudent.phone ? currentStudent.phone.replace(/[^0-9]/g, '') : '';
             if (phone.startsWith('0')) {
-                phone = '94' + phone.substring(1); // Convert 07X to 947X for LK
+                phone = '94' + phone.substring(1);
             }
 
             const msg = `Dear Parent/Student,\n\nAttendance Marked! 📌\nStudent Name: ${currentStudent.name}\nID: ${currentStudent.id}\nClass Day: ${selectedDay}\nDate: ${new Date().toLocaleDateString()}\n\nThank you!\nEnglish with Sudan Sir`;
@@ -176,7 +162,6 @@
         });
     }
 
-    // Camera Scanner Initialization
     const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 220 });
     html5QrcodeScanner.render(onScanSuccess);
 </script>
