@@ -595,7 +595,6 @@
     document.getElementById('registrationForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Capture exact inputs into local variables right away
         const id = document.getElementById('studentId').value.trim();
         const name = document.getElementById('studentName').value.trim();
         const grade = document.getElementById('studentGrade').value;
@@ -623,13 +622,11 @@
             const msg = isEditMode ? '✅ Student updated successfully!' : '✅ Student registered successfully!';
             alert(msg);
 
-            // Populate ID Card directly using the captured variables
             document.getElementById('cardId').innerText = id;
             document.getElementById('cardName').innerText = name;
             document.getElementById('cardPhone').innerText = phone;
             document.getElementById('cardPhoto').src = finalPhoto;
             
-            // Generate QR Code specifically for this exact ID
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             new QRCode(qrContainer, {
@@ -638,10 +635,8 @@
                 height: 78
             });
 
-            // Display the populated ID Card wrapper
             document.getElementById('idCardWrapper').style.display = 'flex';
 
-            // Reset the registration form after card values are written
             document.getElementById('registrationForm').reset();
             document.getElementById('photoPreview').style.display = 'none';
             document.getElementById('modeStatus').innerHTML = "🆕 Mode: New Registration";
