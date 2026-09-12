@@ -1,111 +1,253 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Fee Payment Management</title>
+    <title>Fee Payment - English with Sudan Sir</title>
     <link rel="icon" type="image/png" href="logo.png">
-    
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { max-width: 480px; width: 100%; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
-        h2 { color: #003366; margin-top: 0; }
-        
-        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-        input[type="text"], input[type="number"], select, button { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; box-sizing: border-box; }
-        input[type="text"], input[type="number"] { flex: 1; }
-        
-        .btn-main { background: #003366; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-pay { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 1.05em; }
-        .btn-wa { background: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; display: none; text-decoration: none; padding: 12px; border-radius: 6px; box-sizing: border-box; text-align: center; }
-        
-        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; }
-        
-        .student-card { display: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; margin-top: 15px; text-align: left; }
-        .student-card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 10px auto; border: 2px solid #003366; }
-        .student-info p { margin: 6px 0; font-size: 0.95em; color: #334155; }
-        .student-info strong { color: #0f172a; }
-        
-        .form-group { margin-top: 10px; text-align: left; }
-        .form-group label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 0.9em; color: #003366; }
-        
-        .nav-links { margin-top: 20px; text-align: center; font-size: 0.9em; }
-        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 5px; }
-        .status-msg { margin-top: 10px; font-weight: bold; color: #003366; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .brand-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #0056b3;
+        }
+
+        .brand-title {
+            color: #003366;
+            margin: 0;
+            font-size: 1.3em;
+            font-weight: 800;
+        }
+
+        .container {
+            max-width: 550px;
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.85em;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #0056b3;
+            font-weight: bold;
+            margin: 0 6px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .search-box button {
+            padding: 10px 18px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .student-card {
+            display: none;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            background: #fafafa;
+            margin-bottom: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .profile-header img {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #0056b3;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.85em;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .btn-pay {
+            width: 100%;
+            padding: 11px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .history-list {
+            margin-top: 15px;
+            font-size: 0.85em;
+            text-align: left;
+        }
+
+        .history-item {
+            padding: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .wa-receipt-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 10px;
+            background-color: #25D366;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 6px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>💳 Class Fee Payment</h2>
-
-    <div class="input-group">
-        <input type="text" id="manualIdInput" placeholder="Enter Student ID (e.g. STU101)">
-        <button class="btn-main" onclick="searchStudentById()">Search</button>
+    <div class="brand-header">
+        <img src="logo.png" alt="English with Sudan Sir Logo" class="brand-logo">
+        <h2 class="brand-title">English with Sudan Sir</h2>
     </div>
 
-    <div id="reader"></div>
-
-    <div class="student-card" id="studentCard">
-        <img id="stuPhoto" src="logo.png" alt="Student Photo">
-        <div class="student-info">
-            <p><strong>ID:</strong> <span id="stuId"></span></p>
-            <p><strong>Name:</strong> <span id="stuName"></span></p>
-            <p><strong>Grade:</strong> <span id="stuGrade"></span></p>
-            <p><strong>Last Paid Status:</strong> <span id="stuLastFee" style="font-weight: bold; color: #d97706;"></span></p>
+    <div class="container">
+        <div class="nav-links">
+            <a href="index.html">📸 Scanner</a> | 
+            <a href="register.html">+ New Register</a> | 
+            <a href="fee.html">💳 Fee Payment</a> | 
+            <a href="students_list.html">📚 Admin Panel</a> | 
+            <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 12px 0;">
+        <h3 style="margin-top:0; color:#444; text-align:center;">Monthly Fee Management</h3>
 
-        <div class="form-group">
-            <label for="feeMonth">අදාල මාසය (Select Month):</label>
-            <select id="feeMonth" style="width: 100%;">
-                <option value="January">January</option>
-                <option value="February">February</option>
-                <option value="March">March</option>
-                <option value="April">April</option>
-                <option value="May">May</option>
-                <option value="June">June</option>
-                <option value="July">July</option>
-                <option value="August">August</option>
-                <option value="September">September</option>
-                <option value="October">October</option>
-                <option value="November">November</option>
-                <option value="December">December</option>
-            </select>
+        <div class="search-box">
+            <input type="text" id="searchId" placeholder="Enter Student ID (e.g. STU1001)">
+            <button onclick="searchStudent()">Search</button>
         </div>
 
-        <div class="form-group">
-            <label for="feeAmount">ගෙවූ මුදල (Amount - LKR):</label>
-            <input type="number" id="feeAmount" placeholder="e.g. 1500" style="width: 100%;">
-        </div>
+        <div id="studentCard" class="student-card">
+            <div class="profile-header">
+                <img id="stuPhoto" src="logo.png" alt="Photo">
+                <div>
+                    <h4 id="stuName" style="margin:0; color:#003366;">-</h4>
+                    <div id="stuDetails" style="font-size:0.85em; color:#666;">-</div>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label for="feeStatus">ගෙවීමේ තත්ත්වය (Status):</label>
-            <select id="feeStatus" style="width: 100%;">
-                <option value="Paid Full">Paid Full ✅</option>
-                <option value="Half Paid">Half Paid 🟡</option>
-                <option value="Free/Scholarship">Free / Scholarship 🎓</option>
-            </select>
-        </div>
+            <form id="feeForm">
+                <div class="form-group">
+                    <label for="payMonth">Payment Month</label>
+                    <select id="payMonth" required>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
 
-        <button class="btn-pay" onclick="saveFeePayment()">💰 Record Payment & Save</button>
-        <a id="waBtn" class="btn-wa" target="_blank">📲 Send WhatsApp Receipt</a>
+                <div class="form-group">
+                    <label for="payAmount">Amount (LKR)</label>
+                    <input type="number" id="payAmount" value="2000" required>
+                </div>
+
+                <button type="submit" class="btn-pay">Mark Fee Paid & Save</button>
+            </form>
+
+            <a id="waReceiptBtn" href="#" target="_blank" class="wa-receipt-btn">
+                📲 Send Receipt via WhatsApp
+            </a>
+
+            <div class="history-list">
+                <strong style="display:block; margin-bottom:8px;">Payment History:</strong>
+                <div id="historyItems">No payments recorded yet.</div>
+            </div>
+        </div>
     </div>
-
-    <div class="status-msg" id="statusMsg"></div>
-
-    <div class="nav-links">
-        <a href="index.html">📸 Scanner</a> | 
-        <a href="register.html">+ New Register</a> | 
-        <a href="students_list.html">📚 Admin Panel</a> | 
-        <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
-    </div>
-</div>
 
 <script>
     const firebaseConfig = {
@@ -121,87 +263,100 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let currentStudent = null;
+    let currentStuKey = null;
+    let currentStuData = null;
 
-    function onScanSuccess(decodedText) {
-        loadStudentDetails(decodedText.trim());
-    }
+    // Default current month selection
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    document.getElementById('payMonth').value = months[new Date().getMonth()];
 
-    function searchStudentById() {
-        const studentId = document.getElementById('manualIdInput').value.trim();
-        if (studentId) {
-            loadStudentDetails(studentId);
-        } else {
-            alert('කරුණාකර Student ID එක ඇතුළත් කරන්න!');
-        }
-    }
+    function searchStudent() {
+        const queryId = document.getElementById('searchId').value.trim();
+        if (!queryId) return alert('Please enter a Student ID!');
 
-    function loadStudentDetails(studentId) {
-        document.getElementById('statusMsg').innerText = "විස්තර ලබාගනිමින් පවතියි...";
-        
-        db.ref('students/' + studentId).once('value', (snapshot) => {
+        document.getElementById('waReceiptBtn').style.display = 'none';
+
+        db.ref('students/' + queryId).once('value', (snapshot) => {
             if (snapshot.exists()) {
-                currentStudent = snapshot.val();
-                currentStudent.id = studentId;
-
-                document.getElementById('stuPhoto').src = currentStudent.photo || 'logo.png';
-                document.getElementById('stuId').innerText = studentId;
-                document.getElementById('stuName').innerText = currentStudent.name || '-';
-                document.getElementById('stuGrade').innerText = currentStudent.grade || '-';
-                document.getElementById('stuLastFee').innerText = currentStudent.fee || 'None';
-
-                document.getElementById('studentCard').style.display = 'block';
-                document.getElementById('waBtn').style.display = 'none';
-                document.getElementById('statusMsg').innerText = "ශිෂ්‍යයා සොයා ගන්නා ලදී. ගෙවීම් විස්තර ඇතුළත් කරන්න.";
+                displayStudent(queryId, snapshot.val());
             } else {
-                document.getElementById('studentCard').style.display = 'none';
-                document.getElementById('statusMsg').innerText = `❌ ID ${studentId} හි ශිෂ්‍යයෙකු හමු නොවීය!`;
+                db.ref('students').orderByChild('id').equalTo(queryId).once('value', (searchSnap) => {
+                    if (searchSnap.exists()) {
+                        searchSnap.forEach(child => displayStudent(child.key, child.val()));
+                    } else {
+                        alert('❌ Student ID not found!');
+                        document.getElementById('studentCard').style.display = 'none';
+                    }
+                });
             }
         });
     }
 
-    function saveFeePayment() {
-        if (!currentStudent) return;
+    function displayStudent(key, data) {
+        currentStuKey = key;
+        currentStuData = data;
 
-        const month = document.getElementById('feeMonth').value;
-        const amount = document.getElementById('feeAmount').value.trim();
-        const status = document.getElementById('feeStatus').value;
+        document.getElementById('stuName').innerText = data.name || 'Unnamed';
+        document.getElementById('stuDetails').innerText = `ID: ${data.id || key} | Grade: ${data.grade || '-'}`;
+        document.getElementById('stuPhoto').src = data.photo || data.photoUrl || data.imageUrl || 'logo.png';
 
-        if (!amount) {
-            alert("කරුණාකර ගෙවූ මුදල (Amount) ඇතුළත් කරන්න!");
-            return;
-        }
+        document.getElementById('studentCard').style.display = 'block';
+        loadPaymentHistory(key);
+    }
 
-        const feeString = `${month}: Rs.${amount} (${status})`;
+    function loadPaymentHistory(key) {
+        db.ref(`students/${key}/payments`).once('value', (snapshot) => {
+            const container = document.getElementById('historyItems');
+            container.innerHTML = '';
 
-        const paymentData = {
-            fee: feeString,
-            lastFeeAmount: amount,
-            lastFeeMonth: month,
-            lastFeeStatus: status,
-            feePaidDate: new Date().toLocaleDateString()
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    const pay = child.val();
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.innerHTML = `<span><strong>${child.key}</strong> (${pay.date})</span> <span>LKR ${pay.amount} ✅</span>`;
+                    container.appendChild(item);
+                });
+            } else {
+                container.innerHTML = 'No prior payments recorded.';
+            }
+        });
+    }
+
+    document.getElementById('feeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (!currentStuKey) return;
+
+        const month = document.getElementById('payMonth').value;
+        const amount = document.getElementById('payAmount').value;
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const paymentRecord = {
+            paid: true,
+            amount: amount,
+            date: todayStr
         };
 
-        db.ref('students/' + currentStudent.id).update(paymentData).then(() => {
-            document.getElementById('statusMsg').innerText = `✅ Payment Saved Successfully!`;
+        db.ref(`students/${currentStuKey}/payments/${month}`).set(paymentRecord).then(() => {
+            alert(`✅ Payment of LKR ${amount} for ${month} saved successfully!`);
+            loadPaymentHistory(currentStuKey);
 
-            let phone = currentStudent.phone ? currentStudent.phone.replace(/[^0-9]/g, '') : '';
-            if (phone.startsWith('0')) {
-                phone = '94' + phone.substring(1);
+            // Setup WhatsApp Receipt Link
+            const phone = currentStuData.phone || currentStuData.whatsapp || '';
+            if (phone) {
+                let formattedPhone = phone.toString().replace(/[^0-9]/g, '');
+                if (formattedPhone.startsWith('0')) formattedPhone = '94' + formattedPhone.substring(1);
+
+                const msg = `📚 *English with Sudan Sir*\n\nPayment Receipt:\nReceived LKR *${amount}* for *${month}* class fees for student *${currentStuData.name}*.\n\nDate: ${todayStr}\nThank you!`;
+                const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(msg)}`;
+
+                const waBtn = document.getElementById('waReceiptBtn');
+                waBtn.href = waUrl;
+                waBtn.style.display = 'flex';
             }
-
-            const msg = `🧾 *PAYMENT RECEIPT*\n------------------------------\n*English with Sudan Sir*\n\n*Student Name:* ${currentStudent.name}\n*Student ID:* ${currentStudent.id}\n*Month:* ${month}\n*Amount Paid:* Rs. ${amount}.00\n*Status:* ${status}\n*Date:* ${new Date().toLocaleDateString()}\n------------------------------\nThank you for the payment! 🙏`;
-
-            const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-            
-            const waBtn = document.getElementById('waBtn');
-            waBtn.href = waUrl;
-            waBtn.style.display = 'block';
         });
-    }
-
-    const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 220 });
-    html5QrcodeScanner.render(onScanSuccess);
+    });
 </script>
 </body>
 </html>
