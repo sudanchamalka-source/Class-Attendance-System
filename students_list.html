@@ -96,24 +96,27 @@
         }
 
         snapshot.forEach((childSnapshot) => {
-            const id = childSnapshot.key;
+            const dbKey = childSnapshot.key;
             const data = childSnapshot.val();
+            
+            // Database Key එක හෝ Data Object එකේ ඇති Custom ID එක ලබාගැනීම
+            const displayId = data.id || data.stuId || dbKey;
             const att = data.attendance || {};
 
             const tr = document.createElement('tr');
-            tr.id = `row_${id}`;
+            tr.id = `row_${dbKey}`;
             tr.innerHTML = `
                 <td><img src="${data.photo || 'logo.png'}" class="stu-img" alt="Photo"></td>
-                <td><strong>${id}</strong></td>
+                <td><strong>${displayId}</strong></td>
                 
                 <td>
                     <span class="view-mode">${data.name || '-'}</span>
-                    <input type="text" class="edit-mode" id="input_name_${id}" value="${data.name || ''}" style="display:none;">
+                    <input type="text" class="edit-mode" id="input_name_${dbKey}" value="${data.name || ''}" style="display:none;">
                 </td>
                 
                 <td>
                     <span class="view-mode">${data.grade || '-'}</span>
-                    <select class="edit-mode" id="input_grade_${id}" style="display:none;">
+                    <select class="edit-mode" id="input_grade_${dbKey}" style="display:none;">
                         <option value="Grade 1" ${data.grade === 'Grade 1' ? 'selected' : ''}>Grade 1</option>
                         <option value="Grade 2" ${data.grade === 'Grade 2' ? 'selected' : ''}>Grade 2</option>
                         <option value="Grade 3" ${data.grade === 'Grade 3' ? 'selected' : ''}>Grade 3</option>
@@ -132,25 +135,25 @@
                 
                 <td>
                     <span class="view-mode">${data.phone || '-'}</span>
-                    <input type="text" class="edit-mode" id="input_phone_${id}" value="${data.phone || ''}" style="display:none;">
+                    <input type="text" class="edit-mode" id="input_phone_${dbKey}" value="${data.phone || ''}" style="display:none;">
                 </td>
                 
                 <td>
                     <span class="view-mode">${data.fee || 'Not Paid'}</span>
-                    <input type="text" class="edit-mode" id="input_fee_${id}" value="${data.fee || ''}" style="display:none;">
+                    <input type="text" class="edit-mode" id="input_fee_${dbKey}" value="${data.fee || ''}" style="display:none;">
                 </td>
                 
-                ${renderDayCell(id, 'Day 1', att['Day 1'])}
-                ${renderDayCell(id, 'Day 2', att['Day 2'])}
-                ${renderDayCell(id, 'Day 3', att['Day 3'])}
-                ${renderDayCell(id, 'Day 4', att['Day 4'])}
+                ${renderDayCell(dbKey, 'Day 1', att['Day 1'])}
+                ${renderDayCell(dbKey, 'Day 2', att['Day 2'])}
+                ${renderDayCell(dbKey, 'Day 3', att['Day 3'])}
+                ${renderDayCell(dbKey, 'Day 4', att['Day 4'])}
                 
                 <td>
-                    <a href="card.html?id=${id}" class="btn btn-card">🪪 ID</a>
-                    <button class="btn btn-edit" id="btn_edit_${id}" onclick="enableEdit('${id}')">✏️ Edit</button>
-                    <button class="btn btn-save" id="btn_save_${id}" onclick="saveStudent('${id}')">💾 Save</button>
-                    <button class="btn btn-cancel" id="btn_cancel_${id}" onclick="cancelEdit('${id}')">❌ Cancel</button>
-                    <button class="btn btn-delete" onclick="deleteStudent('${id}')">🗑️ Delete</button>
+                    <a href="card.html?id=${displayId}" class="btn btn-card">🪪 ID</a>
+                    <button class="btn btn-edit" id="btn_edit_${dbKey}" onclick="enableEdit('${dbKey}')">✏️ Edit</button>
+                    <button class="btn btn-save" id="btn_save_${dbKey}" onclick="saveStudent('${dbKey}')">💾 Save</button>
+                    <button class="btn btn-cancel" id="btn_cancel_${dbKey}" onclick="cancelEdit('${dbKey}')">❌ Cancel</button>
+                    <button class="btn btn-delete" onclick="deleteStudent('${dbKey}')">🗑️ Delete</button>
                 </td>
             `;
             tbody.appendChild(tr);
