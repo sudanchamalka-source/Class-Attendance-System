@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Fee Payment Management</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 480px; width: 100%; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+        h2 { color: #003366; margin-top: 0; }
+        
+        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        input[type="text"], input[type="number"], select, button { padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; box-sizing: border-box; }
+        input[type="text"], input[type="number"] { flex: 1; }
+        
+        .btn-main { background: #003366; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-pay { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 1.05em; }
+        .btn-wa { background: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; display: none; text-decoration: none; padding: 12px; border-radius: 6px; box-sizing: border-box; text-align: center; }
+        
+        #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; }
+        
+        .student-card { display: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; margin-top: 15px; text-align: left; }
+        .student-card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: block; margin: 0 auto 10px auto; border: 2px solid #003366; }
+        .student-info p { margin: 6px 0; font-size: 0.95em; color: #334155; }
+        .student-info strong { color: #0f172a; }
+        
+        .form-group { margin-top: 10px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 0.9em; color: #003366; }
+        
+        .nav-links { margin-top: 20px; text-align: center; font-size: 0.9em; }
+        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 5px; }
+        .status-msg { margin-top: 10px; font-weight: bold; color: #003366; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>💳 Class Fee Payment</h2>
+
+    <div class="input-group">
+        <input type="text" id="manualIdInput" placeholder="Enter Student ID (e.g. STU101)">
+        <button class="btn-main" onclick="searchStudentById()">Search</button>
+    </div>
+
+    <div id="reader"></div>
+
+    <div class="student-card" id="studentCard">
+        <img id="stuPhoto" src="logo.png" alt="Student Photo">
+        <div class="student-info">
+            <p><strong>ID:</strong> <span id="stuId"></span></p>
+            <p><strong>Name:</strong> <span id="stuName"></span></p>
+            <p><strong>Grade:</strong> <span id="stuGrade"></span></p>
+            <p><strong>Last Paid Status:</strong> <span id="stuLastFee" style="font-weight: bold; color: #d97706;"></span></p>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 12px 0;">
+
+        <div class="form-group">
+            <label for="feeMonth">අදාල මාසය (Select Month):</label>
+            <select id="feeMonth" style="width: 100%;">
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="feeAmount">ගෙවූ මුදල (Amount - LKR):</label>
+            <input type="number" id="feeAmount" placeholder="e.g. 1500" style="width: 100%;">
+        </div>
+
+        <div class="form-group">
+            <label for="feeStatus">ගෙවීමේ තත්ත්වය (Status):</label>
+            <select id="feeStatus" style="width: 100%;">
+                <option value="Paid Full">Paid Full ✅</option>
+                <option value="Half Paid">Half Paid 🟡</option>
+                <option value="Free/Scholarship">Free / Scholarship 🎓</option>
+            </select>
+        </div>
+
+        <button class="btn-pay" onclick="saveFeePayment()">💰 Record Payment & Save</button>
+        <a id="waBtn" class="btn-wa" target="_blank">📲 Send WhatsApp Receipt</a>
+    </div>
+
+    <div class="status-msg" id="statusMsg"></div>
+
+    <div class="nav-links">
+        <a href="index.html">📸 Scanner</a> | 
+        <a href="register.html">+ New Register</a> | 
+        <a href="students_list.html">📚 Admin Panel</a> | 
+        <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let currentStudent = null;
+
+    function onScanSuccess(decodedText) {
+        loadStudentDetails(decodedText.trim());
+    }
+
+    function searchStudentById() {
+        const studentId = document.getElementById('manualIdInput').value.trim();
+        if (studentId) {
+            loadStudentDetails(studentId);
+        } else {
+            alert('කරුණාකර Student ID එක ඇතුළත් කරන්න!');
+        }
+    }
+
+    function loadStudentDetails(studentId) {
+        document.getElementById('statusMsg').innerText = "විස්තර ලබාගනිමින් පවතියි...";
+        
+        db.ref('students/' + studentId).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                currentStudent = snapshot.val();
+                currentStudent.id = studentId;
+
+                document.getElementById('stuPhoto').src = currentStudent.photo || 'logo.png';
+                document.getElementById('stuId').innerText = studentId;
+                document.getElementById('stuName').innerText = currentStudent.name || '-';
+                document.getElementById('stuGrade').innerText = currentStudent.grade || '-';
+                document.getElementById('stuLastFee').innerText = currentStudent.fee || 'None';
+
+                document.getElementById('studentCard').style.display = 'block';
+                document.getElementById('waBtn').style.display = 'none';
+                document.getElementById('statusMsg').innerText = "ශිෂ්‍යයා සොයා ගන්නා ලදී. ගෙවීම් විස්තර ඇතුළත් කරන්න.";
+            } else {
+                document.getElementById('studentCard').style.display = 'none';
+                document.getElementById('statusMsg').innerText = `❌ ID ${studentId} හි ශිෂ්‍යයෙකු හමු නොවීය!`;
+            }
+        });
+    }
+
+    function saveFeePayment() {
+        if (!currentStudent) return;
+
+        const month = document.getElementById('feeMonth').value;
+        const amount = document.getElementById('feeAmount').value.trim();
+        const status = document.getElementById('feeStatus').value;
+
+        if (!amount) {
+            alert("කරුණාකර ගෙවූ මුදල (Amount) ඇතුළත් කරන්න!");
+            return;
+        }
+
+        const feeString = `${month}: Rs.${amount} (${status})`;
+
+        const paymentData = {
+            fee: feeString,
+            lastFeeAmount: amount,
+            lastFeeMonth: month,
+            lastFeeStatus: status,
+            feePaidDate: new Date().toLocaleDateString()
+        };
+
+        db.ref('students/' + currentStudent.id).update(paymentData).then(() => {
+            document.getElementById('statusMsg').innerText = `✅ Payment Saved Successfully!`;
+
+            let phone = currentStudent.phone ? currentStudent.phone.replace(/[^0-9]/g, '') : '';
+            if (phone.startsWith('0')) {
+                phone = '94' + phone.substring(1);
+            }
+
+            const msg = `🧾 *PAYMENT RECEIPT*\n------------------------------\n*English with Sudan Sir*\n\n*Student Name:* ${currentStudent.name}\n*Student ID:* ${currentStudent.id}\n*Month:* ${month}\n*Amount Paid:* Rs. ${amount}.00\n*Status:* ${status}\n*Date:* ${new Date().toLocaleDateString()}\n------------------------------\nThank you for the payment! 🙏`;
+
+            const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            
+            const waBtn = document.getElementById('waBtn');
+            waBtn.href = waUrl;
+            waBtn.style.display = 'block';
+        });
+    }
+
+    const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 220 });
+    html5QrcodeScanner.render(onScanSuccess);
+</script>
+</body>
+</html>
