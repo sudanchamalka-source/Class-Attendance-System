@@ -249,16 +249,20 @@
             width: 100%;
         }
 
-        /* Responsive text sizing + ellipsis to prevent cut-offs */
+        /* Smaller font size and multi-line wrapping to fit full name */
         .info-box h3 {
             margin: 0 0 6px 0;
-            font-size: clamp(0.85em, 2.5vw, 1.05em);
+            font-size: 0.88em;
             font-weight: 800;
             color: #ffffff;
-            white-space: nowrap;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.25;
+            max-height: 2.5em;
             overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .id-badge {
@@ -459,7 +463,7 @@
                     </div>
 
                     <div class="info-box">
-                        <h3 id="cardName" title=""></h3>
+                        <h3 id="cardName"></h3>
                         <div class="id-badge">ID: <span id="cardId"></span></div>
                         <p><strong>Phone:</strong> <span id="cardPhone"></span></p>
                     </div>
@@ -621,7 +625,6 @@
 
             const cardNameElem = document.getElementById('cardName');
             cardNameElem.innerText = name;
-            cardNameElem.title = name; // Full name on hover
             
             document.getElementById('cardPhoto').src = finalPhoto;
             document.getElementById('cardId').innerText = id;
