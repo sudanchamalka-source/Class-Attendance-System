@@ -3,41 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Students & Payments Management</title>
+    <title>All Students & Attendance Admin Panel</title>
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1150px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         h2 { color: #003366; margin-top: 0; text-align: center; }
         .nav-links { margin-bottom: 20px; text-align: center; }
         .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 10px; }
         
         .table-responsive { overflow-x: auto; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.9em; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
-        th { background: #003366; color: white; text-align: center; }
+        table { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.85em; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
+        th { background: #003366; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         
-        /* Form Inputs initially styled or hidden */
-        input[type="text"], input[type="date"], select { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #0056b3; border-radius: 4px; font-size: 0.95em; }
+        input[type="text"], input[type="date"], select { width: 100%; padding: 5px; box-sizing: border-box; border: 1px solid #0056b3; border-radius: 4px; }
         
-        .btn { padding: 6px 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 0.85em; width: 100%; margin-bottom: 4px; display: block; text-align: center; box-sizing: border-box; text-decoration: none; }
+        .btn { padding: 5px 8px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 0.8em; width: 100%; margin-bottom: 3px; display: block; text-decoration: none; box-sizing: border-box; }
         .btn-edit { background: #ffc107; color: #333; }
         .btn-save { background: #28a745; display: none; }
         .btn-cancel { background: #6c757d; display: none; }
         .btn-delete { background: #dc3545; }
+        .btn-reset-day { background: #fd7e14; padding: 2px 5px; font-size: 0.75em; margin-top: 3px; border-radius: 3px; }
         .btn-card { background: #007bff; }
         
-        .stu-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
-        .badge { background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; }
+        .stu-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .status-present { color: #28a745; font-weight: bold; }
+        .status-absent { color: #dc3545; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📚 ශිෂ්‍ය තොරතුරු කළමනාකරණය (Students Management)</h2>
+    <h2>📚 Admin Panel & Attendance Tracker</h2>
     
     <div class="nav-links">
         <a href="index.html">← Scanner</a> | 
@@ -52,15 +53,17 @@
                     <th>ID</th>
                     <th>Full Name</th>
                     <th>Grade</th>
-                    <th>WhatsApp No</th>
-                    <th>Fee Status</th>
-                    <th>Payment Date</th>
-                    <th>Other Notes</th>
-                    <th style="min-width: 110px;">Actions</th>
+                    <th>WhatsApp</th>
+                    <th>Fee</th>
+                    <th>Day 1</th>
+                    <th>Day 2</th>
+                    <th>Day 3</th>
+                    <th>Day 4</th>
+                    <th style="min-width: 90px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="studentTableBody">
-                <tr><td colspan="9" style="text-align: center;">දත්ත ලෝඩ් වෙමින් පවතියි...</td></tr>
+                <tr><td colspan="11" style="text-align: center;">දත්ත ලෝඩ් වෙමින් පවතියි...</td></tr>
             </tbody>
         </table>
     </div>
@@ -78,40 +81,35 @@
         measurementId: "G-XZW2VLFXT2"
     };
     firebase.initializeApp(firebaseConfig);
-
     const db = firebase.database();
 
-    // Fetch All Students
     db.ref('students').on('value', (snapshot) => {
         const tbody = document.getElementById('studentTableBody');
         tbody.innerHTML = '';
 
         if (!snapshot.exists()) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">ශිෂ්‍යයන් හමු නොවීය.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">ශිෂ්‍යයන් හමු නොවීය.</td></tr>';
             return;
         }
 
         snapshot.forEach((childSnapshot) => {
             const id = childSnapshot.key;
             const data = childSnapshot.val();
+            const att = data.attendance || {};
 
             const tr = document.createElement('tr');
             tr.id = `row_${id}`;
             tr.innerHTML = `
-                <td style="text-align: center;">
-                    <img src="${data.photo || 'logo.png'}" class="stu-img" alt="Photo">
-                </td>
+                <td><img src="${data.photo || 'logo.png'}" class="stu-img" alt="Photo"></td>
                 <td><strong>${id}</strong></td>
                 
-                <!-- Name Field -->
                 <td>
-                    <span class="view-mode" id="view_name_${id}">${data.name || '-'}</span>
+                    <span class="view-mode">${data.name || '-'}</span>
                     <input type="text" class="edit-mode" id="input_name_${id}" value="${data.name || ''}" style="display:none;">
                 </td>
                 
-                <!-- Grade Field -->
                 <td>
-                    <span class="view-mode" id="view_grade_${id}">${data.grade || '-'}</span>
+                    <span class="view-mode">${data.grade || '-'}</span>
                     <select class="edit-mode" id="input_grade_${id}" style="display:none;">
                         <option value="Grade 1" ${data.grade === 'Grade 1' ? 'selected' : ''}>Grade 1</option>
                         <option value="Grade 2" ${data.grade === 'Grade 2' ? 'selected' : ''}>Grade 2</option>
@@ -129,33 +127,24 @@
                     </select>
                 </td>
                 
-                <!-- Phone Field -->
                 <td>
-                    <span class="view-mode" id="view_phone_${id}">${data.phone || '-'}</span>
+                    <span class="view-mode">${data.phone || '-'}</span>
                     <input type="text" class="edit-mode" id="input_phone_${id}" value="${data.phone || ''}" style="display:none;">
                 </td>
                 
-                <!-- Fee Field -->
                 <td>
-                    <span class="view-mode badge" id="view_fee_${id}">${data.fee || 'Not Paid'}</span>
-                    <input type="text" class="edit-mode" id="input_fee_${id}" value="${data.fee || ''}" placeholder="Paid / Rs.1500" style="display:none;">
+                    <span class="view-mode">${data.fee || 'Not Paid'}</span>
+                    <input type="text" class="edit-mode" id="input_fee_${id}" value="${data.fee || ''}" style="display:none;">
                 </td>
                 
-                <!-- Date Field -->
-                <td>
-                    <span class="view-mode" id="view_date_${id}">${data.lastDate || '-'}</span>
-                    <input type="date" class="edit-mode" id="input_date_${id}" value="${data.lastDate || ''}" style="display:none;">
-                </td>
+                <!-- Day 1 to Day 4 Status & Remove Buttons -->
+                ${renderDayCell(id, 'Day 1', att['Day 1'])}
+                ${renderDayCell(id, 'Day 2', att['Day 2'])}
+                ${renderDayCell(id, 'Day 3', att['Day 3'])}
+                ${renderDayCell(id, 'Day 4', att['Day 4'])}
                 
-                <!-- Other Notes Field -->
                 <td>
-                    <span class="view-mode" id="view_other_${id}">${data.other || '-'}</span>
-                    <input type="text" class="edit-mode" id="input_other_${id}" value="${data.other || ''}" style="display:none;">
-                </td>
-                
-                <!-- Actions -->
-                <td>
-                    <a href="card.html?id=${id}" class="btn btn-card">🪪 ID Card</a>
+                    <a href="card.html?id=${id}" class="btn btn-card">🪪 ID</a>
                     <button class="btn btn-edit" id="btn_edit_${id}" onclick="enableEdit('${id}')">✏️ Edit</button>
                     <button class="btn btn-save" id="btn_save_${id}" onclick="saveStudent('${id}')">💾 Save</button>
                     <button class="btn btn-cancel" id="btn_cancel_${id}" onclick="cancelEdit('${id}')">❌ Cancel</button>
@@ -166,58 +155,59 @@
         });
     });
 
-    // Enable Edit Mode on Edit Button Click
+    function renderDayCell(id, dayName, isPresent) {
+        if (isPresent) {
+            return `<td>
+                <span class="status-present">Present</span>
+                <button class="btn btn-reset-day" onclick="removeDayAttendance('${id}', '${dayName}')">❌ Reset</button>
+            </td>`;
+        } else {
+            return `<td><span class="status-absent">Absent</span></td>`;
+        }
+    }
+
+    // Remove specific day attendance
+    function removeDayAttendance(id, dayName) {
+        if(confirm(`ID: ${id} ශිෂ්‍යයාගේ ${dayName} Attendance ඉවත් කිරීමට අවශ්‍යද?`)) {
+            db.ref(`students/${id}/attendance/${dayName}`).remove().then(() => {
+                alert(`${dayName} Attendance ඉවත් කරන ලදී!`);
+            });
+        }
+    }
+
     function enableEdit(id) {
         const row = document.getElementById(`row_${id}`);
         row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
         row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'block');
-
         document.getElementById(`btn_edit_${id}`).style.display = 'none';
         document.getElementById(`btn_save_${id}`).style.display = 'block';
         document.getElementById(`btn_cancel_${id}`).style.display = 'block';
     }
 
-    // Cancel Edit Mode
     function cancelEdit(id) {
         const row = document.getElementById(`row_${id}`);
         row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'inline');
         row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
-
         document.getElementById(`btn_edit_${id}`).style.display = 'block';
         document.getElementById(`btn_save_${id}`).style.display = 'none';
         document.getElementById(`btn_cancel_${id}`).style.display = 'none';
     }
 
-    // Save Data to Firebase
     function saveStudent(id) {
         const name = document.getElementById(`input_name_${id}`).value.trim();
         const grade = document.getElementById(`input_grade_${id}`).value;
         const phone = document.getElementById(`input_phone_${id}`).value.trim();
         const fee = document.getElementById(`input_fee_${id}`).value.trim();
-        const date = document.getElementById(`input_date_${id}`).value;
-        const other = document.getElementById(`input_other_${id}`).value.trim();
 
-        db.ref('students/' + id).update({
-            name: name,
-            grade: grade,
-            phone: phone,
-            fee: fee,
-            lastDate: date,
-            other: other
-        }).then(() => {
-            alert(`ID: ${id} ශිෂ්‍යයාගේ තොරතුරු සාර්ථකව Update විය!`);
+        db.ref('students/' + id).update({ name, grade, phone, fee }).then(() => {
+            alert('තොරතුරු සාර්ථකව Update විය!');
             cancelEdit(id);
-        }).catch((err) => {
-            alert("Update Error: " + err.message);
         });
     }
 
-    // Delete Student
     function deleteStudent(id) {
-        if (confirm(`ඔබට ${id} ශිෂ්‍යයා සම්පූර්ණයෙන්ම මකා දැමීමට අවශ්‍යද?`)) {
-            db.ref('students/' + id).remove().then(() => {
-                alert('ශිෂ්‍යයා සාර්ථකව ඉවත් කරන ලදී!');
-            });
+        if (confirm(`ඔබට ID: ${id} මකා දැමීමට අවශ්‍යද?`)) {
+            db.ref('students/' + id).remove();
         }
     }
 </script>
