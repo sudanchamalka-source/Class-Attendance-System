@@ -3,78 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>සියලුම සිසුන්ගේ වාර්තා - English with Sudan Sir</title>
+    <title>All Students & Payments Management</title>
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f5; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { color: #003366; text-align: center; margin-top: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1100px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { color: #003366; margin-top: 0; text-align: center; }
+        .nav-links { margin-bottom: 20px; text-align: center; }
+        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 10px; }
         
-        .table-responsive { overflow-x: auto; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; font-size: 0.9em; vertical-align: top; }
-        th { background-color: #003366; color: white; font-weight: 600; text-transform: uppercase; }
-        tr:nth-child(even) { background-color: #f8f9fa; }
-        tr:hover { background-color: #f1f5f9; }
-
-        .badge-id { background: #e3f2fd; color: #0d47a1; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
-        .badge-paid { background: #d4edda; color: #155724; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8em; }
-        .badge-pending { background: #f8d7da; color: #721c24; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8em; }
-        .att-box { font-size: 0.85em; line-height: 1.4; color: #444; }
-
-        /* Action Buttons */
-        .btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8em; margin: 2px; }
-        .btn-card { background: #0080ff; color: white; text-decoration: none; display: inline-block; }
-        .btn-edit { background: #ffc107; color: #000; }
-        .btn-delete { background: #dc3545; color: white; }
-
-        /* Modal Popup */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
-        .modal input { width: 100%; padding: 8px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        /* Table Styles */
+        .table-responsive { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.9em; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
+        th { background: #003366; color: white; text-align: center; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
         
-        a.back-btn { text-decoration: none; color: #0056b3; display: inline-block; margin-top: 20px; font-weight: bold; }
+        /* Form Inputs in Table */
+        input[type="text"], input[type="date"], select { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95em; }
+        
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 0.85em; }
+        .btn-save { background: #28a745; margin-bottom: 3px; width: 100%; }
+        .btn-delete { background: #dc3545; width: 100%; }
+        .btn-card { background: #007bff; width: 100%; margin-bottom: 3px; display: inline-block; text-align: center; text-decoration: none; box-sizing: border-box; padding: 6px 0; }
+        
+        .stu-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>👥 සියලුම සිසුන්ගේ වාර්තා සහ කළමනාකරණය</h2>
+    <h2>📚 ශිෂ්‍ය තොරතුරු සහ ගෙවීම් සංස්කරණය (All Students & Edit Options)</h2>
+    
+    <div class="nav-links">
+        <a href="index.html">← Scanner</a> | 
+        <a href="register.html">+ New Registration</a>
+    </div>
 
     <div class="table-responsive">
         <table>
             <thead>
                 <tr>
-                    <th>QR / ID</th>
-                    <th>නම</th>
-                    <th>දුරකථනය</th>
-                    <th>ගාස්තු විස්තර</th>
-                    <th>පැමිණීම්</th>
-                    <th>ක්‍රියාමාර්ග (Actions)</th>
+                    <th>Photo</th>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Grade</th>
+                    <th>WhatsApp No</th>
+                    <th>Payment / Fee Status</th>
+                    <th>Payment Date</th>
+                    <th>Other Notes</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody id="studentsTable">
-                <tr><td colspan="6" style="text-align:center;">තොරතුරු Load වෙමින් පවතියි...</td></tr>
+            <tbody id="studentTableBody">
+                <tr><td colspan="9" style="text-align: center;">දත්ත ලෝඩ් වෙමින් පවතියි...</td></tr>
             </tbody>
         </table>
-    </div>
-
-    <a href="index.html" class="back-btn">← Main Scanner වෙත ආපසු යන්න</a>
-</div>
-
-<!-- Edit Student Modal -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h3>✏️ ශිෂ්‍ය තොරතුරු වෙනස් කිරීම</h3>
-        <input type="hidden" id="editId">
-        <label>ශිෂ්‍යයාගේ නම:</label>
-        <input type="text" id="editName">
-        <label>දුරකථන අංකය:</label>
-        <input type="text" id="editPhone">
-        <button class="btn btn-card" onclick="saveStudentEdit()" style="width: 100%; margin-top: 10px;">සුරකින් (Save)</button>
-        <button class="btn btn-delete" onclick="closeEditModal()" style="width: 100%; margin-top: 5px;">අවලංගු කරන්න</button>
     </div>
 </div>
 
@@ -93,109 +79,89 @@
 
     const db = firebase.database();
 
-    function loadStudents() {
-        Promise.all([
-            db.ref('students').once('value'),
-            db.ref('manual_attendance').once('value')
-        ]).then(([studentsSnap, attSnap]) => {
-            const students = studentsSnap.val() || {};
-            const attendance = attSnap.val() || {};
-            const table = document.getElementById('studentsTable');
-            table.innerHTML = '';
+    // Fetch and display all students
+    db.ref('students').on('value', (snapshot) => {
+        const tbody = document.getElementById('studentTableBody');
+        tbody.innerHTML = '';
 
-            if(Object.keys(students).length === 0) {
-                table.innerHTML = '<tr><td colspan="6" style="text-align:center;">ලියාපදිංචි වූ සිසුන් නොමැත.</td></tr>';
-                return;
-            }
+        if (!snapshot.exists()) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">ශිෂ්‍යයන් හමු නොවීය.</td></tr>';
+            return;
+        }
 
-            for (let id in students) {
-                let s = students[id];
+        snapshot.forEach((childSnapshot) => {
+            const id = childSnapshot.key;
+            const data = childSnapshot.val();
 
-                // Fee details
-                let feeDetails = '';
-                if (s.fees) {
-                    for (let month in s.fees) {
-                        let status = s.fees[month];
-                        let badgeClass = status === 'Paid' ? 'badge-paid' : 'badge-pending';
-                        feeDetails += `<div><strong>${month}:</strong> <span class="${badgeClass}">${status}</span></div>`;
-                    }
-                } else {
-                    feeDetails = '<span style="color:#888;">සටහන් නොමැත</span>';
-                }
-
-                // Attendance details
-                let attDetails = '';
-                for (let date in attendance) {
-                    if (attendance[date][id]) {
-                        let record = attendance[date][id];
-                        let daysList = [];
-                        if (record.days) {
-                            if (record.days.day1) daysList.push('1 දින');
-                            if (record.days.day2) daysList.push('2 දින');
-                            if (record.days.day3) daysList.push('3 දින');
-                            if (record.days.day4) daysList.push('4 දින');
-                        }
-                        attDetails += `<div class="att-box">📅 <strong>${date}:</strong> ${daysList.join(', ') || 'පැමිණ ඇත'}</div>`;
-                    }
-                }
-                if (!attDetails) attDetails = '<span style="color:#888;">පැමිණීම් නොමැත</span>';
-
-                // Render Row with Actions
-                table.innerHTML += `
-                    <tr>
-                        <td><span class="badge-id">${id}</span></td>
-                        <td><strong>${s.name || '-'}</strong></td>
-                        <td>${s.phone || '-'}</td>
-                        <td>${feeDetails}</td>
-                        <td>${attDetails}</td>
-                        <td>
-                            <a href="card.html?id=${id}" target="_blank" class="btn btn-card">🪪 ID Card</a>
-                            <button class="btn btn-edit" onclick="openEditModal('${id}', '${s.name || ''}', '${s.phone || ''}')">✏️ Edit</button>
-                            <button class="btn btn-delete" onclick="deleteStudent('${id}')">🗑️ Delete</button>
-                        </td>
-                    </tr>
-                `;
-            }
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="text-align: center;">
+                    <img src="${data.photo || 'logo.png'}" class="stu-img" alt="Photo">
+                </td>
+                <td><strong>${id}</strong></td>
+                <td><input type="text" id="name_${id}" value="${data.name || ''}"></td>
+                <td>
+                    <select id="grade_${id}">
+                        <option value="Grade 1" ${data.grade === 'Grade 1' ? 'selected' : ''}>Grade 1</option>
+                        <option value="Grade 2" ${data.grade === 'Grade 2' ? 'selected' : ''}>Grade 2</option>
+                        <option value="Grade 3" ${data.grade === 'Grade 3' ? 'selected' : ''}>Grade 3</option>
+                        <option value="Grade 4" ${data.grade === 'Grade 4' ? 'selected' : ''}>Grade 4</option>
+                        <option value="Grade 5" ${data.grade === 'Grade 5' ? 'selected' : ''}>Grade 5</option>
+                        <option value="Grade 6" ${data.grade === 'Grade 6' ? 'selected' : ''}>Grade 6</option>
+                        <option value="Grade 7" ${data.grade === 'Grade 7' ? 'selected' : ''}>Grade 7</option>
+                        <option value="Grade 8" ${data.grade === 'Grade 8' ? 'selected' : ''}>Grade 8</option>
+                        <option value="Grade 9" ${data.grade === 'Grade 9' ? 'selected' : ''}>Grade 9</option>
+                        <option value="Grade 10" ${data.grade === 'Grade 10' ? 'selected' : ''}>Grade 10</option>
+                        <option value="Grade 11" ${data.grade === 'Grade 11' ? 'selected' : ''}>Grade 11</option>
+                        <option value="A/L" ${data.grade === 'A/L' ? 'selected' : ''}>A/L</option>
+                        <option value="Other" ${data.grade === 'Other' ? 'selected' : ''}>Other</option>
+                    </select>
+                </td>
+                <td><input type="text" id="phone_${id}" value="${data.phone || ''}"></td>
+                <td><input type="text" id="fee_${id}" value="${data.fee || ''}" placeholder="උදා: Paid / Rs.1500"></td>
+                <td><input type="date" id="date_${id}" value="${data.lastDate || ''}"></td>
+                <td><input type="text" id="other_${id}" value="${data.other || ''}"></td>
+                <td>
+                    <a href="card.html?id=${id}" class="btn btn-card">🪪 ID Card</a>
+                    <button class="btn btn-save" onclick="updateStudent('${id}')">💾 Save</button>
+                    <button class="btn btn-delete" onclick="deleteStudent('${id}')">🗑️ Delete</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
         });
-    }
+    });
 
-    // Modal Operations
-    function openEditModal(id, name, phone) {
-        document.getElementById('editId').value = id;
-        document.getElementById('editName').value = name;
-        document.getElementById('editPhone').value = phone;
-        document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function closeEditModal() {
-        document.getElementById('editModal').style.display = 'none';
-    }
-
-    function saveStudentEdit() {
-        const id = document.getElementById('editId').value;
-        const newName = document.getElementById('editName').value;
-        const newPhone = document.getElementById('editPhone').value;
+    // Update function for fee, date, name, grade, etc.
+    function updateStudent(id) {
+        const name = document.getElementById(`name_${id}`).value.trim();
+        const grade = document.getElementById(`grade_${id}`).value;
+        const phone = document.getElementById(`phone_${id}`).value.trim();
+        const fee = document.getElementById(`fee_${id}`).value.trim();
+        const date = document.getElementById(`date_${id}`).value;
+        const other = document.getElementById(`other_${id}`).value.trim();
 
         db.ref('students/' + id).update({
-            name: newName,
-            phone: newPhone
+            name: name,
+            grade: grade,
+            phone: phone,
+            fee: fee,
+            lastDate: date,
+            other: other
         }).then(() => {
-            alert('තොරතුරු සාර්ථකව යාවත්කාලීන විය!');
-            closeEditModal();
-            loadStudents();
+            alert(`ID: ${id} ශිෂ්‍යයාගේ තොරතුරු සහ ගෙවීම් සාර්ථකව Update විය!`);
+        }).catch((err) => {
+            alert("Update Error: " + err.message);
         });
     }
 
+    // Delete Student
     function deleteStudent(id) {
-        if(confirm(`ඔබට ${id} අංකය හිමි ශිෂ්‍යයා ඉවත් කිරීමට අවශ්‍යමද?`)) {
+        if (confirm(`ඔබට ${id} ශිෂ්‍යයා මකා දැමීමට අවශ්‍යද?`)) {
             db.ref('students/' + id).remove().then(() => {
-                alert('ශිෂ්‍යයා ඉවත් කරන ලදී.');
-                loadStudents();
+                alert('ශිෂ්‍යයා සාර්ථකව ඉවත් කරන ලදී!');
             });
         }
     }
-
-    loadStudents();
 </script>
 </body>
 </html>
