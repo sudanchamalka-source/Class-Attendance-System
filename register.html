@@ -8,6 +8,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    
+    <!-- Libraries for PNG and PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -154,11 +159,10 @@
             background-color: #003d80;
         }
 
-        /* Standard Credit Card Size ID Container */
+        /* Credit Card Container */
         .id-card-wrapper {
             display: none;
             margin-top: 25px;
-            display: flex;
             flex-direction: column;
             align-items: center;
         }
@@ -298,28 +302,36 @@
             font-size: 1.05em;
         }
 
-        .print-btn-container {
+        .action-buttons {
             margin-top: 15px;
-            text-align: center;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
-        .btn-print {
-            padding: 10px 20px;
-            background: #28a745;
+        .btn-action {
+            padding: 10px 16px;
             color: white;
             border: none;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 0.95em;
+            font-size: 0.9em;
             box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .btn-print:hover {
-            background: #218838;
-        }
+        .btn-png { background: #17a2b8; }
+        .btn-pdf { background: #dc3545; }
+        .btn-print { background: #28a745; }
 
-        /* Printable Standard Credit Card Dimensions (85.6mm x 53.9mm) */
+        .btn-png:hover { background: #138496; }
+        .btn-pdf:hover { background: #c82333; }
+        .btn-print:hover { background: #218838; }
+
         @media print {
             body * { visibility: hidden; }
             .credit-card, .credit-card * { visibility: visible; }
@@ -335,16 +347,7 @@
                 print-color-adjust: exact;
                 box-shadow: none !important;
             }
-            .card-top img { width: 9mm; height: 9mm; }
-            .card-top-title h2 { font-size: 10pt; }
-            .card-top-title p { font-size: 6pt; }
-            .student-photo-frame { width: 22mm; height: 25mm; border-radius: 2mm; padding: 1mm; }
-            .student-details h3 { font-size: 9pt; margin-bottom: 1mm; }
-            .id-badge { font-size: 7.5pt; padding: 1px 6px; margin-bottom: 1mm; }
-            .student-details p { font-size: 7pt; margin: 0.5mm 0; }
-            .qr-frame { width: 22mm; height: 22mm; border-radius: 2mm; padding: 1mm; }
-            .card-bottom { font-size: 5.5pt; padding-top: 1mm; }
-            .btn-print, .print-btn-container { display: none !important; }
+            .action-buttons { display: none !important; }
         }
     </style>
 </head>
@@ -417,7 +420,7 @@
         </form>
 
         <div id="idCardWrapper" class="id-card-wrapper">
-            <div class="credit-card">
+            <div class="credit-card" id="creditCardElement">
                 <div class="card-top">
                     <img src="logo.png" alt="Logo" onerror="this.src='logo.png'">
                     <div class="card-top-title">
@@ -449,8 +452,10 @@
                 </div>
             </div>
 
-            <div class="print-btn-container">
-                <button class="btn-print" onclick="window.print()">🖨️ Print Credit Card Size ID</button>
+            <div class="action-buttons">
+                <button class="btn-action btn-png" onclick="downloadPNG()">🖼️ Download PNG</button>
+                <button class="btn-action btn-pdf" onclick="downloadPDF()">📄 Download PDF</button>
+                <button class="btn-action btn-print" onclick="window.print()">🖨️ Print ID Card</button>
             </div>
         </div>
     </div>
@@ -472,6 +477,7 @@
     let base64Photo = '';
     let isEditMode = false;
     let existingPhotoBackup = '';
+    let currentStudentId = '';
 
     function checkExistingStudent() {
         const id = document.getElementById('studentId').value.trim();
@@ -571,6 +577,8 @@
             return;
         }
 
+        currentStudentId = id;
+
         const studentData = {
             id: id,
             name: name,
@@ -614,6 +622,33 @@
             alert('❌ Operation Failed: ' + err.message);
         });
     });
+
+    // Function to Download ID as PNG
+    function downloadPNG() {
+        const card = document.getElementById('creditCardElement');
+        html2canvas(card, { scale: 3, useCORS: true }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Student_ID_${currentStudentId || 'Card'}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    // Function to Download ID as PDF (Credit Card Size: 85.6mm x 53.9mm)
+    function downloadPDF() {
+        const card = document.getElementById('creditCardElement');
+        html2canvas(card, { scale: 3, useCORS: true }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: [85.6, 53.9]
+            });
+            pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 53.9);
+            pdf.save(`Student_ID_${currentStudentId || 'Card'}.pdf`);
+        });
+    }
 </script>
 </body>
 </html>
