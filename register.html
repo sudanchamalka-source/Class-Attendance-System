@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Student List</title>
+    <title>New Student Registration</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    
-    <!-- PDF Export Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         body {
@@ -24,34 +21,8 @@
             align-items: center;
         }
 
-        .brand-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-            background: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        .brand-logo {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #0056b3;
-        }
-
-        .brand-title {
-            color: #003366;
-            margin: 0;
-            font-size: 1.3em;
-            font-weight: 800;
-        }
-
         .container {
-            max-width: 1000px;
+            max-width: 500px;
             width: 100%;
             background: white;
             padding: 25px;
@@ -60,274 +31,130 @@
             box-sizing: border-box;
         }
 
+        h2 { text-align: center; color: #003366; margin-top: 0; }
+
         .nav-links {
             text-align: center;
             margin-bottom: 20px;
-            font-size: 0.85em;
+            font-size: 0.9em;
         }
 
         .nav-links a {
             text-decoration: none;
             color: #0056b3;
             font-weight: bold;
-            margin: 0 6px;
+            margin: 0 8px;
         }
 
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .form-group {
+            margin-bottom: 15px;
         }
 
-        .controls input, .controls select {
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #0056b3;
             border-radius: 6px;
-            font-size: 0.95em;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
-            gap: 25px;
-            justify-content: center;
-        }
-
-        /* Card Styling to Match Image Two */
-        .card-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .credit-card {
-            width: 440px;
-            height: 260px;
-            background: linear-gradient(180deg, #005dae 0%, #006ec7 40%, #0053a0 100%);
-            border-radius: 18px;
-            padding: 14px 18px;
             box-sizing: border-box;
-            color: white;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-            display: grid;
-            grid-template-rows: auto 1fr auto;
-            gap: 6px;
-            position: relative;
+            font-size: 1em;
         }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 6px;
-        }
-
-        .card-header img {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: white;
-            padding: 2px;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        .card-header-text h2 {
-            margin: 0;
-            font-size: 1.3em;
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: 0.2px;
-        }
-
-        .card-header-text p {
-            margin: 1px 0 0 0;
-            font-size: 0.68em;
-            font-weight: 800;
-            color: #ffcc00;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-
-        .card-body {
-            display: grid;
-            grid-template-columns: 100px 1fr 90px;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .photo-box {
-            width: 100px;
-            height: 110px;
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 3px;
-            box-sizing: border-box;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-
-        .photo-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 9px;
-        }
-
-        .info-box {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .info-box h3 {
-            margin: 0 0 6px 0;
-            font-size: 0.88em;
-            font-weight: 800;
-            color: #ffffff;
-            white-space: normal;
-            word-wrap: break-word;
-            line-height: 1.25;
-            max-height: 2.5em;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-
-        .id-badge {
-            align-self: flex-start;
-            background: #ffcc00;
-            color: #000000;
-            font-weight: 800;
-            padding: 3px 12px;
-            border-radius: 20px;
-            font-size: 0.82em;
-            margin-bottom: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-        }
-
-        .info-box p {
-            margin: 2px 0;
-            font-size: 0.82em;
-            color: #e2e8f0;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .qr-box {
-            width: 90px;
-            height: 90px;
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 5px;
-            box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-
-        .card-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 4px;
+        .preview-box {
             text-align: center;
-            font-size: 0.65em;
-            color: #e0e6ed;
-            line-height: 1.35;
-        }
-
-        .card-footer strong {
-            color: #ffffff;
-            font-size: 1.05em;
-            letter-spacing: 0.3px;
-        }
-
-        .footer-contacts {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-top: 2px;
-            font-weight: 600;
-        }
-
-        .footer-contacts span {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .admin-actions {
             margin-top: 10px;
-            display: flex;
-            gap: 8px;
         }
 
-        .btn-action {
-            padding: 6px 12px;
+        .preview-box img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #0056b3;
+            display: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #28a745;
             color: white;
+            padding: 12px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            font-size: 1em;
             font-weight: bold;
             cursor: pointer;
-            font-size: 0.8em;
+            margin-top: 10px;
         }
 
-        .btn-download { background: #17a2b8; }
-        .btn-delete { background: #dc3545; }
-
-        .btn-download:hover { background: #138496; }
-        .btn-delete:hover { background: #c82333; }
+        .btn-submit:hover { background: #218838; }
     </style>
 </head>
 <body>
 
-    <div class="brand-header">
-        <img src="logo.png" alt="English with Sudan Sir Logo" class="brand-logo">
-        <h2 class="brand-title">English with Sudan Sir</h2>
-    </div>
-
     <div class="container">
+        <h2>📝 Register New Student</h2>
+        
         <div class="nav-links">
             <a href="index.html">📸 Scanner</a> | 
-            <a href="register.html">+ New / Edit Student</a> | 
+            <a href="register.html">+ New Register</a> | 
             <a href="fee.html">💳 Fee Payment</a> | 
-            <a href="students_list.html">📚 Admin Panel</a> | 
-            <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
+            <a href="students_list.html">📚 Admin Panel</a>
         </div>
 
-        <h3 style="margin-top:0; color:#444; text-align:center;">Admin Panel - All Student Pass Cards</h3>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="studentId">Student ID / Index No:</label>
+                <input type="text" id="studentId" placeholder="e.g. STU1001" required>
+            </div>
 
-        <div class="controls">
-            <input type="text" id="searchInput" placeholder="🔍 Search by Name or ID..." onkeyup="filterStudents()">
-            <select id="gradeFilter" onchange="filterStudents()">
-                <option value="">All Grades</option>
-                <option value="Grade 1">Grade 1</option>
-                <option value="Grade 2">Grade 2</option>
-                <option value="Grade 3">Grade 3</option>
-                <option value="Grade 4">Grade 4</option>
-                <option value="Grade 5">Grade 5</option>
-                <option value="Grade 6">Grade 6</option>
-                <option value="Grade 7">Grade 7</option>
-                <option value="Grade 8">Grade 8</option>
-                <option value="Grade 9">Grade 9</option>
-                <option value="Grade 10">Grade 10</option>
-                <option value="Grade 11">Grade 11</option>
-                <option value="A/L English">A/L English</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label for="fullName">Full Name:</label>
+                <input type="text" id="fullName" placeholder="Enter Full Name" required>
+            </div>
 
-        <div id="cardsGrid" class="cards-grid">
-            <p style="text-align:center; width:100%; color:#666;">Loading students...</p>
-        </div>
+            <div class="form-group">
+                <label for="grade">Grade / Class:</label>
+                <select id="grade" required>
+                    <option value="">Select Grade</option>
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="A/L">A/L</option>
+                    <option value="A/L English">A/L English</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">WhatsApp / Phone Number:</label>
+                <input type="text" id="phone" placeholder="07XXXXXXXX" required>
+            </div>
+
+            <div class="form-group">
+                <label for="photo">Student Photo:</label>
+                <input type="file" id="photo" accept="image/*" onchange="previewImage(event)">
+                <div class="preview-box">
+                    <img id="imgPreview" alt="Preview">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">➕ Save Student</button>
+        </form>
     </div>
 
 <script>
@@ -344,139 +171,62 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let allStudents = [];
+    let base64Photo = '';
 
-    db.ref('students').on('value', (snapshot) => {
-        const grid = document.getElementById('cardsGrid');
-        grid.innerHTML = '';
-        allStudents = [];
-
-        if (!snapshot.exists()) {
-            grid.innerHTML = '<p style="text-align:center; width:100%; color:#666;">No students found.</p>';
-            return;
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                base64Photo = e.target.result;
+                const img = document.getElementById('imgPreview');
+                img.src = base64Photo;
+                img.style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
         }
+    }
 
-        snapshot.forEach((childSnapshot) => {
-            const student = childSnapshot.val();
-            student.keyId = childSnapshot.key;
-            allStudents.push(student);
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const id = document.getElementById('studentId').value.trim();
+        const name = document.getElementById('fullName').value.trim();
+        const grade = document.getElementById('grade').value;
+        const phone = document.getElementById('phone').value.trim();
+        
+        // Default photo if none provided
+        const photoUrl = base64Photo || 'logo.png';
+
+        // Check if student ID already exists
+        db.ref('students/' + id).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                alert('⚠️ A student with ID "' + id + '" already exists!');
+                return;
+            }
+
+            // Save new student to Firebase
+            db.ref('students/' + id).set({
+                id: id,
+                stuId: id,
+                name: name,
+                grade: grade,
+                phone: phone,
+                whatsapp: phone,
+                photo: photoUrl,
+                photoUrl: photoUrl,
+                fee: 'Not Paid',
+                registeredAt: new Date().toISOString()
+            }).then(() => {
+                alert('✅ Student registered successfully!');
+                document.getElementById('registerForm').reset();
+                document.getElementById('imgPreview').style.display = 'none';
+                base64Photo = '';
+            }).catch((err) => {
+                alert('❌ Error: ' + err.message);
+            });
         });
-
-        renderCards(allStudents);
     });
-
-    function renderCards(students) {
-        const grid = document.getElementById('cardsGrid');
-        grid.innerHTML = '';
-
-        if (students.length === 0) {
-            grid.innerHTML = '<p style="text-align:center; width:100%; color:#666;">No matching records found.</p>';
-            return;
-        }
-
-        students.forEach((student) => {
-            const cardId = student.id || student.keyId;
-            const photoUrl = student.photo || student.photoUrl || student.imageUrl || 'https://via.placeholder.com/100x110?text=No+Photo';
-
-            const cardWrapper = document.createElement('div');
-            cardWrapper.className = 'card-container';
-
-            const cardElementId = `card-${cardId}`;
-            const qrElementId = `qr-${cardId}`;
-
-            cardWrapper.innerHTML = `
-                <div class="credit-card" id="${cardElementId}">
-                    <div class="card-header">
-                        <img src="logo.png" alt="Logo" onerror="this.src='logo.png'">
-                        <div class="card-header-text">
-                            <h2>English with Sudan Sir</h2>
-                            <p>Student Official Pass</p>
-                        </div>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="photo-box">
-                            <img src="${photoUrl}" alt="Student Photo">
-                        </div>
-
-                        <div class="info-box">
-                            <h3>${student.name || 'N/A'}</h3>
-                            <div class="id-badge">ID: ${cardId}</div>
-                            <p>Phone: ${student.phone || student.whatsapp || 'N/A'}</p>
-                        </div>
-
-                        <div class="qr-box">
-                            <div id="${qrElementId}"></div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <strong>R.M.S.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)
-                        <div class="footer-contacts">
-                            <span>📞 0706562952</span>
-                            <span>|</span>
-                            <span>💬 WhatsApp: 0716562952</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="admin-actions">
-                    <button class="btn-action btn-download" onclick="downloadSinglePNG('${cardElementId}', '${cardId}')">🖼️ Download PNG</button>
-                    <button class="btn-action btn-delete" onclick="deleteStudent('${cardId}')">🗑️ Delete</button>
-                </div>
-            `;
-
-            grid.appendChild(cardWrapper);
-
-            // Generate QR Code dynamically
-            setTimeout(() => {
-                const qrContainer = document.getElementById(qrElementId);
-                if (qrContainer) {
-                    qrContainer.innerHTML = '';
-                    new QRCode(qrContainer, {
-                        text: String(cardId),
-                        width: 78,
-                        height: 78
-                    });
-                }
-            }, 50);
-        });
-    }
-
-    function filterStudents() {
-        const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
-        const selectedGrade = document.getElementById('gradeFilter').value;
-
-        const filtered = allStudents.filter(student => {
-            const idMatch = (student.id || student.keyId || '').toLowerCase().includes(searchVal);
-            const nameMatch = (student.name || '').toLowerCase().includes(searchVal);
-            const matchesSearch = idMatch || nameMatch;
-
-            const matchesGrade = selectedGrade === '' || (student.grade === selectedGrade);
-
-            return matchesSearch && matchesGrade;
-        });
-
-        renderCards(filtered);
-    }
-
-    function downloadSinglePNG(cardElementId, studentId) {
-        const card = document.getElementById(cardElementId);
-        html2canvas(card, { scale: 3, useCORS: true }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `Student_ID_${studentId}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        });
-    }
-
-    function deleteStudent(studentId) {
-        if (confirm(`Are you sure you want to delete Student ID: ${studentId}?`)) {
-            db.ref('students/' + studentId).remove()
-                .then(() => alert('Student deleted successfully.'))
-                .catch(err => alert('Failed to delete: ' + err.message));
-        }
-    }
 </script>
 </body>
 </html>
