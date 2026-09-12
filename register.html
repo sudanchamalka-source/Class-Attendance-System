@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - English with Sudan Sir</title>
+    <title>Student Registration & Edit - English with Sudan Sir</title>
     <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
@@ -45,7 +46,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 500px;
             width: 100%;
             background: white;
             padding: 25px;
@@ -67,113 +68,123 @@
             margin: 0 6px;
         }
 
-        .controls-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
         }
 
-        .controls-bar input, .controls-bar select {
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            flex: 1;
-            min-width: 150px;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
             font-size: 0.9em;
         }
 
-        .stats-badge {
-            background: #e3f2fd;
-            color: #0d47a1;
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: inline-block;
+        .id-input-group {
+            display: flex;
+            gap: 8px;
         }
 
-        table {
+        .id-input-group input {
+            flex: 1;
+        }
+
+        .btn-check-id {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .btn-check-id:hover {
+            background-color: #5a6268;
+        }
+
+        .form-group input, .form-group select {
             width: 100%;
-            border-collapse: collapse;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.95em;
+        }
+
+        .mode-badge {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: #0056b3;
+        }
+
+        .preview-container {
+            display: flex;
+            justify-content: center;
             margin-top: 10px;
         }
 
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
-            vertical-align: middle;
-        }
-
-        th {
-            background-color: #0056b3;
-            color: white;
-        }
-
-        tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .student-photo {
-            width: 45px;
-            height: 45px;
+        .photo-preview {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1px solid #0056b3;
+            border: 2px solid #0056b3;
+            display: none;
         }
 
-        .btn-delete {
-            background-color: #dc3545;
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: #0056b3;
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1em;
             font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
         }
 
-        .btn-delete:hover {
-            background-color: #c82333;
+        .btn-submit:hover {
+            background-color: #003d80;
         }
 
-        @media (max-width: 600px) {
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-            tr {
-                border: 1px solid #ccc;
-                margin-bottom: 10px;
-                border-radius: 8px;
-                padding: 10px;
-            }
-            td {
-                border: none;
-                position: relative;
-                padding-left: 50%;
-                text-align: right;
-            }
-            td:before {
-                position: absolute;
-                top: 12px;
-                left: 10px;
-                width: 45%;
-                padding-right: 10px;
-                white-space: nowrap;
-                font-weight: bold;
-                text-align: left;
-            }
-            td:nth-of-type(1):before { content: "Photo"; }
-            td:nth-of-type(2):before { content: "ID"; }
-            td:nth-of-type(3):before { content: "Name"; }
-            td:nth-of-type(4):before { content: "Grade"; }
-            td:nth-of-type(5):before { content: "Phone"; }
-            td:nth-of-type(6):before { content: "Action"; }
+        #idCardPreview {
+            display: none;
+            margin-top: 25px;
+            padding: 15px;
+            border: 2px solid #0056b3;
+            border-radius: 10px;
+            background: #fff;
+            text-align: center;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .btn-print {
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #idCardPreview, #idCardPreview * { visibility: visible; }
+            #idCardPreview { position: absolute; left: 0; top: 0; width: 100%; border: none; }
+            .btn-print { display: none; }
         }
     </style>
 </head>
@@ -187,45 +198,68 @@
     <div class="container">
         <div class="nav-links">
             <a href="index.html">📸 Scanner</a> | 
-            <a href="register.html">+ New Register</a> | 
+            <a href="register.html">+ New / Edit Student</a> | 
             <a href="fee.html">💳 Fee Payment</a> | 
             <a href="students_list.html">📚 Admin Panel</a> | 
             <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
         </div>
 
-        <h3 style="margin-top:0; color:#444;">Student Administration Panel</h3>
+        <h3 style="margin-top:0; color:#444; text-align:center;">Student Registration & Edit</h3>
 
-        <div class="stats-badge" id="totalCount">Total Registered Students: 0</div>
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="studentId">Student ID Number *</label>
+                <div class="id-input-group">
+                    <input type="text" id="studentId" placeholder="e.g. STU1001" required onchange="checkExistingStudent()">
+                    <button type="button" class="btn-check-id" onclick="checkExistingStudent()">🔍 Check ID</button>
+                </div>
+                <span id="modeStatus" class="mode-badge">🆕 Mode: New Registration</span>
+            </div>
 
-        <div class="controls-bar">
-            <input type="text" id="searchInput" placeholder="🔍 Search by Name or ID..." onkeyup="filterStudents()">
-            <select id="gradeFilter" onchange="filterStudents()">
-                <option value="">All Grades</option>
-                <option value="Grade 6">Grade 6</option>
-                <option value="Grade 7">Grade 7</option>
-                <option value="Grade 8">Grade 8</option>
-                <option value="Grade 9">Grade 9</option>
-                <option value="Grade 10">Grade 10</option>
-                <option value="Grade 11">Grade 11</option>
-                <option value="A/L English">A/L English</option>
-            </select>
+            <div class="form-group">
+                <label for="studentName">Full Name *</label>
+                <input type="text" id="studentName" placeholder="Enter student full name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="studentGrade">Grade / Batch *</label>
+                <select id="studentGrade" required>
+                    <option value="">Select Grade</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="A/L English">A/L English</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="studentPhone">WhatsApp / Mobile Number *</label>
+                <input type="tel" id="studentPhone" placeholder="e.g. 0771234567" required>
+            </div>
+
+            <div class="form-group">
+                <label for="studentPhoto" id="photoLabel">Student Photo *</label>
+                <input type="file" id="studentPhoto" accept="image/*">
+                <div class="preview-container">
+                    <img id="photoPreview" class="photo-preview" alt="Preview">
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-submit">Register Student & Generate ID</button>
+        </form>
+
+        <div id="idCardPreview">
+            <h4 style="margin:0; color:#003366;">English with Sudan Sir</h4>
+            <p style="font-size:0.8em; margin: 3px 0 10px 0; color:#666;">Student Identification Card</p>
+            <img id="cardPhoto" src="" alt="Student Photo" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:2px solid #0056b3;">
+            <h3 id="cardName" style="margin:8px 0 2px 0; font-size:1.1em;"></h3>
+            <p id="cardDetails" style="margin:0; font-size:0.85em; color:#444;"></p>
+            <div id="qrcode"></div>
+            <button class="btn-print" onclick="window.print()">🖨️ Print Student ID</button>
         </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Photo</th>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Grade</th>
-                    <th>Phone</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="studentTableBody">
-                <tr><td colspan="6" style="text-align:center;">Loading student records...</td></tr>
-            </tbody>
-        </table>
     </div>
 
 <script>
@@ -242,82 +276,157 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let allStudents = [];
+    let base64Photo = '';
+    let isEditMode = false;
+    let existingPhotoBackup = '';
 
-    function loadStudents() {
-        db.ref('students').on('value', (snapshot) => {
-            allStudents = [];
-            const tbody = document.getElementById('studentTableBody');
-            tbody.innerHTML = '';
+    // Check if entered Student ID exists in Firebase
+    function checkExistingStudent() {
+        const id = document.getElementById('studentId').value.trim();
+        if (!id) return;
+
+        db.ref('students/' + id).once('value', (snapshot) => {
+            const statusBadge = document.getElementById('modeStatus');
+            const submitBtn = document.getElementById('submitBtn');
+            const photoLabel = document.getElementById('photoLabel');
+            const photoInput = document.getElementById('studentPhoto');
 
             if (snapshot.exists()) {
-                snapshot.forEach((childSnap) => {
-                    const data = childSnap.val();
-                    allStudents.push({
-                        key: childSnap.key,
-                        id: data.id || childSnap.key,
-                        name: data.name || '-',
-                        grade: data.grade || '-',
-                        phone: data.phone || data.whatsapp || '-',
-                        photo: data.photo || data.photoUrl || data.imageUrl || 'logo.png'
-                    });
-                });
-                document.getElementById('totalCount').innerText = `Total Registered Students: ${allStudents.length}`;
-                renderTable(allStudents);
+                const data = snapshot.val();
+                isEditMode = true;
+
+                // Pre-fill form values
+                document.getElementById('studentName').value = data.name || '';
+                document.getElementById('studentGrade').value = data.grade || '';
+                document.getElementById('studentPhone').value = data.phone || data.whatsapp || '';
+
+                // Load existing photo
+                existingPhotoBackup = data.photo || data.photoUrl || data.imageUrl || '';
+                if (existingPhotoBackup) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = existingPhotoBackup;
+                    preview.style.display = 'block';
+                }
+
+                statusBadge.innerHTML = "✏️ <strong>Mode: Editing Existing Student</strong>";
+                statusBadge.style.color = "#d9534f";
+                submitBtn.innerText = "Update Existing Student Details";
+                photoLabel.innerText = "Student Photo (Optional - leave blank to keep current photo)";
+                photoInput.removeAttribute('required');
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No students found in database.</td></tr>';
-                document.getElementById('totalCount').innerText = 'Total Registered Students: 0';
+                isEditMode = false;
+                statusBadge.innerHTML = "🆕 <strong>Mode: New Registration</strong>";
+                statusBadge.style.color = "#0056b3";
+                submitBtn.innerText = "Register Student & Generate ID";
+                photoLabel.innerText = "Student Photo *";
+                photoInput.setAttribute('required', 'required');
             }
         });
     }
 
-    function renderTable(students) {
-        const tbody = document.getElementById('studentTableBody');
-        tbody.innerHTML = '';
+    // Process uploaded file into Base64
+    document.getElementById('studentPhoto').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    const maxDim = 300;
+                    let width = img.width;
+                    let height = img.height;
 
-        if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No matching students found.</td></tr>';
+                    if (width > height) {
+                        if (width > maxDim) {
+                            height *= maxDim / width;
+                            width = maxDim;
+                        }
+                    } else {
+                        if (height > maxDim) {
+                            width *= maxDim / height;
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    base64Photo = canvas.toDataURL('image/jpeg', 0.7);
+
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = base64Photo;
+                    preview.style.display = 'block';
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form submission (Save or Update)
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const id = document.getElementById('studentId').value.trim();
+        const name = document.getElementById('studentName').value.trim();
+        const grade = document.getElementById('studentGrade').value;
+        const phone = document.getElementById('studentPhone').value.trim();
+
+        // Determine final photo (new upload or existing backup)
+        const finalPhoto = base64Photo || existingPhotoBackup;
+
+        if (!finalPhoto) {
+            alert("Please upload a student photo!");
             return;
         }
 
-        students.forEach((stu) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><img src="${stu.photo}" class="student-photo" alt="Photo" onerror="this.src='logo.png'"></td>
-                <td><strong>${stu.id}</strong></td>
-                <td>${stu.name}</td>
-                <td>${stu.grade}</td>
-                <td>${stu.phone}</td>
-                <td>
-                    <button class="btn-delete" onclick="deleteStudent('${stu.key}', '${stu.name}')">Delete</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+        const studentData = {
+            id: id,
+            name: name,
+            grade: grade,
+            phone: phone,
+            whatsapp: phone,
+            photo: finalPhoto
+        };
+
+        // Use update() so existing attendance & fee records under this student are preserved!
+        db.ref('students/' + id).update(studentData).then(() => {
+            const msg = isEditMode ? '✅ Student updated successfully!' : '✅ Student registered successfully!';
+            alert(msg);
+
+            // Print Preview
+            document.getElementById('cardPhoto').src = finalPhoto;
+            document.getElementById('cardName').innerText = name;
+            document.getElementById('cardDetails').innerText = `ID: ${id} | ${grade}`;
+            
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: id,
+                width: 120,
+                height: 120
+            });
+
+            document.getElementById('idCardPreview').style.display = 'block';
+            document.getElementById('registrationForm').reset();
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('modeStatus').innerHTML = "🆕 Mode: New Registration";
+            document.getElementById('modeStatus').style.color = "#0056b3";
+            document.getElementById('submitBtn').innerText = "Register Student & Generate ID";
+            document.getElementById('photoLabel').innerText = "Student Photo *";
+            document.getElementById('studentPhoto').setAttribute('required', 'required');
+            
+            base64Photo = '';
+            existingPhotoBackup = '';
+            isEditMode = false;
+        }).catch(err => {
+            alert('❌ Operation Failed: ' + err.message);
         });
-    }
-
-    function filterStudents() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const selectedGrade = document.getElementById('gradeFilter').value;
-
-        const filtered = allStudents.filter(stu => {
-            const matchesSearch = stu.name.toLowerCase().includes(query) || stu.id.toLowerCase().includes(query);
-            const matchesGrade = selectedGrade === '' || stu.grade === selectedGrade;
-            return matchesSearch && matchesGrade;
-        });
-
-        renderTable(filtered);
-    }
-
-    function deleteStudent(key, name) {
-        if (confirm(`Are you sure you want to permanently delete ${name} (ID: ${key})?`)) {
-            db.ref('students/' + key).remove()
-                .then(() => alert('Student deleted successfully!'))
-                .catch(err => alert('Delete failed: ' + err.message));
-        }
-    }
-
-    window.onload = loadStudents;
+    });
 </script>
 </body>
 </html>
