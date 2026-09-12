@@ -137,7 +137,6 @@
                     <input type="text" class="edit-mode" id="input_fee_${id}" value="${data.fee || ''}" style="display:none;">
                 </td>
                 
-                <!-- Day 1 to Day 4 Status & Remove Buttons -->
                 ${renderDayCell(id, 'Day 1', att['Day 1'])}
                 ${renderDayCell(id, 'Day 2', att['Day 2'])}
                 ${renderDayCell(id, 'Day 3', att['Day 3'])}
@@ -166,7 +165,6 @@
         }
     }
 
-    // Remove specific day attendance
     function removeDayAttendance(id, dayName) {
         if(confirm(`ID: ${id} ශිෂ්‍යයාගේ ${dayName} Attendance ඉවත් කිරීමට අවශ්‍යද?`)) {
             db.ref(`students/${id}/attendance/${dayName}`).remove().then(() => {
