@@ -1,28 +1,340 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All Students & Attendance Admin Panel</title>
     <link rel="icon" type="image/png" href="logo.png">
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1200px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        h2 { color: #003366; margin-top: 0; text-align: center; }
-        .nav-links { margin-bottom: 20px; text-align: center; font-size: 0.9em; }
-        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 8px; }
-        
-        .table-responsive { overflow-x: auto; margin-top: 15px; }
-        table { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.85em; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
-        th { background: #003366; color: white; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .brand-logo {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #0056b3;
+        }
+
+        .brand-title {
+            color: #003366;
+            margin: 0;
+            font-size: 1.3em;
+            font-weight: 800;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #0056b3;
+            font-weight: bold;
+            margin: 0 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .controls input, .controls select {
+            padding: 8px 12px;
+            border: 1px solid #0056b3;
+            border-radius: 6px;
+            font-size: 0.95em;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* View Toggle Tabs */
+        .view-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: #e2e8f0;
+            color: #003366;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: #003366;
+            color: white;
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            font-size: 0.85em;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #003366;
+            color: white;
+        }
+
         tr:nth-child(even) { background-color: #f9f9f9; }
-        
-        input[type="text"], select { width: 100%; padding: 5px; box-sizing: border-box; border: 1px solid #0056b3; border-radius: 4px; }
-        
-        .btn { padding: 5px 8px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 0.8em; width: 100%; margin-bottom: 3px; display: block; text-decoration: none; box-sizing: border-box; }
+
+        /* Card Grid & ID Pass Design */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+            gap: 25px;
+            justify-content: center;
+        }
+
+        .card-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .credit-card {
+            width: 440px;
+            height: 260px;
+            background: linear-gradient(180deg, #005dae 0%, #006ec7 40%, #0053a0 100%);
+            border-radius: 18px;
+            padding: 12px 16px;
+            box-sizing: border-box;
+            color: white;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            padding-bottom: 6px;
+        }
+
+        .card-header img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .card-header-text h2 {
+            margin: 0;
+            font-size: 1.25em;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.2px;
+            line-height: 1.1;
+        }
+
+        .card-header-text p {
+            margin: 2px 0 0 0;
+            font-size: 0.65em;
+            font-weight: 800;
+            color: #ffcc00;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .card-body {
+            display: grid;
+            grid-template-columns: 95px 1fr 85px;
+            gap: 10px;
+            align-items: center;
+            margin: 4px 0;
+        }
+
+        .photo-box {
+            width: 95px;
+            height: 105px;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 3px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 7px;
+        }
+
+        .info-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .info-box h3 {
+            margin: 0 0 6px 0;
+            font-size: 0.88em;
+            font-weight: 800;
+            color: #ffffff;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.2;
+            max-height: 2.4em;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .id-badge {
+            align-self: flex-start;
+            background: #ffcc00;
+            color: #000000;
+            font-weight: 800;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 0.82em;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        .info-box p {
+            margin: 0;
+            font-size: 0.8em;
+            color: #e2e8f0;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .qr-box {
+            width: 85px;
+            height: 85px;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 4px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .card-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.25);
+            padding-top: 5px;
+            text-align: center;
+            font-size: 0.65em;
+            color: #e0e6ed;
+            line-height: 1.3;
+        }
+
+        .card-footer strong {
+            color: #ffffff;
+            font-size: 1.05em;
+            letter-spacing: 0.3px;
+        }
+
+        .footer-contacts {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .footer-contacts span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 0.8em;
+            width: 100%;
+            margin-bottom: 3px;
+            display: block;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+
         .btn-edit { background: #ffc107; color: #333; }
         .btn-save { background: #28a745; display: none; }
         .btn-cancel { background: #6c757d; display: none; }
@@ -30,6 +342,25 @@
         .btn-reset-day { background: #fd7e14; padding: 2px 5px; font-size: 0.75em; margin-top: 3px; border-radius: 3px; }
         .btn-card { background: #007bff; }
         
+        .admin-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .btn-download { background: #17a2b8; }
+        .btn-download:hover { background: #138496; }
+
         .stu-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .status-present { color: #28a745; font-weight: bold; }
         .status-absent { color: #dc3545; font-weight: bold; }
@@ -37,40 +368,77 @@
 </head>
 <body>
 
-<div class="container">
-    <h2>📚 Admin Panel & Student Records</h2>
-    
-    <div class="nav-links">
-        <a href="index.html">📸 Scanner</a> | 
-        <a href="register.html">+ New Register</a> | 
-        <a href="fee.html">💳 Fee Payment</a> | 
-        <a href="students_list.html">📚 Admin Panel</a> | 
-        <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
+    <div class="brand-header">
+        <img src="logo.png" alt="Logo" class="brand-logo">
+        <h2 class="brand-title">English with Sudan Sir</h2>
     </div>
 
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Photo</th>
-                    <th>ID</th>
-                    <th>Full Name</th>
-                    <th>Grade</th>
-                    <th>WhatsApp</th>
-                    <th>Last Fee Record</th>
-                    <th>Day 1</th>
-                    <th>Day 2</th>
-                    <th>Day 3</th>
-                    <th>Day 4</th>
-                    <th style="min-width: 90px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="studentTableBody">
-                <tr><td colspan="11" style="text-align: center;">දත්ත ලෝඩ් වෙමින් පවතියි...</td></tr>
-            </tbody>
-        </table>
+    <div class="container">
+        <h2>📚 Admin Panel & Student Records</h2>
+        
+        <div class="nav-links">
+            <a href="index.html">📸 Scanner</a> | 
+            <a href="register.html">+ New Register</a> | 
+            <a href="fee.html">💳 Fee Payment</a> | 
+            <a href="students_list.html">📚 Admin Panel</a> | 
+            <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
+        </div>
+
+        <div class="view-switcher">
+            <button class="tab-btn active" id="btnTableView" onclick="switchView('table')">📋 Table View</button>
+            <button class="tab-btn" id="btnCardView" onclick="switchView('card')">🪪 Pass Cards View</button>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="🔍 Search by Name or ID..." onkeyup="filterStudents()">
+            <select id="gradeFilter" onchange="filterStudents()">
+                <option value="">All Grades</option>
+                <option value="Grade 1">Grade 1</option>
+                <option value="Grade 2">Grade 2</option>
+                <option value="Grade 3">Grade 3</option>
+                <option value="Grade 4">Grade 4</option>
+                <option value="Grade 5">Grade 5</option>
+                <option value="Grade 6">Grade 6</option>
+                <option value="Grade 7">Grade 7</option>
+                <option value="Grade 8">Grade 8</option>
+                <option value="Grade 9">Grade 9</option>
+                <option value="Grade 10">Grade 10</option>
+                <option value="Grade 11">Grade 11</option>
+                <option value="A/L">A/L</option>
+                <option value="A/L English">A/L English</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <!-- Table View -->
+        <div id="tableView" class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                        <th>Grade</th>
+                        <th>WhatsApp</th>
+                        <th>Last Fee Record</th>
+                        <th>Day 1</th>
+                        <th>Day 2</th>
+                        <th>Day 3</th>
+                        <th>Day 4</th>
+                        <th style="min-width: 90px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    <tr><td colspan="11" style="text-align: center;">දත්ත ලෝඩ් වෙමින් පවතියි...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Card Grid View -->
+        <div id="cardView" class="cards-grid" style="display: none;">
+            <p style="text-align:center; width:100%; color:#666;">Loading cards...</p>
+        </div>
     </div>
-</div>
 
 <script>
     const firebaseConfig = {
@@ -86,34 +454,85 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    db.ref('students').on('value', (snapshot) => {
-        const tbody = document.getElementById('studentTableBody');
-        tbody.innerHTML = '';
+    let allStudents = [];
+    let currentView = 'table';
 
+    db.ref('students').on('value', (snapshot) => {
+        allStudents = [];
         if (!snapshot.exists()) {
-            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">ශිෂ්‍යයන් හමු නොවීය.</td></tr>';
+            document.getElementById('studentTableBody').innerHTML = '<tr><td colspan="11" style="text-align: center;">ශිෂ්‍යයන් හමු නොවීය.</td></tr>';
+            document.getElementById('cardView').innerHTML = '<p style="text-align:center; width:100%; color:#666;">No students found.</p>';
             return;
         }
 
         snapshot.forEach((childSnapshot) => {
-            const dbKey = childSnapshot.key;
-            const data = childSnapshot.val();
-            
-            // Custom ID (e.g. BAT 003) or fallback to node key
+            const student = childSnapshot.val();
+            student.dbKey = childSnapshot.key;
+            allStudents.push(student);
+        });
+
+        filterStudents();
+    });
+
+    function switchView(view) {
+        currentView = view;
+        const tableView = document.getElementById('tableView');
+        const cardView = document.getElementById('cardView');
+        const btnTable = document.getElementById('btnTableView');
+        const btnCard = document.getElementById('btnCardView');
+
+        if (view === 'table') {
+            tableView.style.display = 'block';
+            cardView.style.display = 'none';
+            btnTable.classList.add('active');
+            btnCard.classList.remove('active');
+        } else {
+            tableView.style.display = 'none';
+            cardView.style.display = 'grid';
+            btnTable.classList.remove('active');
+            btnCard.classList.add('active');
+        }
+    }
+
+    function filterStudents() {
+        const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+        const selectedGrade = document.getElementById('gradeFilter').value;
+
+        const filtered = allStudents.filter(student => {
+            const idVal = String(student.id || student.stuId || student.dbKey).toLowerCase();
+            const nameVal = String(student.name || '').toLowerCase();
+            const matchesSearch = idVal.includes(searchVal) || nameVal.includes(searchVal);
+            const matchesGrade = selectedGrade === '' || (student.grade === selectedGrade);
+            return matchesSearch && matchesGrade;
+        });
+
+        renderTable(filtered);
+        renderCards(filtered);
+    }
+
+    function renderTable(students) {
+        const tbody = document.getElementById('studentTableBody');
+        tbody.innerHTML = '';
+
+        if (students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">ශිෂ්‍යයන් හමු නොවීය.</td></tr>';
+            return;
+        }
+
+        students.forEach((data) => {
+            const dbKey = data.dbKey;
             const studentId = data.id || data.stuId || dbKey;
             const att = data.attendance || {};
 
             const tr = document.createElement('tr');
             tr.id = `row_${dbKey}`;
             tr.innerHTML = `
-                <td><img src="${data.photo || 'logo.png'}" class="stu-img" alt="Photo"></td>
+                <td><img src="${data.photo || data.photoUrl || 'logo.png'}" class="stu-img" alt="Photo"></td>
                 <td><strong>${studentId}</strong></td>
-                
                 <td>
                     <span class="view-mode">${data.name || '-'}</span>
                     <input type="text" class="edit-mode" id="input_name_${dbKey}" value="${data.name || ''}" style="display:none;">
                 </td>
-                
                 <td>
                     <span class="view-mode">${data.grade || '-'}</span>
                     <select class="edit-mode" id="input_grade_${dbKey}" style="display:none;">
@@ -129,27 +548,23 @@
                         <option value="Grade 10" ${data.grade === 'Grade 10' ? 'selected' : ''}>Grade 10</option>
                         <option value="Grade 11" ${data.grade === 'Grade 11' ? 'selected' : ''}>Grade 11</option>
                         <option value="A/L" ${data.grade === 'A/L' ? 'selected' : ''}>A/L</option>
+                        <option value="A/L English" ${data.grade === 'A/L English' ? 'selected' : ''}>A/L English</option>
                         <option value="Other" ${data.grade === 'Other' ? 'selected' : ''}>Other</option>
                     </select>
                 </td>
-                
                 <td>
-                    <span class="view-mode">${data.phone || '-'}</span>
-                    <input type="text" class="edit-mode" id="input_phone_${dbKey}" value="${data.phone || ''}" style="display:none;">
+                    <span class="view-mode">${data.phone || data.whatsapp || '-'}</span>
+                    <input type="text" class="edit-mode" id="input_phone_${dbKey}" value="${data.phone || data.whatsapp || ''}" style="display:none;">
                 </td>
-                
                 <td>
                     <span class="view-mode">${data.fee || 'Not Paid'}</span>
                     <input type="text" class="edit-mode" id="input_fee_${dbKey}" value="${data.fee || ''}" style="display:none;">
                 </td>
-                
                 ${renderDayCell(dbKey, 'Day 1', att['Day 1'])}
                 ${renderDayCell(dbKey, 'Day 2', att['Day 2'])}
                 ${renderDayCell(dbKey, 'Day 3', att['Day 3'])}
                 ${renderDayCell(dbKey, 'Day 4', att['Day 4'])}
-                
                 <td>
-                    <a href="card.html?id=${encodeURIComponent(studentId)}" class="btn btn-card">🪪 ID</a>
                     <button class="btn btn-edit" id="btn_edit_${dbKey}" onclick="enableEdit('${dbKey}')">✏️ Edit</button>
                     <button class="btn btn-save" id="btn_save_${dbKey}" onclick="saveStudent('${dbKey}')">💾 Save</button>
                     <button class="btn btn-cancel" id="btn_cancel_${dbKey}" onclick="cancelEdit('${dbKey}')">❌ Cancel</button>
@@ -158,7 +573,7 @@
             `;
             tbody.appendChild(tr);
         });
-    });
+    }
 
     function renderDayCell(dbKey, dayName, isPresent) {
         if (isPresent) {
@@ -169,6 +584,84 @@
         } else {
             return `<td><span class="status-absent">Absent</span></td>`;
         }
+    }
+
+    function renderCards(students) {
+        const grid = document.getElementById('cardView');
+        grid.innerHTML = '';
+
+        if (students.length === 0) {
+            grid.innerHTML = '<p style="text-align:center; width:100%; color:#666;">No matching records found.</p>';
+            return;
+        }
+
+        students.forEach((student) => {
+            const dbKey = student.dbKey;
+            const cardId = student.id || student.stuId || dbKey;
+            const photoUrl = student.photo || student.photoUrl || student.imageUrl || 'https://via.placeholder.com/100x110?text=No+Photo';
+
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = 'card-container';
+
+            const cardElementId = `card-${dbKey}`;
+            const qrElementId = `qr-${dbKey}`;
+
+            cardWrapper.innerHTML = `
+                <div class="credit-card" id="${cardElementId}">
+                    <div class="card-header">
+                        <img src="logo.png" alt="Logo" onerror="this.src='logo.png'">
+                        <div class="card-header-text">
+                            <h2>English with Sudan Sir</h2>
+                            <p>Student Official Pass</p>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="photo-box">
+                            <img src="${photoUrl}" alt="Student Photo">
+                        </div>
+
+                        <div class="info-box">
+                            <h3>${student.name || 'N/A'}</h3>
+                            <div class="id-badge">ID: ${cardId}</div>
+                            <p>Phone: ${student.phone || student.whatsapp || 'N/A'}</p>
+                        </div>
+
+                        <div class="qr-box">
+                            <div id="${qrElementId}"></div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <strong>R.M.S.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)
+                        <div class="footer-contacts">
+                            <span>📞 0706562952</span>
+                            <span>|</span>
+                            <span>💬 WhatsApp: 0716562952</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-actions">
+                    <button class="btn-action btn-download" onclick="downloadSinglePNG('${cardElementId}', '${cardId}')">🖼️ Download PNG</button>
+                    <button class="btn-action btn-delete" onclick="deleteStudent('${dbKey}')">🗑️ Delete</button>
+                </div>
+            `;
+
+            grid.appendChild(cardWrapper);
+
+            setTimeout(() => {
+                const qrContainer = document.getElementById(qrElementId);
+                if (qrContainer) {
+                    qrContainer.innerHTML = '';
+                    new QRCode(qrContainer, {
+                        text: String(cardId),
+                        width: 75,
+                        height: 75
+                    });
+                }
+            }, 50);
+        });
     }
 
     function removeDayAttendance(dbKey, dayName) {
@@ -213,6 +706,16 @@
         if (confirm(`ඔබට ID: ${dbKey} මකා දැමීමට අවශ්‍යද?`)) {
             db.ref('students/' + dbKey).remove();
         }
+    }
+
+    function downloadSinglePNG(cardElementId, studentId) {
+        const card = document.getElementById(cardElementId);
+        html2canvas(card, { scale: 3, useCORS: true }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Student_ID_${studentId}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
     }
 </script>
 </body>
