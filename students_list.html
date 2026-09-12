@@ -9,33 +9,35 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1100px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .container { max-width: 1150px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         h2 { color: #003366; margin-top: 0; text-align: center; }
         .nav-links { margin-bottom: 20px; text-align: center; }
         .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 10px; }
         
-        /* Table Styles */
         .table-responsive { overflow-x: auto; margin-top: 15px; }
         table { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.9em; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: middle; }
         th { background: #003366; color: white; text-align: center; }
         tr:nth-child(even) { background-color: #f9f9f9; }
         
-        /* Form Inputs in Table */
-        input[type="text"], input[type="date"], select { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95em; }
+        /* Form Inputs initially styled or hidden */
+        input[type="text"], input[type="date"], select { width: 100%; padding: 6px; box-sizing: border-box; border: 1px solid #0056b3; border-radius: 4px; font-size: 0.95em; }
         
-        .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 0.85em; }
-        .btn-save { background: #28a745; margin-bottom: 3px; width: 100%; }
-        .btn-delete { background: #dc3545; width: 100%; }
-        .btn-card { background: #007bff; width: 100%; margin-bottom: 3px; display: inline-block; text-align: center; text-decoration: none; box-sizing: border-box; padding: 6px 0; }
+        .btn { padding: 6px 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 0.85em; width: 100%; margin-bottom: 4px; display: block; text-align: center; box-sizing: border-box; text-decoration: none; }
+        .btn-edit { background: #ffc107; color: #333; }
+        .btn-save { background: #28a745; display: none; }
+        .btn-cancel { background: #6c757d; display: none; }
+        .btn-delete { background: #dc3545; }
+        .btn-card { background: #007bff; }
         
         .stu-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+        .badge { background: #e2e8f0; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📚 ශිෂ්‍ය තොරතුරු සහ ගෙවීම් සංස්කරණය (All Students & Edit Options)</h2>
+    <h2>📚 ශිෂ්‍ය තොරතුරු කළමනාකරණය (Students Management)</h2>
     
     <div class="nav-links">
         <a href="index.html">← Scanner</a> | 
@@ -51,10 +53,10 @@
                     <th>Full Name</th>
                     <th>Grade</th>
                     <th>WhatsApp No</th>
-                    <th>Payment / Fee Status</th>
+                    <th>Fee Status</th>
                     <th>Payment Date</th>
                     <th>Other Notes</th>
-                    <th>Actions</th>
+                    <th style="min-width: 110px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="studentTableBody">
@@ -79,7 +81,7 @@
 
     const db = firebase.database();
 
-    // Fetch and display all students
+    // Fetch All Students
     db.ref('students').on('value', (snapshot) => {
         const tbody = document.getElementById('studentTableBody');
         tbody.innerHTML = '';
@@ -94,14 +96,23 @@
             const data = childSnapshot.val();
 
             const tr = document.createElement('tr');
+            tr.id = `row_${id}`;
             tr.innerHTML = `
                 <td style="text-align: center;">
                     <img src="${data.photo || 'logo.png'}" class="stu-img" alt="Photo">
                 </td>
                 <td><strong>${id}</strong></td>
-                <td><input type="text" id="name_${id}" value="${data.name || ''}"></td>
+                
+                <!-- Name Field -->
                 <td>
-                    <select id="grade_${id}">
+                    <span class="view-mode" id="view_name_${id}">${data.name || '-'}</span>
+                    <input type="text" class="edit-mode" id="input_name_${id}" value="${data.name || ''}" style="display:none;">
+                </td>
+                
+                <!-- Grade Field -->
+                <td>
+                    <span class="view-mode" id="view_grade_${id}">${data.grade || '-'}</span>
+                    <select class="edit-mode" id="input_grade_${id}" style="display:none;">
                         <option value="Grade 1" ${data.grade === 'Grade 1' ? 'selected' : ''}>Grade 1</option>
                         <option value="Grade 2" ${data.grade === 'Grade 2' ? 'selected' : ''}>Grade 2</option>
                         <option value="Grade 3" ${data.grade === 'Grade 3' ? 'selected' : ''}>Grade 3</option>
@@ -117,13 +128,37 @@
                         <option value="Other" ${data.grade === 'Other' ? 'selected' : ''}>Other</option>
                     </select>
                 </td>
-                <td><input type="text" id="phone_${id}" value="${data.phone || ''}"></td>
-                <td><input type="text" id="fee_${id}" value="${data.fee || ''}" placeholder="උදා: Paid / Rs.1500"></td>
-                <td><input type="date" id="date_${id}" value="${data.lastDate || ''}"></td>
-                <td><input type="text" id="other_${id}" value="${data.other || ''}"></td>
+                
+                <!-- Phone Field -->
+                <td>
+                    <span class="view-mode" id="view_phone_${id}">${data.phone || '-'}</span>
+                    <input type="text" class="edit-mode" id="input_phone_${id}" value="${data.phone || ''}" style="display:none;">
+                </td>
+                
+                <!-- Fee Field -->
+                <td>
+                    <span class="view-mode badge" id="view_fee_${id}">${data.fee || 'Not Paid'}</span>
+                    <input type="text" class="edit-mode" id="input_fee_${id}" value="${data.fee || ''}" placeholder="Paid / Rs.1500" style="display:none;">
+                </td>
+                
+                <!-- Date Field -->
+                <td>
+                    <span class="view-mode" id="view_date_${id}">${data.lastDate || '-'}</span>
+                    <input type="date" class="edit-mode" id="input_date_${id}" value="${data.lastDate || ''}" style="display:none;">
+                </td>
+                
+                <!-- Other Notes Field -->
+                <td>
+                    <span class="view-mode" id="view_other_${id}">${data.other || '-'}</span>
+                    <input type="text" class="edit-mode" id="input_other_${id}" value="${data.other || ''}" style="display:none;">
+                </td>
+                
+                <!-- Actions -->
                 <td>
                     <a href="card.html?id=${id}" class="btn btn-card">🪪 ID Card</a>
-                    <button class="btn btn-save" onclick="updateStudent('${id}')">💾 Save</button>
+                    <button class="btn btn-edit" id="btn_edit_${id}" onclick="enableEdit('${id}')">✏️ Edit</button>
+                    <button class="btn btn-save" id="btn_save_${id}" onclick="saveStudent('${id}')">💾 Save</button>
+                    <button class="btn btn-cancel" id="btn_cancel_${id}" onclick="cancelEdit('${id}')">❌ Cancel</button>
                     <button class="btn btn-delete" onclick="deleteStudent('${id}')">🗑️ Delete</button>
                 </td>
             `;
@@ -131,14 +166,36 @@
         });
     });
 
-    // Update function for fee, date, name, grade, etc.
-    function updateStudent(id) {
-        const name = document.getElementById(`name_${id}`).value.trim();
-        const grade = document.getElementById(`grade_${id}`).value;
-        const phone = document.getElementById(`phone_${id}`).value.trim();
-        const fee = document.getElementById(`fee_${id}`).value.trim();
-        const date = document.getElementById(`date_${id}`).value;
-        const other = document.getElementById(`other_${id}`).value.trim();
+    // Enable Edit Mode on Edit Button Click
+    function enableEdit(id) {
+        const row = document.getElementById(`row_${id}`);
+        row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
+        row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'block');
+
+        document.getElementById(`btn_edit_${id}`).style.display = 'none';
+        document.getElementById(`btn_save_${id}`).style.display = 'block';
+        document.getElementById(`btn_cancel_${id}`).style.display = 'block';
+    }
+
+    // Cancel Edit Mode
+    function cancelEdit(id) {
+        const row = document.getElementById(`row_${id}`);
+        row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'inline');
+        row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+
+        document.getElementById(`btn_edit_${id}`).style.display = 'block';
+        document.getElementById(`btn_save_${id}`).style.display = 'none';
+        document.getElementById(`btn_cancel_${id}`).style.display = 'none';
+    }
+
+    // Save Data to Firebase
+    function saveStudent(id) {
+        const name = document.getElementById(`input_name_${id}`).value.trim();
+        const grade = document.getElementById(`input_grade_${id}`).value;
+        const phone = document.getElementById(`input_phone_${id}`).value.trim();
+        const fee = document.getElementById(`input_fee_${id}`).value.trim();
+        const date = document.getElementById(`input_date_${id}`).value;
+        const other = document.getElementById(`input_other_${id}`).value.trim();
 
         db.ref('students/' + id).update({
             name: name,
@@ -148,7 +205,8 @@
             lastDate: date,
             other: other
         }).then(() => {
-            alert(`ID: ${id} ශිෂ්‍යයාගේ තොරතුරු සහ ගෙවීම් සාර්ථකව Update විය!`);
+            alert(`ID: ${id} ශිෂ්‍යයාගේ තොරතුරු සාර්ථකව Update විය!`);
+            cancelEdit(id);
         }).catch((err) => {
             alert("Update Error: " + err.message);
         });
@@ -156,7 +214,7 @@
 
     // Delete Student
     function deleteStudent(id) {
-        if (confirm(`ඔබට ${id} ශිෂ්‍යයා මකා දැමීමට අවශ්‍යද?`)) {
+        if (confirm(`ඔබට ${id} ශිෂ්‍යයා සම්පූර්ණයෙන්ම මකා දැමීමට අවශ්‍යද?`)) {
             db.ref('students/' + id).remove().then(() => {
                 alert('ශිෂ්‍යයා සාර්ථකව ඉවත් කරන ලදී!');
             });
