@@ -40,7 +40,7 @@
 
     <div class="nav-links">
         <a href="register.html">+ New Register</a> | 
-        <a href="students.html">📚 Admin Panel</a>
+        <a href="students_list.html">📚 Admin Panel</a>
     </div>
 </div>
 
@@ -73,7 +73,6 @@
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 
-                // Attendance data update under the specific day
                 const updateData = {};
                 updateData[`attendance/${selectedDay}`] = true;
                 updateData[`lastDate`] = new Date().toISOString().split('T')[0];
