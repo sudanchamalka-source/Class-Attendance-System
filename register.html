@@ -3,132 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student ID Card - English with Sudan Sir</title>
+    <title>Student Registration - English with Sudan Sir</title>
     <link rel="icon" type="image/png" href="logo.png">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 90vh; }
-
-        /* Exact Credit Card Ratio (85.6mm x 54mm equivalent in px: ~420px x 265px) */
-        .credit-card {
-            width: 420px;
-            height: 265px;
-            background: linear-gradient(135deg, #001f3f 0%, #0056b3 50%, #00aaff 100%);
-            border-radius: 14px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            color: white;
-            padding: 14px 18px;
-            box-sizing: border-box;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        /* Decorative Background Pattern */
-        .credit-card::before {
-            content: "";
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 180px;
-            height: 180px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.3); padding-bottom: 8px; z-index: 2; }
-        .logo-group { display: flex; align-items: center; gap: 10px; }
-        .logo { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
-        .brand-title { font-size: 1.05em; font-weight: bold; color: #fff; letter-spacing: 0.5px; }
-        .brand-subtitle { font-size: 0.65em; color: #ffd700; text-transform: uppercase; font-weight: bold; }
-
-        .content { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; z-index: 2; }
-        
-        .student-photo {
-            width: 85px;
-            height: 100px;
-            border-radius: 8px;
-            border: 2.5px solid #fff;
-            object-fit: cover;
-            background: #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .details { flex: 1; margin-left: 14px; }
-        .stu-name { font-size: 1.1em; font-weight: bold; color: #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); line-height: 1.2; }
-        .stu-id-tag { display: inline-block; background: #ffd700; color: #001f3f; font-weight: bold; font-size: 0.85em; padding: 3px 10px; border-radius: 12px; margin-top: 6px; }
-
-        .qr-box {
-            background: white;
-            padding: 5px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        .footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.2); padding-top: 6px; font-size: 0.65em; color: #e0e0e0; z-index: 2; }
-
-        .actions { margin-top: 25px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .btn { padding: 10px 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; font-size: 0.9em; }
-        .btn-print { background: #003366; }
-        .btn-jpeg { background: #28a745; }
-        .btn-pdf { background: #dc3545; }
-
-        @media print {
-            body { background: white; padding: 0; }
-            .actions { display: none; }
-            .credit-card { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #003366, #0080ff); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 480px; margin: auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        h2 { color: #003366; text-align: center; margin-top: 0; }
+        label { font-weight: bold; margin-top: 10px; display: block; color: #444; font-size: 0.9em; }
+        input, select, textarea, button { width: 100%; padding: 11px; margin: 6px 0 12px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 0.95em; }
+        textarea { resize: vertical; height: 70px; }
+        button { background: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 1em; margin-top: 10px; }
+        button:hover { opacity: 0.9; }
+        .preview-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; display: none; margin: 5px auto; border: 3px solid #0056b3; }
+        a { text-decoration: none; color: #0056b3; font-weight: bold; display: block; text-align: center; margin-top: 10px; }
     </style>
 </head>
 <body>
+<div class="container">
+    <h2>📝 නව ශිෂ්‍ය ලියාපදිංචිය</h2>
+    
+    <label>ශිෂ්‍ය ID අංකය (Student ID):</label>
+    <input type="text" id="stuId" placeholder="උදා: STU1001">
 
-<div class="credit-card" id="card">
-    <div class="header">
-        <div class="logo-group">
-            <img src="logo.png" alt="Logo" class="logo">
-            <div>
-                <div class="brand-title">English with Sudan Sir</div>
-                <div class="brand-subtitle">Student Official Pass</div>
-            </div>
-        </div>
-    </div>
+    <label>ශිෂ්‍යයාගේ නම (Full Name):</label>
+    <input type="text" id="stuName" placeholder="නම ඇතුළත් කරන්න">
 
-    <div class="content">
-        <img id="stuImg" src="logo.png" alt="Student Photo" class="student-photo">
-        
-        <div class="details">
-            <div class="stu-name" id="studentName">Loading...</div>
-            <div class="stu-id-tag" id="studentIdDisplay">ID: ---</div>
-        </div>
+    <label>ශ්‍රේණිය (Grade):</label>
+    <select id="stuGrade">
+        <option value="">ශ්‍රේණිය තෝරන්න</option>
+        <option value="Grade 6">Grade 6</option>
+        <option value="Grade 7">Grade 7</option>
+        <option value="Grade 8">Grade 8</option>
+        <option value="Grade 9">Grade 9</option>
+        <option value="Grade 10">Grade 10</option>
+        <option value="Grade 11">Grade 11</option>
+        <option value="A/L">A/L</option>
+        <option value="Other">Other</option>
+    </select>
 
-        <div class="qr-box">
-            <div id="qrcode"></div>
-        </div>
-    </div>
+    <label>WhatsApp දුරකථන අංකය (WhatsApp No):</label>
+    <input type="text" id="stuPhone" placeholder="0771234567">
 
-    <div class="footer">
-        <span>Authorized Student ID Card</span>
-        <span>Valid for Academic Year</span>
-    </div>
-</div>
+    <label>වෙනත් තොරතුරු (Other Details / Address):</label>
+    <textarea id="stuOther" placeholder="ලිපිනය හෝ වෙනත් සටහන්..."></textarea>
 
-<div class="actions">
-    <button class="btn btn-print" onclick="window.print()">🖨️ Print Card</button>
-    <button class="btn btn-jpeg" onclick="downloadJPEG()">🖼️ Download JPEG</button>
-    <button class="btn btn-pdf" onclick="downloadPDF()">📄 Download PDF (CR80 Size)</button>
+    <label>ශිෂ්‍ය ඡායාරූපය (Student Photo):</label>
+    <input type="file" id="stuPhotoInput" accept="image/*" onchange="previewPhoto(event)">
+    <img id="photoPreview" class="preview-img" alt="Photo Preview">
+
+    <button onclick="registerStudent()">ලියාපදිංචි කර ID Card එක බලන්න 🪪</button>
+    <a href="index.html">← Scanner වෙත ආපසු යන්න</a>
 </div>
 
 <script>
@@ -144,56 +70,43 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const studentId = urlParams.get('id');
+    let base64Photo = "";
 
-    if (studentId) {
-        document.getElementById('studentIdDisplay').innerText = "ID: " + studentId;
-
-        firebase.database().ref('students/' + studentId).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                document.getElementById('studentName').innerText = data.name || "Student Name";
-                if (data.photo) {
-                    document.getElementById('stuImg').src = data.photo;
-                }
-            } else {
-                document.getElementById('studentName').innerText = "නම හමු නොවීය";
-            }
-        });
-
-        new QRCode(document.getElementById("qrcode"), {
-            text: studentId,
-            width: 70,
-            height: 70
-        });
+    function previewPhoto(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                base64Photo = e.target.result;
+                const img = document.getElementById('photoPreview');
+                img.src = base64Photo;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
     }
 
-    function downloadJPEG() {
-        const card = document.getElementById('card');
-        html2canvas(card, { scale: 3, useCORS: true }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `ID_Card_${studentId || 'card'}.jpg`;
-            link.href = canvas.toDataURL('image/jpeg', 1.0);
-            link.click();
-        });
-    }
+    function registerStudent() {
+        const id = document.getElementById('stuId').value.trim();
+        const name = document.getElementById('stuName').value.trim();
+        const grade = document.getElementById('stuGrade').value;
+        const phone = document.getElementById('stuPhone').value.trim();
+        const other = document.getElementById('stuOther').value.trim();
 
-    function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const card = document.getElementById('card');
+        if(!id || !name || !phone) { 
+            alert('කරුණාකර ID, නම සහ WhatsApp අංකය ඇතුළත් කරන්න!'); 
+            return; 
+        }
 
-        html2canvas(card, { scale: 3, useCORS: true }).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            // Standard Credit Card size in mm (85.6mm x 54mm)
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: [85.6, 54]
-            });
-
-            pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 54);
-            pdf.save(`ID_Card_${studentId || 'card'}.pdf`);
+        firebase.database().ref('students/' + id).set({
+            name: name,
+            grade: grade,
+            phone: phone,
+            other: other,
+            photo: base64Photo || ""
+        }).then(() => {
+            alert('ශිෂ්‍යයා සාර්ථකව ලියාපදිංචි විය!');
+            window.location.href = `card.html?id=${id}`;
         });
     }
 </script>
