@@ -154,124 +154,197 @@
             background-color: #003d80;
         }
 
-        /* Structured ID Card Design */
-        #idCardPreview {
+        /* Standard Credit Card Size ID Container */
+        .id-card-wrapper {
             display: none;
             margin-top: 25px;
-            border: 2px solid #0056b3;
-            border-radius: 12px;
-            background: #fff;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-        }
-
-        .id-header {
-            background: #003366;
-            color: white;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .id-header h4 {
-            margin: 0;
-            font-size: 1.1em;
-            letter-spacing: 0.5px;
-        }
-
-        .id-header p {
-            margin: 2px 0 0 0;
-            font-size: 0.75em;
-            opacity: 0.85;
-        }
-
-        .id-body {
             display: flex;
-            padding: 15px;
-            gap: 15px;
+            flex-direction: column;
             align-items: center;
         }
 
-        .id-photo-box {
-            width: 105px;
-            height: 125px;
-            border: 2px solid #0056b3;
-            border-radius: 8px;
+        .credit-card {
+            width: 420px;
+            height: 260px;
+            background: linear-gradient(135deg, #0d5bb5 0%, #004293 100%);
+            border-radius: 16px;
+            padding: 18px 22px;
+            box-sizing: border-box;
+            color: white;
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+            padding-bottom: 10px;
+        }
+
+        .card-top img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+            object-fit: cover;
+        }
+
+        .card-top-title h2 {
+            margin: 0;
+            font-size: 1.35em;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .card-top-title p {
+            margin: 2px 0 0 0;
+            font-size: 0.72em;
+            font-weight: 700;
+            color: #ffd700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .card-middle {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 4px;
+        }
+
+        .student-photo-frame {
+            width: 95px;
+            height: 105px;
+            background: white;
+            border-radius: 14px;
+            padding: 4px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .student-photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .student-details {
+            flex: 1;
+        }
+
+        .student-details h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.15em;
+            font-weight: 800;
+            color: #ffffff;
+            white-space: nowrap;
             overflow: hidden;
-            background: #f8f9fa;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .id-badge {
+            display: inline-block;
+            background: #ffcc00;
+            color: #000000;
+            font-weight: 800;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .student-details p {
+            margin: 3px 0;
+            font-size: 0.82em;
+            color: #e0e6ed;
+            font-weight: 500;
+        }
+
+        .qr-frame {
+            width: 95px;
+            height: 95px;
+            background: white;
+            border-radius: 14px;
+            padding: 6px;
+            box-sizing: border-box;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        .id-photo-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .id-info {
-            flex: 1;
-            text-align: left;
-        }
-
-        .id-info h3 {
-            margin: 0 0 6px 0;
-            font-size: 1.1em;
-            color: #003366;
-        }
-
-        .id-info p {
-            margin: 3px 0;
-            font-size: 0.85em;
-            color: #333;
-        }
-
-        .id-qr-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #qrcode {
-            margin-bottom: 5px;
-        }
-
-        .id-footer {
-            background: #f0f4f8;
-            border-top: 1px dashed #0056b3;
-            padding: 10px;
+        .card-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.25);
+            padding-top: 8px;
             text-align: center;
-            font-size: 0.75em;
-            color: #222;
-            line-height: 1.4;
+            font-size: 0.65em;
+            color: #e0e6ed;
+            line-height: 1.35;
         }
 
-        .id-footer strong {
-            color: #003366;
+        .card-bottom strong {
+            color: #ffffff;
+            font-size: 1.05em;
         }
 
-        .print-action {
-            margin: 15px 0;
+        .print-btn-container {
+            margin-top: 15px;
             text-align: center;
         }
 
         .btn-print {
-            padding: 8px 16px;
+            padding: 10px 20px;
             background: #28a745;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
+            font-size: 0.95em;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
         }
 
+        .btn-print:hover {
+            background: #218838;
+        }
+
+        /* Printable Standard Credit Card Dimensions (85.6mm x 53.9mm) */
         @media print {
             body * { visibility: hidden; }
-            #idCardPreview, #idCardPreview * { visibility: visible; }
-            #idCardPreview { position: absolute; left: 0; top: 0; width: 100%; border: 2px solid #003366; }
-            .print-action { display: none; }
+            .credit-card, .credit-card * { visibility: visible; }
+            .credit-card {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 85.6mm !important;
+                height: 53.9mm !important;
+                border-radius: 3.18mm !important;
+                padding: 3mm 4mm !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                box-shadow: none !important;
+            }
+            .card-top img { width: 9mm; height: 9mm; }
+            .card-top-title h2 { font-size: 10pt; }
+            .card-top-title p { font-size: 6pt; }
+            .student-photo-frame { width: 22mm; height: 25mm; border-radius: 2mm; padding: 1mm; }
+            .student-details h3 { font-size: 9pt; margin-bottom: 1mm; }
+            .id-badge { font-size: 7.5pt; padding: 1px 6px; margin-bottom: 1mm; }
+            .student-details p { font-size: 7pt; margin: 0.5mm 0; }
+            .qr-frame { width: 22mm; height: 22mm; border-radius: 2mm; padding: 1mm; }
+            .card-bottom { font-size: 5.5pt; padding-top: 1mm; }
+            .btn-print, .print-btn-container { display: none !important; }
         }
     </style>
 </head>
@@ -343,36 +416,41 @@
             <button type="submit" id="submitBtn" class="btn-submit">Register Student & Generate ID</button>
         </form>
 
-        <div id="idCardPreview">
-            <div class="id-header">
-                <h4>English with Sudan Sir</h4>
-                <p>STUDENT IDENTIFICATION CARD</p>
-            </div>
-            
-            <div class="id-body">
-                <div class="id-photo-box">
-                    <img id="cardPhoto" src="" alt="Student Photo">
-                </div>
-                
-                <div class="id-info">
-                    <h3 id="cardName"></h3>
-                    <p><strong>ID:</strong> <span id="cardId"></span></p>
-                    <p><strong>Grade:</strong> <span id="cardGrade"></span></p>
-                    <p><strong>Mobile:</strong> <span id="cardPhone"></span></p>
+        <div id="idCardWrapper" class="id-card-wrapper">
+            <div class="credit-card">
+                <div class="card-top">
+                    <img src="logo.png" alt="Logo" onerror="this.src='logo.png'">
+                    <div class="card-top-title">
+                        <h2>English with Sudan Sir</h2>
+                        <p>Student Official Pass</p>
+                    </div>
                 </div>
 
-                <div class="id-qr-container">
-                    <div id="qrcode"></div>
+                <div class="card-middle">
+                    <div class="student-photo-frame">
+                        <img id="cardPhoto" src="" alt="Student Photo">
+                    </div>
+
+                    <div class="student-details">
+                        <h3 id="cardName"></h3>
+                        <div class="id-badge">ID: <span id="cardId"></span></div>
+                        <p><strong>Grade:</strong> <span id="cardGrade"></span></p>
+                        <p><strong>Phone:</strong> <span id="cardPhone"></span></p>
+                    </div>
+
+                    <div class="qr-frame">
+                        <div id="qrcode"></div>
+                    </div>
+                </div>
+
+                <div class="card-bottom">
+                    <strong>r.m.s.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)<br>
+                    Mobile - 0706562952 &nbsp;|&nbsp; WhatsApp - 0716562952
                 </div>
             </div>
 
-            <div class="id-footer">
-                <strong>r.m.s.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)<br>
-                Mobile - 0706562952 &nbsp;|&nbsp; WhatsApp - 0716562952
-            </div>
-
-            <div class="print-action">
-                <button class="btn-print" onclick="window.print()">🖨️ Print Student ID Card</button>
+            <div class="print-btn-container">
+                <button class="btn-print" onclick="window.print()">🖨️ Print Credit Card Size ID</button>
             </div>
         </div>
     </div>
@@ -516,11 +594,11 @@
             qrContainer.innerHTML = '';
             new QRCode(qrContainer, {
                 text: id,
-                width: 75,
-                height: 75
+                width: 78,
+                height: 78
             });
 
-            document.getElementById('idCardPreview').style.display = 'block';
+            document.getElementById('idCardWrapper').style.display = 'flex';
             document.getElementById('registrationForm').reset();
             document.getElementById('photoPreview').style.display = 'none';
             document.getElementById('modeStatus').innerHTML = "🆕 Mode: New Registration";
