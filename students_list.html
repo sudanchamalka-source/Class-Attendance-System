@@ -99,15 +99,15 @@
             const dbKey = childSnapshot.key;
             const data = childSnapshot.val();
             
-            // Database Key එක හෝ Data Object එකේ ඇති Custom ID එක ලබාගැනීම
-            const displayId = data.id || data.stuId || dbKey;
+            // Custom ID (e.g. BAT 003) or fallback to node key
+            const studentId = data.id || data.stuId || dbKey;
             const att = data.attendance || {};
 
             const tr = document.createElement('tr');
             tr.id = `row_${dbKey}`;
             tr.innerHTML = `
                 <td><img src="${data.photo || 'logo.png'}" class="stu-img" alt="Photo"></td>
-                <td><strong>${displayId}</strong></td>
+                <td><strong>${studentId}</strong></td>
                 
                 <td>
                     <span class="view-mode">${data.name || '-'}</span>
@@ -149,7 +149,7 @@
                 ${renderDayCell(dbKey, 'Day 4', att['Day 4'])}
                 
                 <td>
-                    <a href="card.html?id=${displayId}" class="btn btn-card">🪪 ID</a>
+                    <a href="card.html?id=${encodeURIComponent(studentId)}" class="btn btn-card">🪪 ID</a>
                     <button class="btn btn-edit" id="btn_edit_${dbKey}" onclick="enableEdit('${dbKey}')">✏️ Edit</button>
                     <button class="btn btn-save" id="btn_save_${dbKey}" onclick="saveStudent('${dbKey}')">💾 Save</button>
                     <button class="btn btn-cancel" id="btn_cancel_${dbKey}" onclick="cancelEdit('${dbKey}')">❌ Cancel</button>
@@ -160,58 +160,58 @@
         });
     });
 
-    function renderDayCell(id, dayName, isPresent) {
+    function renderDayCell(dbKey, dayName, isPresent) {
         if (isPresent) {
             return `<td>
                 <span class="status-present">Present</span>
-                <button class="btn btn-reset-day" onclick="removeDayAttendance('${id}', '${dayName}')">❌ Reset</button>
+                <button class="btn btn-reset-day" onclick="removeDayAttendance('${dbKey}', '${dayName}')">❌ Reset</button>
             </td>`;
         } else {
             return `<td><span class="status-absent">Absent</span></td>`;
         }
     }
 
-    function removeDayAttendance(id, dayName) {
-        if(confirm(`ID: ${id} ශිෂ්‍යයාගේ ${dayName} Attendance ඉවත් කිරීමට අවශ්‍යද?`)) {
-            db.ref(`students/${id}/attendance/${dayName}`).remove().then(() => {
+    function removeDayAttendance(dbKey, dayName) {
+        if(confirm(`ID: ${dbKey} ශිෂ්‍යයාගේ ${dayName} Attendance ඉවත් කිරීමට අවශ්‍යද?`)) {
+            db.ref(`students/${dbKey}/attendance/${dayName}`).remove().then(() => {
                 alert(`${dayName} Attendance ඉවත් කරන ලදී!`);
             });
         }
     }
 
-    function enableEdit(id) {
-        const row = document.getElementById(`row_${id}`);
+    function enableEdit(dbKey) {
+        const row = document.getElementById(`row_${dbKey}`);
         row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
         row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'block');
-        document.getElementById(`btn_edit_${id}`).style.display = 'none';
-        document.getElementById(`btn_save_${id}`).style.display = 'block';
-        document.getElementById(`btn_cancel_${id}`).style.display = 'block';
+        document.getElementById(`btn_edit_${dbKey}`).style.display = 'none';
+        document.getElementById(`btn_save_${dbKey}`).style.display = 'block';
+        document.getElementById(`btn_cancel_${dbKey}`).style.display = 'block';
     }
 
-    function cancelEdit(id) {
-        const row = document.getElementById(`row_${id}`);
+    function cancelEdit(dbKey) {
+        const row = document.getElementById(`row_${dbKey}`);
         row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'inline');
         row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
-        document.getElementById(`btn_edit_${id}`).style.display = 'block';
-        document.getElementById(`btn_save_${id}`).style.display = 'none';
-        document.getElementById(`btn_cancel_${id}`).style.display = 'none';
+        document.getElementById(`btn_edit_${dbKey}`).style.display = 'block';
+        document.getElementById(`btn_save_${dbKey}`).style.display = 'none';
+        document.getElementById(`btn_cancel_${dbKey}`).style.display = 'none';
     }
 
-    function saveStudent(id) {
-        const name = document.getElementById(`input_name_${id}`).value.trim();
-        const grade = document.getElementById(`input_grade_${id}`).value;
-        const phone = document.getElementById(`input_phone_${id}`).value.trim();
-        const fee = document.getElementById(`input_fee_${id}`).value.trim();
+    function saveStudent(dbKey) {
+        const name = document.getElementById(`input_name_${dbKey}`).value.trim();
+        const grade = document.getElementById(`input_grade_${dbKey}`).value;
+        const phone = document.getElementById(`input_phone_${dbKey}`).value.trim();
+        const fee = document.getElementById(`input_fee_${dbKey}`).value.trim();
 
-        db.ref('students/' + id).update({ name, grade, phone, fee }).then(() => {
+        db.ref('students/' + dbKey).update({ name, grade, phone, fee }).then(() => {
             alert('තොරතුරු සාර්ථකව Update විය!');
-            cancelEdit(id);
+            cancelEdit(dbKey);
         });
     }
 
-    function deleteStudent(id) {
-        if (confirm(`ඔබට ID: ${id} මකා දැමීමට අවශ්‍යද?`)) {
-            db.ref('students/' + id).remove();
+    function deleteStudent(dbKey) {
+        if (confirm(`ඔබට ID: ${dbKey} මකා දැමීමට අවශ්‍යද?`)) {
+            db.ref('students/' + dbKey).remove();
         }
     }
 </script>
