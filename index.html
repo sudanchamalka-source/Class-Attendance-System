@@ -92,6 +92,12 @@
             border: 1px solid #c3e6cb;
         }
 
+        .result-box.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
         .result-box.error {
             background: #f8d7da;
             color: #721c24;
@@ -154,19 +160,57 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // WhatsApp UltraMsg Configuration
+    // WhatsApp UltraMsg Credentials
     const ULTRAMSG_INSTANCE_ID = "YOUR_INSTANCE_ID"; // Replace with your Instance ID
     const ULTRAMSG_TOKEN = "YOUR_TOKEN";             // Replace with your Token
 
     let html5QrcodeScanner;
+    let audioCtx = null;
+
+    // Built-in Web Audio API sound synthesizer
+    function playAudioFeedback(type) {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'success') {
+            // High double-beep for success
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+            osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+        } else if (type === 'error' || type === 'warning') {
+            // Low buzz for error/duplicate
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    // Determine Day 1 to Day 4 based on calendar date
+    function getCurrentDayLabel() {
+        const currentDate = new Date().getDate();
+        if (currentDate <= 7) return "Day 1";
+        if (currentDate <= 14) return "Day 2";
+        if (currentDate <= 21) return "Day 3";
+        return "Day 4";
+    }
 
     function onScanSuccess(decodedText, decodedResult) {
-        // QR Code Scanned Student ID
         const scannedId = decodedText.trim();
-        
-        // Stop Scanner temporarily while processing
         html5QrcodeScanner.clear();
-
         markAttendance(scannedId);
     }
 
@@ -176,30 +220,71 @@
         resultDiv.className = 'result-box';
         resultDiv.innerHTML = "දත්ත පරීක්ෂා කරමින් පවතියි...";
 
-        // Search Student in Database (Key or Custom 'id' Property)
         db.ref('students/' + stuId).once('value', (snapshot) => {
             if (snapshot.exists()) {
-                saveAttendance(stuId, snapshot.val());
+                verifyAndSave(stuId, snapshot.val());
             } else {
-                // Fallback search by ID property
                 db.ref('students').orderByChild('id').equalTo(stuId).once('value', (searchSnap) => {
                     if (searchSnap.exists()) {
-                        searchSnap.forEach(child => saveAttendance(child.key, child.val()));
+                        searchSnap.forEach(child => verifyAndSave(child.key, child.val()));
                     } else {
+                        playAudioFeedback('error');
                         resultDiv.className = 'result-box error';
                         resultDiv.innerHTML = `❌ <strong>ID: ${stuId}</strong> හිමි ශිෂ්‍යයෙකු Database එකෙහි හමු නොවිණි!`;
-                        restartScanner();
+                        setTimeout(restartScanner, 3000);
                     }
                 });
             }
         });
     }
 
-    function saveAttendance(dbKey, stuData) {
+    function verifyAndSave(dbKey, stuData) {
         const resultDiv = document.getElementById('result');
-        const todayDay = "Day 1"; // Day 1, Day 2, Day 3, Day 4 dynamic selection can be updated here
+        const todayDay = getCurrentDayLabel();
 
-        db.ref(`students/${dbKey}/attendance/${todayDay}`).set(true).then(() => {
+        // Check if student already marked attendance for today's session
+        db.ref(`students/${dbKey}/attendance/${todayDay}`).once('value', (attSnap) => {
+            if (attSnap.exists() && (attSnap.val() === true || attSnap.val().present === true)) {
+                // Prevent duplicate scan
+                playAudioFeedback('warning');
+                const existingData = attSnap.val();
+                const existingTime = existingData.timestamp || 'Already Marked';
+
+                resultDiv.className = 'result-box warning';
+                resultDiv.innerHTML = `
+                    <div style="font-size: 1.1em; font-weight: bold;">⚠️ Attendance Already Marked!</div>
+                    <div class="stu-card-preview">
+                        <img src="${stuData.photo || 'logo.png'}" alt="Photo">
+                        <div>
+                            <div><strong>Name:</strong> ${stuData.name || '-'}</div>
+                            <div><strong>ID:</strong> ${stuData.id || dbKey}</div>
+                            <div><strong>Session:</strong> ${todayDay}</div>
+                            <div><strong>Status:</strong> Already Registered (${existingTime})</div>
+                        </div>
+                    </div>
+                `;
+                setTimeout(restartScanner, 3500);
+            } else {
+                // First-time scan for the day -> Process attendance
+                saveAttendance(dbKey, stuData, todayDay);
+            }
+        });
+    }
+
+    function saveAttendance(dbKey, stuData, todayDay) {
+        const resultDiv = document.getElementById('result');
+        const now = new Date();
+        const formattedDate = now.toISOString().split('T')[0];
+        const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        const attendanceRecord = {
+            present: true,
+            date: formattedDate,
+            timestamp: formattedTime
+        };
+
+        db.ref(`students/${dbKey}/attendance/${todayDay}`).set(attendanceRecord).then(() => {
+            playAudioFeedback('success');
             resultDiv.className = 'result-box success';
             resultDiv.innerHTML = `
                 <div style="font-size: 1.1em; font-weight: bold;">✅ Attendance Marked Successfully!</div>
@@ -210,32 +295,29 @@
                         <div><strong>ID:</strong> ${stuData.id || dbKey}</div>
                         <div><strong>Grade:</strong> ${stuData.grade || '-'}</div>
                         <div><strong>Status:</strong> ${todayDay} Present</div>
+                        <div><strong>Date:</strong> ${formattedDate}</div>
+                        <div><strong>Time:</strong> ${formattedTime}</div>
                     </div>
                 </div>
             `;
             
             // Trigger WhatsApp Notification
-            const phone = stuData.whatsapp || stuData.mobile || stuData.phone;
+            const phone = stuData.whatsapp || stuData.mobile || stuData.phone || stuData.parentPhone;
             if (phone) {
-                sendWhatsAppNotification(phone, stuData.name, todayDay);
+                sendWhatsAppNotification(phone, stuData.name, todayDay, formattedDate, formattedTime);
             }
 
-            // Restart Scanner after 3 seconds
-            setTimeout(() => {
-                restartScanner();
-            }, 3000);
+            setTimeout(restartScanner, 3000);
         });
     }
 
-    function sendWhatsAppNotification(phone, studentName, day) {
-        // Format phone number to Sri Lankan international standard (e.g. 0771234567 -> 94771234567)
+    function sendWhatsAppNotification(phone, studentName, dayLabel, dateStr, timeStr) {
         let formattedPhone = phone.toString().replace(/[^0-9]/g, '');
         if (formattedPhone.startsWith('0')) {
             formattedPhone = '94' + formattedPhone.substring(1);
         }
 
-        const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const message = `📚 *English with Sudan Sir*\n\nDear Parent,\nYour child *${studentName}* has arrived at class and marked attendance for *${day}*.\n\n⏰ *Time:* ${currentTime}`;
+        const message = `📚 *English with Sudan Sir*\n\nDear Parent,\nYour child *${studentName}* has arrived at class and marked attendance.\n\n📅 *Session:* ${dayLabel}\n🗓️ *Date:* ${dateStr}\n⏰ *Time:* ${timeStr}`;
 
         const data = new URLSearchParams();
         data.append("token", ULTRAMSG_TOKEN);
@@ -260,12 +342,11 @@
         html5QrcodeScanner = new Html5QrcodeScanner(
             "reader", 
             { fps: 10, qrbox: { width: 250, height: 250 } },
-            /* verbose= */ false
+            false
         );
         html5QrcodeScanner.render(onScanSuccess, (errorMessage) => {});
     }
 
-    // Start scanner on load
     window.onload = startScanner;
 </script>
 </body>
