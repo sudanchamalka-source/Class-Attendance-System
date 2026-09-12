@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard & Revenue Calculator</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { max-width: 900px; width: 100%; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { color: #003366; margin-top: 0; text-align: center; }
+        
+        .filter-section { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; background: #e2e8f0; padding: 15px; border-radius: 8px; }
+        .filter-group { flex: 1; min-width: 180px; }
+        .filter-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #003366; }
+        select, input[type="number"] { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 1em; box-sizing: border-box; }
+        
+        /* Summary Cards */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 15px; text-align: center; }
+        .card h3 { margin: 0 0 10px 0; font-size: 0.9em; color: #64748b; text-transform: uppercase; }
+        .card .value { font-size: 1.6em; font-weight: bold; color: #003366; }
+        .card.highlight { background: #dbeafe; border-color: #93c5fd; }
+        .card.highlight .value { color: #1e40af; }
+        .card.teacher { background: #dcfce7; border-color: #86efac; }
+        .card.teacher .value { color: #166534; }
+
+        /* Data Table */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #003366; color: white; text-align: center; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        .nav-links { margin-top: 25px; text-align: center; }
+        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>👨‍🏫 Teacher Monthly Revenue Dashboard</h2>
+
+    <!-- Controls & Filters -->
+    <div class="filter-section">
+        <div class="filter-group">
+            <label for="monthFilter">මාසය තෝරන්න (Month):</label>
+            <select id="monthFilter" onchange="calculateMonthlyFees()">
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="teacherShare">Teacher Share (%):</label>
+            <input type="number" id="teacherShare" value="80" min="0" max="100" onchange="calculateMonthlyFees()">
+        </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="cards-grid">
+        <div class="card">
+            <h3>Total Paid Students</h3>
+            <div class="value" id="totalPaidStudents">0</div>
+        </div>
+        <div class="card highlight">
+            <h3>Total Class Revenue</h3>
+            <div class="value" id="totalRevenue">Rs. 0.00</div>
+        </div>
+        <div class="card teacher">
+            <h3>Teacher Share Total</h3>
+            <div class="value" id="teacherTotal">Rs. 0.00</div>
+        </div>
+    </div>
+
+    <!-- Student Breakdown Table -->
+    <h3>📋 Payment Breakdown for Selected Month</h3>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Grade</th>
+                    <th>Amount Paid (LKR)</th>
+                    <th>Status</th>
+                    <th>Payment Date</th>
+                </tr>
+            </thead>
+            <tbody id="paymentTableBody">
+                <tr><td colspan="6" style="text-align: center;">දත්ත ලෝඩ් වෙමින් පවතියි...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="nav-links">
+        <a href="index.html">📸 Scanner</a> | 
+        <a href="fee.html">💳 Fee Payment</a> | 
+        <a href="students_list.html">📚 Admin Panel</a>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Set current month automatically on load
+    const currentMonthIndex = new Date().getMonth();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    document.getElementById('monthFilter').value = months[currentMonthIndex];
+
+    let allStudentsData = {};
+
+    // Fetch initial data
+    db.ref('students').on('value', (snapshot) => {
+        allStudentsData = snapshot.val() || {};
+        calculateMonthlyFees();
+    });
+
+    function calculateMonthlyFees() {
+        const selectedMonth = document.getElementById('monthFilter').value;
+        const teacherSharePercent = parseFloat(document.getElementById('teacherShare').value) || 0;
+
+        const tbody = document.getElementById('paymentTableBody');
+        tbody.innerHTML = '';
+
+        let totalRevenue = 0;
+        let paidStudentsCount = 0;
+
+        for (let id in allStudentsData) {
+            const student = allStudentsData[id];
+            
+            // Check if student paid for the selected month
+            if (student.lastFeeMonth === selectedMonth && student.lastFeeAmount) {
+                const amount = parseFloat(student.lastFeeAmount) || 0;
+                totalRevenue += amount;
+                paidStudentsCount++;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${id}</strong></td>
+                    <td>${student.name || '-'}</td>
+                    <td>${student.grade || '-'}</td>
+                    <td style="font-weight: bold; color: #16a34a;">Rs. ${amount.toFixed(2)}</td>
+                    <td>${student.lastFeeStatus || 'Paid'}</td>
+                    <td>${student.feePaidDate || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        if (paidStudentsCount === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #dc2626;">මෙම මාසය (${selectedMonth}) සඳහා ගෙවීම් වාර්තා වී නොමැත.</td></tr>`;
+        }
+
+        // Calculate Teacher Share
+        const teacherShareTotal = (totalRevenue * teacherSharePercent) / 100;
+
+        // Render Summary Cards
+        document.getElementById('totalPaidStudents').innerText = paidStudentsCount;
+        document.getElementById('totalRevenue').innerText = `Rs. ${totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+        document.getElementById('teacherTotal').innerText = `Rs. ${teacherShareTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    }
+</script>
+</body>
+</html>
