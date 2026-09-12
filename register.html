@@ -159,7 +159,7 @@
             background-color: #003d80;
         }
 
-        /* Credit Card Container */
+        /* Highly Organized Credit Card Layout */
         .id-card-wrapper {
             display: none;
             margin-top: 25px;
@@ -168,138 +168,144 @@
         }
 
         .credit-card {
-            width: 420px;
-            height: 260px;
-            background: linear-gradient(135deg, #0d5bb5 0%, #004293 100%);
+            width: 440px;
+            height: 270px;
+            /* Vibrant Gradient Background */
+            background: linear-gradient(135deg, #0f3854 0%, #0a5f9e 50%, #001e3d 100%);
             border-radius: 16px;
-            padding: 18px 22px;
+            padding: 16px 20px;
             box-sizing: border-box;
             color: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             position: relative;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            overflow: hidden;
         }
 
-        .card-top {
+        .card-header {
             display: flex;
             align-items: center;
             gap: 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
-        .card-top img {
-            width: 44px;
-            height: 44px;
+        .card-header img {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: white;
             padding: 2px;
             object-fit: cover;
+            flex-shrink: 0;
         }
 
-        .card-top-title h2 {
+        .card-header-text h2 {
             margin: 0;
-            font-size: 1.35em;
+            font-size: 1.25em;
             font-weight: 800;
+            color: #ffffff;
             letter-spacing: 0.3px;
         }
 
-        .card-top-title p {
+        .card-header-text p {
             margin: 2px 0 0 0;
-            font-size: 0.72em;
-            font-weight: 700;
+            font-size: 0.7em;
+            font-weight: 800;
             color: #ffd700;
             letter-spacing: 1.5px;
             text-transform: uppercase;
         }
 
-        .card-middle {
-            display: flex;
+        .card-body {
+            display: grid;
+            grid-template-columns: 100px 1fr 90px;
+            gap: 12px;
             align-items: center;
-            gap: 16px;
-            margin-top: 4px;
         }
 
-        .student-photo-frame {
-            width: 95px;
-            height: 105px;
-            background: white;
-            border-radius: 14px;
-            padding: 4px;
+        .photo-box {
+            width: 100px;
+            height: 110px;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 3px;
             box-sizing: border-box;
-            flex-shrink: 0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        .student-photo-frame img {
+        .photo-box img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 8px;
         }
 
-        .student-details {
-            flex: 1;
+        .info-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        .student-details h3 {
-            margin: 0 0 8px 0;
-            font-size: 1.15em;
+        .info-box h3 {
+            margin: 0 0 6px 0;
+            font-size: 1.05em;
             font-weight: 800;
             color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 180px;
         }
 
         .id-badge {
-            display: inline-block;
+            align-self: flex-start;
             background: #ffcc00;
             color: #000000;
             font-weight: 800;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-bottom: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            padding: 3px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        .student-details p {
-            margin: 3px 0;
-            font-size: 0.82em;
-            color: #e0e6ed;
+        .info-box p {
+            margin: 2px 0;
+            font-size: 0.8em;
+            color: #e2e8f0;
             font-weight: 500;
         }
 
-        .qr-frame {
-            width: 95px;
-            height: 95px;
-            background: white;
-            border-radius: 14px;
-            padding: 6px;
+        .qr-box {
+            width: 90px;
+            height: 90px;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 5px;
             box-sizing: border-box;
-            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        .card-bottom {
+        .card-footer {
             border-top: 1px solid rgba(255, 255, 255, 0.25);
-            padding-top: 8px;
+            padding-top: 6px;
             text-align: center;
-            font-size: 0.65em;
-            color: #e0e6ed;
-            line-height: 1.35;
+            font-size: 0.68em;
+            color: #cbd5e1;
+            line-height: 1.3;
         }
 
-        .card-bottom strong {
+        .card-footer strong {
             color: #ffffff;
             font-size: 1.05em;
+            letter-spacing: 0.3px;
         }
 
         .action-buttons {
@@ -421,33 +427,33 @@
 
         <div id="idCardWrapper" class="id-card-wrapper">
             <div class="credit-card" id="creditCardElement">
-                <div class="card-top">
+                <div class="card-header">
                     <img src="logo.png" alt="Logo" onerror="this.src='logo.png'">
-                    <div class="card-top-title">
+                    <div class="card-header-text">
                         <h2>English with Sudan Sir</h2>
                         <p>Student Official Pass</p>
                     </div>
                 </div>
 
-                <div class="card-middle">
-                    <div class="student-photo-frame">
+                <div class="card-body">
+                    <div class="photo-box">
                         <img id="cardPhoto" src="" alt="Student Photo">
                     </div>
 
-                    <div class="student-details">
+                    <div class="info-box">
                         <h3 id="cardName"></h3>
                         <div class="id-badge">ID: <span id="cardId"></span></div>
                         <p><strong>Grade:</strong> <span id="cardGrade"></span></p>
                         <p><strong>Phone:</strong> <span id="cardPhone"></span></p>
                     </div>
 
-                    <div class="qr-frame">
+                    <div class="qr-box">
                         <div id="qrcode"></div>
                     </div>
                 </div>
 
-                <div class="card-bottom">
-                    <strong>r.m.s.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)<br>
+                <div class="card-footer">
+                    <strong>R.M.S.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)<br>
                     Mobile - 0706562952 &nbsp;|&nbsp; WhatsApp - 0716562952
                 </div>
             </div>
