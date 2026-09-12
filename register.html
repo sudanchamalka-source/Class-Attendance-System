@@ -170,30 +170,29 @@
         .credit-card {
             width: 440px;
             height: 260px;
-            /* Blue Gradient background matched to image */
             background: linear-gradient(180deg, #005dae 0%, #006ec7 40%, #0053a0 100%);
             border-radius: 18px;
-            padding: 18px 22px;
+            padding: 14px 18px;
             box-sizing: border-box;
             color: white;
             box-shadow: 0 8px 24px rgba(0,0,0,0.25);
             display: grid;
             grid-template-rows: auto 1fr auto;
-            gap: 8px;
+            gap: 6px;
             position: relative;
         }
 
         .card-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
 
         .card-header img {
-            width: 42px;
-            height: 42px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: white;
             padding: 2px;
@@ -203,15 +202,15 @@
 
         .card-header-text h2 {
             margin: 0;
-            font-size: 1.4em;
+            font-size: 1.3em;
             font-weight: 800;
             color: #ffffff;
             letter-spacing: 0.2px;
         }
 
         .card-header-text p {
-            margin: 2px 0 0 0;
-            font-size: 0.72em;
+            margin: 1px 0 0 0;
+            font-size: 0.68em;
             font-weight: 800;
             color: #ffcc00;
             letter-spacing: 1.5px;
@@ -220,17 +219,17 @@
 
         .card-body {
             display: grid;
-            grid-template-columns: 105px 1fr 100px;
-            gap: 14px;
+            grid-template-columns: 100px 1fr 90px;
+            gap: 10px;
             align-items: center;
         }
 
         .photo-box {
-            width: 105px;
-            height: 115px;
+            width: 100px;
+            height: 110px;
             background: #ffffff;
-            border-radius: 14px;
-            padding: 4px;
+            border-radius: 12px;
+            padding: 3px;
             box-sizing: border-box;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
@@ -239,7 +238,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 9px;
         }
 
         .info-box {
@@ -247,16 +246,19 @@
             flex-direction: column;
             justify-content: center;
             overflow: hidden;
+            width: 100%;
         }
 
+        /* Responsive text sizing + ellipsis to prevent cut-offs */
         .info-box h3 {
-            margin: 0 0 8px 0;
-            font-size: 1.2em;
+            margin: 0 0 6px 0;
+            font-size: clamp(0.85em, 2.5vw, 1.05em);
             font-weight: 800;
             color: #ffffff;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            width: 100%;
         }
 
         .id-badge {
@@ -264,26 +266,29 @@
             background: #ffcc00;
             color: #000000;
             font-weight: 800;
-            padding: 4px 14px;
+            padding: 3px 12px;
             border-radius: 20px;
-            font-size: 0.9em;
-            margin-bottom: 8px;
+            font-size: 0.82em;
+            margin-bottom: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
 
         .info-box p {
-            margin: 3px 0;
-            font-size: 0.88em;
+            margin: 2px 0;
+            font-size: 0.82em;
             color: #e2e8f0;
             font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .qr-box {
-            width: 100px;
-            height: 100px;
+            width: 90px;
+            height: 90px;
             background: #ffffff;
-            border-radius: 14px;
-            padding: 6px;
+            border-radius: 12px;
+            padding: 5px;
             box-sizing: border-box;
             display: flex;
             align-items: center;
@@ -293,12 +298,32 @@
 
         .card-footer {
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 6px;
+            padding-top: 4px;
+            text-align: center;
+            font-size: 0.65em;
+            color: #e0e6ed;
+            line-height: 1.35;
+        }
+
+        .card-footer strong {
+            color: #ffffff;
+            font-size: 1.05em;
+            letter-spacing: 0.3px;
+        }
+
+        .footer-contacts {
             display: flex;
-            justify-content: space-between;
-            font-size: 0.75em;
-            color: #d0e4ff;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 2px;
             font-weight: 600;
+        }
+
+        .footer-contacts span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .action-buttons {
@@ -434,7 +459,7 @@
                     </div>
 
                     <div class="info-box">
-                        <h3 id="cardName"></h3>
+                        <h3 id="cardName" title=""></h3>
                         <div class="id-badge">ID: <span id="cardId"></span></div>
                         <p><strong>Phone:</strong> <span id="cardPhone"></span></p>
                     </div>
@@ -445,8 +470,12 @@
                 </div>
 
                 <div class="card-footer">
-                    <span>Authorized Student ID Card</span>
-                    <span>Valid for Academic Year</span>
+                    <strong>R.M.S.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)
+                    <div class="footer-contacts">
+                        <span>📞 0706562952</span>
+                        <span>|</span>
+                        <span>💬 WhatsApp: 0716562952</span>
+                    </div>
                 </div>
             </div>
 
@@ -590,8 +619,11 @@
             const msg = isEditMode ? '✅ Student updated successfully!' : '✅ Student registered successfully!';
             alert(msg);
 
+            const cardNameElem = document.getElementById('cardName');
+            cardNameElem.innerText = name;
+            cardNameElem.title = name; // Full name on hover
+            
             document.getElementById('cardPhoto').src = finalPhoto;
-            document.getElementById('cardName').innerText = name;
             document.getElementById('cardId').innerText = id;
             document.getElementById('cardPhone').innerText = phone;
             
@@ -599,8 +631,8 @@
             qrContainer.innerHTML = '';
             new QRCode(qrContainer, {
                 text: id,
-                width: 88,
-                height: 88
+                width: 78,
+                height: 78
             });
 
             document.getElementById('idCardWrapper').style.display = 'flex';
