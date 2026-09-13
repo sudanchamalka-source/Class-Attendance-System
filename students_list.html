@@ -1,42 +1,440 @@
-// Place this inside students_list.html to load and listen for payment updates
-function loadAllStudents() {
-    const tableBody = document.getElementById('studentsTableBody');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Directory & Admin Panel</title>
+    <link rel="icon" type="image/png" href="logo.png">
 
-    // Real-time listener: Updates table instantly when a fee is paid
-    db.ref('students').on('value', (snapshot) => {
-        tableBody.innerHTML = ''; // Clear table
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <!-- QRCode Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-        if (!snapshot.exists()) {
-            tableBody.innerHTML = '<tr><td colspan="6">No students found.</td></tr>';
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #003366;
+            font-size: 1.8rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #0056b3;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Filter Section */
+        .filter-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 5px;
+        }
+
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #0056b3;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        /* Data Table */
+        .table-container {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #003366;
+            font-weight: 600;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .status-paid {
+            background-color: #e8f5e9;
+            color: #28a745;
+            border: 1px solid #28a745;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .btn-action {
+            background: #0056b3;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .btn-action:hover {
+            background: #003366;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background: #bd2130;
+        }
+
+        /* Modal Popup */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .btn-close {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Admin Header -->
+        <div class="header">
+            <div>
+                <h1>📚 Student Admin Panel</h1>
+                <p style="margin: 5px 0 0 0; color: #666;">Manage registered students, track payments & inspect QR codes</p>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">📸 Scanner</a>
+                <a href="register.html">+ New Register</a>
+                <a href="fee.html">💳 Fee Payment</a>
+                <a href="teacher_dashboard.html">📊 Revenue Dashboard</a>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="filter-card">
+            <div class="filter-group">
+                <label for="searchInput">Search Student:</label>
+                <input type="text" id="searchInput" onkeyup="filterStudents()" placeholder="Search by ID or Name...">
+            </div>
+            <div class="filter-group">
+                <label for="gradeFilter">Filter by Grade:</label>
+                <select id="gradeFilter" onchange="filterStudents()">
+                    <option value="ALL">All Grades</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="A/L">A/L</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="statusFilter">Payment Status:</label>
+                <select id="statusFilter" onchange="filterStudents()">
+                    <option value="ALL">All Statuses</option>
+                    <option value="Paid">Paid Only</option>
+                    <option value="Pending">Pending Only</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Student Database Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Grade</th>
+                        <th>Contact No</th>
+                        <th>Fee Status</th>
+                        <th>Last Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsTableBody">
+                    <tr><td colspan="7" style="text-align: center;">Loading students database...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- QR Code Viewer Modal -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalStudentName" style="margin-top: 0; color: #003366;">QR Code</h3>
+            <p id="modalStudentId" style="font-weight: bold; color: #555; margin-bottom: 10px;"></p>
+            <div id="qrcode"></div>
+            <button class="btn-close" onclick="closeQrModal()">Close</button>
+        </div>
+    </div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let allStudentsCache = [];
+
+    // Place this inside students_list.html to load and listen for payment updates
+    function loadAllStudents() {
+        const tableBody = document.getElementById('studentsTableBody');
+
+        // Real-time listener: Updates table instantly when a fee is paid
+        db.ref('students').on('value', (snapshot) => {
+            tableBody.innerHTML = ''; // Clear table
+            allStudentsCache = [];
+
+            if (!snapshot.exists()) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No students found.</td></tr>';
+                return;
+            }
+
+            snapshot.forEach((childSnap) => {
+                const stu = childSnap.val();
+                const id = childSnap.key;
+
+                // Retrieve phone number variations
+                const phone = stu.phone || stu.whatsapp || stu.parentPhone || stu.mobile || 'N/A';
+
+                // Check fee status
+                const feeStatus = stu.fee === 'Paid' || stu.status === 'Paid' 
+                    ? `Paid (${stu.lastPaymentMonth || 'Yes'})` 
+                    : `Pending`;
+
+                const isPaid = stu.fee === 'Paid' || stu.status === 'Paid';
+                const badgeClass = isPaid ? 'status-paid' : 'status-pending';
+
+                allStudentsCache.push({
+                    id: id,
+                    name: stu.name || 'N/A',
+                    grade: stu.grade || 'N/A',
+                    phone: phone,
+                    feeStatus: feeStatus,
+                    isPaid: isPaid,
+                    lastPaymentAmount: stu.lastPaymentAmount
+                });
+
+                const row = `
+                    <tr>
+                        <td><strong>${id}</strong></td>
+                        <td>${stu.name || 'N/A'}</td>
+                        <td>${stu.grade || 'N/A'}</td>
+                        <td>${phone}</td>
+                        <td><span class="status-badge ${badgeClass}">${feeStatus}</span></td>
+                        <td>${stu.lastPaymentAmount ? 'LKR ' + parseFloat(stu.lastPaymentAmount).toFixed(2) : '-'}</td>
+                        <td>
+                            <button class="btn-action" onclick="showQrModal('${id}', '${(stu.name || 'Student').replace(/'/g, "\\'")}')">🔍 QR Code</button>
+                            <button class="btn-action btn-delete" onclick="deleteStudent('${id}')">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        });
+    }
+
+    // Filter Students Table based on user inputs
+    function filterStudents() {
+        const searchVal = document.getElementById('searchInput').value.toLowerCase();
+        const selectedGrade = document.getElementById('gradeFilter').value;
+        const selectedStatus = document.getElementById('statusFilter').value;
+        const tableBody = document.getElementById('studentsTableBody');
+
+        tableBody.innerHTML = '';
+
+        const filtered = allStudentsCache.filter(stu => {
+            const matchesSearch = stu.id.toLowerCase().includes(searchVal) || stu.name.toLowerCase().includes(searchVal);
+            const matchesGrade = (selectedGrade === 'ALL') || (stu.grade === selectedGrade);
+            const matchesStatus = (selectedStatus === 'ALL') || 
+                                 (selectedStatus === 'Paid' && stu.isPaid) || 
+                                 (selectedStatus === 'Pending' && !stu.isPaid);
+
+            return matchesSearch && matchesGrade && matchesStatus;
+        });
+
+        if (filtered.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No matching student records found.</td></tr>';
             return;
         }
 
-        snapshot.forEach((childSnap) => {
-            const stu = childSnap.val();
-            const id = childSnap.key;
-
-            // Retrieve phone number variations
-            const phone = stu.phone || stu.whatsapp || stu.parentPhone || 'N/A';
-            
-            // Check fee status
-            const feeStatus = stu.fee === 'Paid' || stu.status === 'Paid' 
-                ? `<span style="background:#28a745; color:white; padding:4px 8px; border-radius:4px; font-weight:bold;">Paid (${stu.lastPaymentMonth || 'Yes'})</span>`
-                : `<span style="background:#dc3545; color:white; padding:4px 8px; border-radius:4px; font-weight:bold;">Pending</span>`;
-
+        filtered.forEach(stu => {
+            const badgeClass = stu.isPaid ? 'status-paid' : 'status-pending';
             const row = `
                 <tr>
-                    <td><strong>${id}</strong></td>
-                    <td>${stu.name || 'N/A'}</td>
-                    <td>${stu.grade || 'N/A'}</td>
-                    <td>${phone}</td>
-                    <td>${feeStatus}</td>
-                    <td>${stu.lastPaymentAmount ? 'LKR ' + stu.lastPaymentAmount : '-'}</td>
+                    <td><strong>${stu.id}</strong></td>
+                    <td>${stu.name}</td>
+                    <td>${stu.grade}</td>
+                    <td>${stu.phone}</td>
+                    <td><span class="status-badge ${badgeClass}">${stu.feeStatus}</span></td>
+                    <td>${stu.lastPaymentAmount ? 'LKR ' + parseFloat(stu.lastPaymentAmount).toFixed(2) : '-'}</td>
+                    <td>
+                        <button class="btn-action" onclick="showQrModal('${stu.id}', '${stu.name.replace(/'/g, "\\'")}')">🔍 QR Code</button>
+                        <button class="btn-action btn-delete" onclick="deleteStudent('${stu.id}')">🗑️ Delete</button>
+                    </td>
                 </tr>
             `;
             tableBody.innerHTML += row;
         });
-    });
-}
+    }
 
-// Call on page load
-window.onload = loadAllStudents;
+    // Modal QR Generator
+    function showQrModal(studentId, studentName) {
+        document.getElementById('modalStudentName').innerText = studentName;
+        document.getElementById('modalStudentId').innerText = `ID: ${studentId}`;
+        const qrContainer = document.getElementById('qrcode');
+        qrContainer.innerHTML = '';
+
+        new QRCode(qrContainer, {
+            text: studentId,
+            width: 160,
+            height: 160
+        });
+
+        document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    function closeQrModal() {
+        document.getElementById('qrModal').style.display = 'none';
+    }
+
+    // Delete Student record
+    function deleteStudent(studentId) {
+        if (confirm(`Are you sure you want to delete student ${studentId}? This cannot be undone.`)) {
+            db.ref('students/' + studentId).remove()
+                .then(() => alert('✅ Student record deleted.'))
+                .catch(err => alert('❌ Error deleting record: ' + err.message));
+        }
+    }
+
+    // Call on page load
+    window.onload = loadAllStudents;
+</script>
+</body>
+</html>
