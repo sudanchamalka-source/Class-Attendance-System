@@ -197,14 +197,14 @@
 
         .modal-content {
             background: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 10px;
             width: 90%;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             position: relative;
         }
 
-        .modal-small { max-width: 520px; }
+        .modal-small { max-width: 400px; }
         .modal-medium { max-width: 480px; }
 
         .btn-close {
@@ -218,49 +218,52 @@
             margin-top: 15px;
         }
 
-        /* --- HORIZONTAL ID CARD DESIGN --- */
+        /* --- STANDARD CREDIT CARD RATIO DESIGN (85.6mm x 53.9mm) --- */
         .id-card-frame {
-            width: 460px;
+            width: 338px;
+            height: 213px;
             background: #0066c8;
-            border-radius: 18px;
-            padding: 15px 20px;
+            border-radius: 14px;
+            padding: 10px 14px;
             color: white;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
             margin: 0 auto;
             position: relative;
             box-sizing: border-box;
             text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .id-card-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            padding-bottom: 8px;
-            margin-bottom: 12px;
+            padding-bottom: 4px;
         }
 
         .id-card-header img {
-            width: 42px;
-            height: 42px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: #fff;
             object-fit: cover;
         }
 
         .id-card-header-title {
-            font-size: 1.25rem;
+            font-size: 0.95rem;
             font-weight: 800;
-            line-height: 1.1;
+            line-height: 1;
             color: #ffffff;
         }
 
         .id-card-header-subtitle {
-            font-size: 0.68rem;
+            font-size: 0.52rem;
             font-weight: 800;
             color: #ffcc00;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             margin-top: 2px;
         }
 
@@ -268,18 +271,18 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 6px;
+            margin: 2px 0;
         }
 
         .id-photo-box {
-            width: 100px;
-            height: 115px;
+            width: 72px;
+            height: 85px;
             background: #fff;
-            border-radius: 10px;
+            border-radius: 6px;
             overflow: hidden;
             border: 2px solid #ffffff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -294,34 +297,34 @@
 
         .id-details-box {
             flex: 1;
-            padding: 0 8px;
+            padding: 0 4px;
         }
 
         .id-student-name {
-            font-size: 1rem;
+            font-size: 0.76rem;
             font-weight: 800;
             color: #ffffff;
-            margin: 0 0 6px 0;
+            margin: 0 0 4px 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 200px;
+            max-width: 135px;
         }
 
         .id-tag {
             background: #ffc107;
             color: #000;
             font-weight: 800;
-            font-size: 0.8rem;
-            padding: 4px 14px;
-            border-radius: 15px;
+            font-size: 0.62rem;
+            padding: 2px 8px;
+            border-radius: 10px;
             display: inline-block;
-            margin-bottom: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            margin-bottom: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
 
         .id-phone {
-            font-size: 0.82rem;
+            font-size: 0.62rem;
             font-weight: 700;
             color: #ffffff;
             margin: 0;
@@ -329,30 +332,30 @@
 
         .id-qr-box {
             background: white;
-            padding: 5px;
-            border-radius: 12px;
+            padding: 3px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .id-card-footer {
             border-top: 1px solid rgba(255, 255, 255, 0.3);
-            padding-top: 8px;
+            padding-top: 4px;
             text-align: center;
-            font-size: 0.65rem;
+            font-size: 0.52rem;
             font-weight: 700;
             color: #ffffff;
-            line-height: 1.3;
+            line-height: 1.2;
         }
 
         .id-card-footer-sub {
-            font-size: 0.62rem;
-            margin-top: 2px;
+            font-size: 0.5rem;
+            margin-top: 1px;
             color: #ffffff;
-            opacity: 0.9;
+            opacity: 0.95;
         }
     </style>
 </head>
@@ -466,7 +469,7 @@
             
             <div id="idCardGraphic" class="id-card-frame">
                 <div class="id-card-header">
-                    <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/40'">
+                    <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/30'">
                     <div>
                         <div class="id-card-header-title">English with Sudan Sir</div>
                         <div class="id-card-header-subtitle">STUDENT OFFICIAL PASS</div>
@@ -475,7 +478,7 @@
 
                 <div class="id-card-body">
                     <div class="id-photo-box">
-                        <img id="cardPhoto" src="https://via.placeholder.com/100x115?text=No+Photo" alt="Student Photo">
+                        <img id="cardPhoto" src="https://via.placeholder.com/72x85?text=No+Photo" alt="Student Photo">
                     </div>
 
                     <div class="id-details-box">
@@ -496,7 +499,7 @@
             </div>
 
             <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                <button class="btn-action btn-idcard" onclick="downloadIdCard()">💾 Download ID Image</button>
+                <button class="btn-action btn-idcard" onclick="downloadIdCard()">💾 Download Credit Card HD</button>
                 <button class="btn-close" style="margin-top:0;" onclick="closeModal('idCardModal')">Close</button>
             </div>
         </div>
@@ -651,22 +654,22 @@
         if (photoUrl && photoUrl !== '') {
             photoElem.src = photoUrl;
         } else {
-            photoElem.src = 'https://via.placeholder.com/100x115?text=No+Photo';
+            photoElem.src = 'https://via.placeholder.com/72x85?text=No+Photo';
         }
 
         const qrContainer = document.getElementById('cardQr');
         qrContainer.innerHTML = '';
-        new QRCode(qrContainer, { text: id, width: 75, height: 75 });
+        new QRCode(qrContainer, { text: id, width: 56, height: 56 });
 
         document.getElementById('idCardModal').style.display = 'flex';
     }
 
     function downloadIdCard() {
         const cardElem = document.getElementById('idCardGraphic');
-        html2canvas(cardElem, { scale: 3, useCORS: true }).then(canvas => {
+        html2canvas(cardElem, { scale: 4, useCORS: true }).then(canvas => {
             const link = document.createElement('a');
             const stuId = document.getElementById('cardId').innerText;
-            link.download = `ID_Pass_${stuId}.png`;
+            link.download = `CreditCard_ID_${stuId}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         });
