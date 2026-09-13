@@ -64,6 +64,21 @@
 
         #reader { width: 100%; border-radius: 10px; border: 2px solid #0056b3; margin-bottom: 15px; overflow: hidden; }
 
+        .upload-section {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .upload-section label {
+            font-weight: bold;
+            color: #856404;
+            display: block;
+            margin-bottom: 5px;
+        }
+
         .manual-input { display: flex; gap: 10px; margin-top: 15px; }
         .manual-input input { flex: 1; padding: 10px; border: 1px solid #0056b3; border-radius: 6px; }
 
@@ -98,6 +113,7 @@
             <a href="students_list.html">📚 Admin Panel</a>
         </div>
 
+        <!-- Class Day Selector -->
         <div class="day-selection-box">
             <label>📅 Select Class Session / Day:</label>
             <div class="day-buttons">
@@ -108,10 +124,18 @@
             </div>
         </div>
 
+        <!-- QR Camera Reader Container -->
         <div id="reader"></div>
 
+        <!-- QR File Upload Fallback -->
+        <div class="upload-section">
+            <label for="qrFileInput">📁 Camera blocked? Upload QR Image File:</label>
+            <input type="file" id="qrFileInput" accept="image/*" onchange="scanFromFile(event)">
+        </div>
+
+        <!-- Manual ID Input -->
         <div class="manual-input">
-            <input type="text" id="manualId" placeholder="Enter Student ID manually...">
+            <input type="text" id="manualId" placeholder="Or type Student ID manually...">
             <button type="button" class="btn-mark" onclick="markManualAttendance()">Mark</button>
         </div>
 
@@ -175,12 +199,10 @@
                 timestamp: now.getTime()
             };
 
-            // Save under both attendance/logs and students nodes
             db.ref(`attendance/${selectedDay}/${cleanId}`).set(attendanceData).then(() => {
                 db.ref(`students/${cleanId}/attendance/${selectedDay}`).set(attendanceData);
                 db.ref(`students/${cleanId}/lastAttendance`).set(attendanceData);
 
-                // Prepare WhatsApp Notification Link
                 let rawPhone = student.phone || student.whatsapp || '';
                 let phoneNum = rawPhone.replace(/\D/g, '');
                 if (phoneNum.startsWith('0')) {
@@ -190,7 +212,6 @@
                 const msg = `Dear Parent, ${student.name} (${cleanId}) has attended English with Sudan Sir class on ${dateStr} at ${timeStr} (${selectedDay}).`;
                 const waUrl = `https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`;
 
-                // Auto Open WhatsApp tab
                 if (phoneNum) {
                     window.open(waUrl, '_blank');
                 }
@@ -212,6 +233,21 @@
         });
     }
 
+    // Scan QR Code from Uploaded Image File
+    function scanFromFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.scanFile(file, true)
+            .then(decodedText => {
+                processScan(decodedText);
+            })
+            .catch(err => {
+                showStatus('❌ Failed to read QR code from image file.', 'error');
+            });
+    }
+
     function markManualAttendance() {
         const input = document.getElementById('manualId');
         if (input.value) {
@@ -229,6 +265,7 @@
         statusBox.style.display = 'block';
     }
 
+    // Initialize Camera Scanner with File Upload Fallback options
     const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 220, height: 220 } }, false);
     html5QrcodeScanner.render((decodedText) => processScan(decodedText));
 </script>
