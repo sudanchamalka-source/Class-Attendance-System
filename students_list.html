@@ -436,13 +436,12 @@
 
     let allStudentsCache = [];
 
-    // Place this inside students_list.html to load and listen for payment updates
+    // Load and listen for student updates in real-time
     function loadAllStudents() {
         const tableBody = document.getElementById('studentsTableBody');
 
-        // Real-time listener: Updates table instantly when a fee is paid
         db.ref('students').on('value', (snapshot) => {
-            tableBody.innerHTML = ''; // Clear table
+            tableBody.innerHTML = '';
             allStudentsCache = [];
 
             if (!snapshot.exists()) {
@@ -454,15 +453,9 @@
                 const stu = childSnap.val();
                 const id = childSnap.key;
 
-                // Retrieve phone number variations
                 const phone = stu.phone || stu.whatsapp || stu.parentPhone || stu.mobile || 'N/A';
-
-                // Check fee status
-                const feeStatus = stu.fee === 'Paid' || stu.status === 'Paid' 
-                    ? `Paid (${stu.lastPaymentMonth || 'Yes'})` 
-                    : `Pending`;
-
                 const isPaid = stu.fee === 'Paid' || stu.status === 'Paid';
+                const feeStatus = isPaid ? `Paid (${stu.lastPaymentMonth || 'Yes'})` : `Pending`;
                 const badgeClass = isPaid ? 'status-paid' : 'status-pending';
 
                 allStudentsCache.push({
