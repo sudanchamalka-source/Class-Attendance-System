@@ -9,8 +9,6 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-
-    <!-- Html5-QRCode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
@@ -37,19 +35,9 @@
 
         h2 { color: #003366; margin-top: 0; }
 
-        .nav-links {
-            margin-bottom: 20px;
-            font-size: 0.9em;
-        }
+        .nav-links { margin-bottom: 20px; font-size: 0.9em; }
+        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 8px; }
 
-        .nav-links a {
-            text-decoration: none;
-            color: #0056b3;
-            font-weight: bold;
-            margin: 0 8px;
-        }
-
-        /* Day Selector Container */
         .day-selection-box {
             background: #e9ecef;
             padding: 15px;
@@ -58,19 +46,8 @@
             border: 2px solid #0056b3;
         }
 
-        .day-selection-box label {
-            font-weight: bold;
-            color: #003366;
-            display: block;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-
-        .day-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
+        .day-selection-box label { font-weight: bold; color: #003366; display: block; margin-bottom: 8px; }
+        .day-buttons { display: flex; gap: 8px; justify-content: center; }
 
         .day-btn {
             flex: 1;
@@ -81,78 +58,31 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 1em;
-            transition: all 0.2s ease;
         }
 
-        .day-btn.active {
-            background: #0056b3;
+        .day-btn.active { background: #0056b3; color: white; }
+
+        #reader { width: 100%; border-radius: 10px; border: 2px solid #0056b3; margin-bottom: 15px; overflow: hidden; }
+
+        .manual-input { display: flex; gap: 10px; margin-top: 15px; }
+        .manual-input input { flex: 1; padding: 10px; border: 1px solid #0056b3; border-radius: 6px; }
+
+        .btn-mark { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        .status-box { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
+        .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .student-preview-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #155724; margin-bottom: 8px; }
+
+        .btn-wa {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #25D366;
             color: white;
-            box-shadow: 0 4px 8px rgba(0,86,179,0.3);
-        }
-
-        #reader {
-            width: 100%;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 2px solid #0056b3;
-            margin-bottom: 15px;
-        }
-
-        .manual-input {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .manual-input input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #0056b3;
-            border-radius: 6px;
-            font-size: 1em;
-        }
-
-        .btn-mark {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
+            text-decoration: none;
             border-radius: 6px;
             font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-mark:hover { background: #218838; }
-
-        /* Notification Card */
-        .status-box {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            display: none;
-            font-size: 1em;
-        }
-
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .student-preview-img {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #155724;
-            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -168,7 +98,6 @@
             <a href="students_list.html">📚 Admin Panel</a>
         </div>
 
-        <!-- Class Day Selector -->
         <div class="day-selection-box">
             <label>📅 Select Class Session / Day:</label>
             <div class="day-buttons">
@@ -179,21 +108,17 @@
             </div>
         </div>
 
-        <!-- Camera Container -->
         <div id="reader"></div>
 
-        <!-- Manual ID Search -->
         <div class="manual-input">
-            <input type="text" id="manualId" placeholder="Or enter Student ID manually...">
+            <input type="text" id="manualId" placeholder="Enter Student ID manually...">
             <button type="button" class="btn-mark" onclick="markManualAttendance()">Mark</button>
         </div>
 
-        <!-- Attendance Notification Display -->
         <div id="statusBox" class="status-box"></div>
     </div>
 
 <script>
-    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
         authDomain: "class-management-system-8c1a1.firebaseapp.com",
@@ -210,15 +135,13 @@
     let selectedDay = 'Day 1';
     let isProcessing = false;
 
-    // Day Selection Logic
     function selectDay(dayName, element) {
         selectedDay = dayName;
         document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
         element.classList.add('active');
-        showStatus(`Selected: <strong>${selectedDay}</strong> for upcoming scans.`, 'success');
+        showStatus(`Selected: <strong>${selectedDay}</strong> for scans.`, 'success');
     }
 
-    // Process Attendance
     function processScan(studentId) {
         if (isProcessing) return;
         isProcessing = true;
@@ -230,7 +153,6 @@
             return;
         }
 
-        // Search student in database
         db.ref('students/' + cleanId).once('value', (snapshot) => {
             if (!snapshot.exists()) {
                 showStatus(`❌ Student ID <strong>${cleanId}</strong> not found!`, 'error');
@@ -243,7 +165,6 @@
             const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = now.toISOString().split('T')[0];
 
-            // Save Attendance to Firebase under node: attendance/{selectedDay}/{studentId}
             const attendanceData = {
                 stuId: cleanId,
                 name: student.name || 'Unknown',
@@ -254,37 +175,47 @@
                 timestamp: now.getTime()
             };
 
-            // Save under overall log and update individual student record
+            // Save under both attendance/logs and students nodes
             db.ref(`attendance/${selectedDay}/${cleanId}`).set(attendanceData).then(() => {
-                db.ref(`students/${cleanId}/lastAttendance`).set({
-                    day: selectedDay,
-                    date: dateStr,
-                    time: timeStr
-                });
+                db.ref(`students/${cleanId}/attendance/${selectedDay}`).set(attendanceData);
+                db.ref(`students/${cleanId}/lastAttendance`).set(attendanceData);
+
+                // Prepare WhatsApp Notification Link
+                let rawPhone = student.phone || student.whatsapp || '';
+                let phoneNum = rawPhone.replace(/\D/g, '');
+                if (phoneNum.startsWith('0')) {
+                    phoneNum = '94' + phoneNum.substring(1);
+                }
+
+                const msg = `Dear Parent, ${student.name} (${cleanId}) has attended English with Sudan Sir class on ${dateStr} at ${timeStr} (${selectedDay}).`;
+                const waUrl = `https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`;
+
+                // Auto Open WhatsApp tab
+                if (phoneNum) {
+                    window.open(waUrl, '_blank');
+                }
 
                 const photoSrc = student.photo || student.photoUrl || 'logo.png';
-
                 showStatus(`
                     <img src="${photoSrc}" class="student-preview-img"><br>
                     ✅ <strong>${student.name}</strong> (${cleanId})<br>
-                    Attendance Marked for <strong>${selectedDay}</strong><br>
-                    <small>Time: ${timeStr}</small>
+                    Attendance Recorded for <strong>${selectedDay}</strong><br>
+                    <small>Time: ${timeStr}</small><br>
+                    ${phoneNum ? `<a href="${waUrl}" target="_blank" class="btn-wa">💬 Send WhatsApp Message</a>` : ''}
                 `, 'success');
 
                 setTimeout(() => { isProcessing = false; }, 2500);
             }).catch(err => {
-                showStatus(`❌ Error saving attendance: ${err.message}`, 'error');
+                showStatus(`❌ Error: ${err.message}`, 'error');
                 setTimeout(() => { isProcessing = false; }, 2000);
             });
         });
     }
 
-    // Manual Mark Button Handler
     function markManualAttendance() {
         const input = document.getElementById('manualId');
-        const val = input.value;
-        if (val) {
-            processScan(val);
+        if (input.value) {
+            processScan(input.value);
             input.value = '';
         } else {
             showStatus('⚠️ Please enter a Student ID.', 'error');
@@ -298,17 +229,8 @@
         statusBox.style.display = 'block';
     }
 
-    // Initialize Camera Scanner
-    function onScanSuccess(decodedText) {
-        processScan(decodedText);
-    }
-
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader", 
-        { fps: 10, qrbox: { width: 220, height: 220 } },
-        /* verbose= */ false
-    );
-    html5QrcodeScanner.render(onScanSuccess);
+    const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 220, height: 220 } }, false);
+    html5QrcodeScanner.render((decodedText) => processScan(decodedText));
 </script>
 </body>
 </html>
