@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Monthly Revenue Dashboard</title>
+    <title>Teacher Revenue & Analytics Dashboard</title>
     <link rel="icon" type="image/png" href="logo.png">
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <!-- Chart.js for Visual Reports -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         * {
@@ -24,7 +26,7 @@
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1250px;
             margin: 0 auto;
         }
 
@@ -37,6 +39,8 @@
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .header h1 {
@@ -49,101 +53,91 @@
             text-decoration: none;
             color: #0056b3;
             font-weight: bold;
-            margin-left: 15px;
+            margin-left: 12px;
         }
 
         .nav-links a:hover {
             text-decoration: underline;
         }
 
-        .month-selector {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .month-selector select {
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #0056b3;
-            font-size: 1rem;
-            font-weight: bold;
-            color: #003366;
-        }
-
         /* Metric Cards Grid */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
-        .card {
-            background: #ffffff;
-            padding: 25px;
+        .metric-card {
+            background: white;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             border-left: 5px solid #0056b3;
         }
 
-        .card.success { border-left-color: #28a745; }
-        .card.warning { border-left-color: #ffc107; }
+        .metric-card.green { border-left-color: #28a745; }
+        .metric-card.amber { border-left-color: #ffc107; }
+        .metric-card.purple { border-left-color: #6f42c1; }
 
-        .card h3 {
+        .metric-card h3 {
             margin: 0 0 10px 0;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .card .value {
-            font-size: 2rem;
+        .metric-card .value {
+            font-size: 1.8rem;
             font-weight: bold;
             color: #003366;
-            margin: 0;
         }
 
-        /* Layout Columns */
-        .content-grid {
+        /* Charts Layout */
+        .charts-container {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
             gap: 20px;
+            margin-bottom: 25px;
         }
 
-        @media (max-width: 850px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .section-box {
-            background: #ffffff;
+        .chart-card {
+            background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .section-box h2 {
+        .chart-card h3 {
             margin-top: 0;
             color: #003366;
-            font-size: 1.3rem;
-            border-bottom: 2px solid #f0f4f8;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #edf2f7;
             padding-bottom: 10px;
         }
 
-        /* Tables */
+        /* Recent Transactions Table */
+        .table-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .table-card h3 {
+            margin-top: 0;
+            color: #003366;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            text-align: left;
         }
 
         th, td {
-            text-align: left;
-            padding: 12px 10px;
+            padding: 12px 15px;
             border-bottom: 1px solid #edf2f7;
             font-size: 0.95rem;
         }
@@ -151,20 +145,16 @@
         th {
             background-color: #f8fafc;
             color: #003366;
-            font-weight: 600;
         }
 
-        tbody tr:hover {
-            background-color: #f1f5f9;
-        }
-
-        .badge-paid {
-            background: #e8f5e9;
-            color: #28a745;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 0.85rem;
+        .error-banner {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
@@ -175,76 +165,66 @@
         <div class="header">
             <div>
                 <h1>📊 Teacher Revenue Dashboard</h1>
-                <p style="margin: 5px 0 0 0; color: #666;">Real-time monthly earnings & collection ledger</p>
+                <p style="margin: 5px 0 0 0; color: #666;">English with Sudan Sir - Revenue & Enrollment Insights</p>
             </div>
             <div class="nav-links">
                 <a href="index.html">📸 Scanner</a>
-                <a href="register.html">+ New Register</a>
+                <a href="students_list.html">👥 Student Directory</a>
                 <a href="fee.html">💳 Fee Payment</a>
-                <a href="students_list.html">📚 Admin Panel</a>
             </div>
         </div>
 
-        <!-- Month Filter Controls -->
-        <div class="month-selector">
-            <label for="selectMonth"><strong>Active Month View:</strong></label>
-            <select id="selectMonth" onchange="fetchRevenueData()">
-                <!-- Auto-populated via JavaScript -->
-            </select>
-        </div>
+        <div id="errorMessage" class="error-banner"></div>
 
-        <!-- Metric Overview Cards -->
+        <!-- Metric Cards -->
         <div class="metrics-grid">
-            <div class="card success">
-                <h3>Total Revenue Collected</h3>
-                <div class="value" id="lblTotalRevenue">LKR 0.00</div>
+            <div class="metric-card green">
+                <h3>Total Collection</h3>
+                <div class="value" id="totalRevenue">LKR 0.00</div>
             </div>
-            <div class="card">
-                <h3>Total Payments Received</h3>
-                <div class="value" id="lblTotalTransactions">0</div>
+            <div class="metric-card">
+                <h3>Total Registered</h3>
+                <div class="value" id="totalStudents">0</div>
             </div>
-            <div class="card warning">
-                <h3>Average Transaction Fee</h3>
-                <div class="value" id="lblAvgPayment">LKR 0.00</div>
+            <div class="metric-card purple">
+                <h3>Fees Paid Count</h3>
+                <div class="value" id="paidStudents">0</div>
+            </div>
+            <div class="metric-card amber">
+                <h3>Pending Payments</h3>
+                <div class="value" id="pendingStudents">0</div>
             </div>
         </div>
 
-        <!-- Detailed Breakdown -->
-        <div class="content-grid">
-            <!-- Transaction History Ledger -->
-            <div class="section-box">
-                <h2>📜 Monthly Revenue Ledger</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Student ID</th>
-                            <th>Name</th>
-                            <th>Grade</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody id="revenueTableBody">
-                        <tr><td colspan="5">Loading transaction data...</td></tr>
-                    </tbody>
-                </table>
+        <!-- Analytics Charts -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>Grade-wise Student Distribution</h3>
+                <canvas id="gradeChart"></canvas>
             </div>
+            <div class="chart-card">
+                <h3>Fee Collection Status</h3>
+                <canvas id="feeStatusChart"></canvas>
+            </div>
+        </div>
 
-            <!-- Grade Breakdown Table -->
-            <div class="section-box">
-                <h2>🎓 Earnings by Grade</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Grade</th>
-                            <th>Total Earned</th>
-                        </tr>
-                    </thead>
-                    <tbody id="gradeTableBody">
-                        <tr><td colspan="2">Loading breakdown...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <!-- Recent Payments Table -->
+        <div class="table-card">
+            <h3>Recent Paid Payments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Grade</th>
+                        <th>Amount Paid</th>
+                        <th>Month / Reference</th>
+                    </tr>
+                </thead>
+                <tbody id="recentPaymentsTable">
+                    <tr><td colspan="5" style="text-align: center;">Loading data...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -260,113 +240,161 @@
         measurementId: "G-XZW2VLFXT2"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase safely
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
-    let currentListenerRef = null;
+    let gradeChartInstance = null;
+    let feeStatusChartInstance = null;
 
-    // Populate Year-Month Dropdown
-    function initMonthSelector() {
-        const select = document.getElementById('selectMonth');
-        const now = new Date();
-        select.innerHTML = '';
-
-        // Generate past 6 months to select from
-        for (let i = 0; i < 6; i++) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const key = `${yyyy}-${mm}`;
-            
-            const monthName = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-            const option = document.createElement('option');
-            option.value = key;
-            option.text = monthName;
-            select.appendChild(option);
-        }
-
-        // Fetch current active month on load
-        fetchRevenueData();
+    function showError(msg) {
+        const errBox = document.getElementById('errorMessage');
+        errBox.style.display = 'block';
+        errBox.innerText = '⚠️ Dashboard Error: ' + msg;
     }
 
-    // Attach Real-Time Listener for Selected Month
-    function fetchRevenueData() {
-        const selectedMonth = document.getElementById('selectMonth').value;
+    function loadDashboardData() {
+        db.ref('students').on('value', (snapshot) => {
+            try {
+                let totalStudents = 0;
+                let paidStudents = 0;
+                let pendingStudents = 0;
+                let totalRevenue = 0;
 
-        // Remove active Firebase listener if switching months
-        if (currentListenerRef) {
-            currentListenerRef.off();
+                const gradeCounts = {};
+                const paidList = [];
+
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnap) => {
+                        const stu = childSnap.val() || {};
+                        const id = childSnap.key;
+                        totalStudents++;
+
+                        // Grade breakdown
+                        const grade = stu.grade || 'Unassigned';
+                        gradeCounts[grade] = (gradeCounts[grade] || 0) + 1;
+
+                        // Payment verification check (handles multiple field formats safely)
+                        const isPaid = stu.fee === 'Paid' || stu.status === 'Paid';
+                        const paymentAmt = parseFloat(stu.lastPaymentAmount || stu.amount || 0);
+
+                        if (isPaid) {
+                            paidStudents++;
+                            totalRevenue += isNaN(paymentAmt) ? 0 : paymentAmt;
+                            paidList.push({
+                                id: id,
+                                name: stu.name || 'N/A',
+                                grade: grade,
+                                amount: paymentAmt,
+                                month: stu.lastPaymentMonth || stu.month || 'Paid'
+                            });
+                        } else {
+                            pendingStudents++;
+                        }
+                    });
+                }
+
+                // Update Metric UI Cards
+                document.getElementById('totalStudents').innerText = totalStudents;
+                document.getElementById('paidStudents').innerText = paidStudents;
+                document.getElementById('pendingStudents').innerText = pendingStudents;
+                document.getElementById('totalRevenue').innerText = 'LKR ' + totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                // Render Tables & Charts safely
+                renderRecentPaymentsTable(paidList);
+                renderGradeChart(gradeCounts);
+                renderFeeStatusChart(paidStudents, pendingStudents);
+
+            } catch (err) {
+                console.error("Dashboard error:", err);
+                showError(err.message);
+            }
+        }, (error) => {
+            showError("Firebase Database access failed: " + error.message);
+        });
+    }
+
+    function renderRecentPaymentsTable(payments) {
+        const tableBody = document.getElementById('recentPaymentsTable');
+        tableBody.innerHTML = '';
+
+        if (payments.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No paid payments found yet.</td></tr>';
+            return;
         }
 
-        currentListenerRef = db.ref(`revenue/${selectedMonth}`);
+        // Show up to 10 recent payments
+        payments.slice(-10).reverse().forEach(p => {
+            const row = `
+                <tr>
+                    <td><strong>${p.id}</strong></td>
+                    <td>${p.name}</td>
+                    <td>${p.grade}</td>
+                    <td><strong style="color: #28a745;">LKR ${p.amount.toFixed(2)}</strong></td>
+                    <td>${p.month}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+    }
 
-        // Listen for live database updates
-        currentListenerRef.on('value', (snapshot) => {
-            const tbody = document.getElementById('revenueTableBody');
-            const gradeBody = document.getElementById('gradeTableBody');
+    function renderGradeChart(gradeCounts) {
+        const ctx = document.getElementById('gradeChart').getContext('2d');
+        const labels = Object.keys(gradeCounts);
+        const data = Object.values(gradeCounts);
 
-            if (!snapshot.exists()) {
-                document.getElementById('lblTotalRevenue').innerText = 'LKR 0.00';
-                document.getElementById('lblTotalTransactions').innerText = '0';
-                document.getElementById('lblAvgPayment').innerText = 'LKR 0.00';
-                tbody.innerHTML = '<tr><td colspan="5">No revenue recorded for this month.</td></tr>';
-                gradeBody.innerHTML = '<tr><td colspan="2">No data</td></tr>';
-                return;
-            }
+        if (gradeChartInstance) {
+            gradeChartInstance.destroy();
+        }
 
-            const data = snapshot.val();
-            const totalAmount = data.totalAmount || 0;
-            const rawTransactions = data.transactions ? Object.values(data.transactions) : [];
-
-            // Calculate Metrics
-            const transactionCount = rawTransactions.length;
-            const avgPayment = transactionCount > 0 ? (totalAmount / transactionCount) : 0;
-
-            // Render Cards
-            document.getElementById('lblTotalRevenue').innerText = `LKR ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            document.getElementById('lblTotalTransactions').innerText = transactionCount;
-            document.getElementById('lblAvgPayment').innerText = `LKR ${avgPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
-            // Render Revenue Ledger Table
-            tbody.innerHTML = '';
-            const gradeTotals = {};
-
-            // Reverse to show most recent transactions first
-            rawTransactions.slice().reverse().forEach(tx => {
-                const amountNum = parseFloat(tx.amount || 0);
-
-                // Aggregate Grade breakdown dynamically
-                const gradeName = (tx.grade || 'Unknown').replace(/_/g, ' ');
-                gradeTotals[gradeName] = (gradeTotals[gradeName] || 0) + amountNum;
-
-                const row = `
-                    <tr>
-                        <td>${tx.date || '-'}</td>
-                        <td><strong>${tx.studentId || '-'}</strong></td>
-                        <td>${tx.studentName || '-'}</td>
-                        <td>${gradeName}</td>
-                        <td><span class="badge-paid">LKR ${amountNum.toFixed(2)}</span></td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-
-            // Render Grade Breakdown Table
-            gradeBody.innerHTML = '';
-            for (const [grade, total] of Object.entries(gradeTotals)) {
-                const gradeRow = `
-                    <tr>
-                        <td><strong>${grade}</strong></td>
-                        <td>LKR ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                `;
-                gradeBody.innerHTML += gradeRow;
+        gradeChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Number of Students',
+                    data: data,
+                    backgroundColor: '#0056b3',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
             }
         });
     }
 
-    // Initialize Dashboard on Load
-    window.onload = initMonthSelector;
+    function renderFeeStatusChart(paidCount, pendingCount) {
+        const ctx = document.getElementById('feeStatusChart').getContext('2d');
+
+        if (feeStatusChartInstance) {
+            feeStatusChartInstance.destroy();
+        }
+
+        feeStatusChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Paid', 'Pending'],
+                datasets: [{
+                    data: [paidCount, pendingCount],
+                    backgroundColor: ['#28a745', '#ffc107']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    window.onload = loadDashboardData;
 </script>
 </body>
 </html>
