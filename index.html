@@ -151,27 +151,60 @@
             box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
         }
 
-        /* Scanner Area */
-        .scanner-card {
+        /* Student List & Scanner Card */
+        .content-card {
             background: white;
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            text-align: center;
+            margin-bottom: 20px;
         }
 
-        .scanner-box {
-            max-width: 400px;
-            height: 250px;
-            border: 2px dashed #cbd5e1;
-            border-radius: 10px;
-            margin: 15px auto;
+        .card-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            background: #f8fafc;
-            color: #64748b;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
+
+        .card-header h2 {
+            font-size: 20px;
+            color: #1e293b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-present { background-color: #d1fae5; color: #065f46; }
+        .status-absent { background-color: #fee2e2; color: #991b1b; }
 
         /* Responsive Breakpoints */
         @media (max-width: 768px) {
@@ -189,6 +222,14 @@
             .days-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            table {
+                font-size: 13px;
+            }
+            
+            th, td {
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -202,17 +243,18 @@
         </div>
     </header>
 
-    <!-- Navigation Bar (Matched to Repo Files) -->
+    <!-- Navigation Bar with Student List Link included -->
     <div class="nav-bar">
         <span class="nav-title">📸 Attendance Scanner</span>
         <a href="index.html" class="nav-btn active">📸 Scanner</a>
+        <a href="students_list.html" class="nav-btn">📋 Student List</a>
         <a href="register.html" class="nav-btn">+ New Register</a>
         <a href="fee.html" class="nav-btn">💳 Fee Payment</a>
         <a href="admin_fees.html" class="nav-btn">🗂️ Admin Panel</a>
         <a href="teacher_dashboard.html" class="nav-btn">📊 Dashboard</a>
     </div>
 
-    <!-- Day Selection Option (Day 1 - Day 4 Only) -->
+    <!-- Clickable Day Selection (Day 1 - Day 4 Only) -->
     <div class="day-selection-card">
         <h3>Select Class Session Day</h3>
         <div class="days-grid" id="daysContainer">
@@ -223,31 +265,107 @@
         </div>
     </div>
 
-    <!-- Attendance Area -->
-    <div class="scanner-card">
-        <h2 id="activeDayDisplay">Active Session: Day 1</h2>
-        <div class="scanner-box">
-            <p>📷 QR Code Camera Stream Ready</p>
+    <!-- Student Attendance List Card -->
+    <div class="content-card">
+        <div class="card-header">
+            <h2 id="activeDayDisplay">Attendance Record - Day 1</h2>
+            <span id="totalStudents">Total Students: 0</span>
         </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Grade</th>
+                    <th>Attendance Status</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+                <tr>
+                    <td colspan="4" style="text-align: center;">Loading student records...</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    // Day Selection Logic
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
     let activeSelectedDay = 'Day 1';
 
+    // Day Selection Logic
     function selectDay(element, dayName) {
-        // Remove active class from all buttons
         const buttons = document.querySelectorAll('.day-btn');
         buttons.forEach(btn => btn.classList.remove('selected'));
 
-        // Highlight selected button
         element.classList.add('selected');
         activeSelectedDay = dayName;
 
-        // Update active UI title
-        document.getElementById('activeDayDisplay').innerText = `Active Session: ${dayName}`;
+        document.getElementById('activeDayDisplay').innerText = `Attendance Record - ${dayName}`;
+        loadStudentAttendance(dayName);
     }
+
+    // Load Student Attendance Records from Firebase
+    function loadStudentAttendance(day) {
+        const tbody = document.getElementById('studentTableBody');
+        
+        db.ref('students').on('value', (snapshot) => {
+            tbody.innerHTML = '';
+            
+            if (!snapshot.exists()) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No students found in database.</td></tr>';
+                document.getElementById('totalStudents').innerText = 'Total Students: 0';
+                return;
+            }
+
+            let count = 0;
+            snapshot.forEach((childSnap) => {
+                count++;
+                const stu = childSnap.val();
+                const id = childSnap.key;
+                
+                // Read attendance for the selected day or default to Absent
+                const isPresent = stu.attendance && stu.attendance[day] === true;
+                const statusBadge = isPresent 
+                    ? `<span class="status-badge status-present">Present</span>` 
+                    : `<span class="status-badge status-absent">Absent</span>`;
+
+                const row = `
+                    <tr>
+                        <td><strong>${id}</strong></td>
+                        <td>${stu.name || 'N/A'}</td>
+                        <td>${stu.grade || 'N/A'}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('totalStudents').innerText = `Total Students: ${count}`;
+        });
+    }
+
+    // Initial Load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStudentAttendance(activeSelectedDay);
+    });
 </script>
 
 </body>
