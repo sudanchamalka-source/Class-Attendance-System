@@ -11,6 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <!-- QRCode Generator Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- html2canvas Library for Printing ID Card -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         * {
@@ -26,7 +28,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1250px;
             margin: 0 auto;
         }
 
@@ -53,7 +55,7 @@
             text-decoration: none;
             color: #0056b3;
             font-weight: bold;
-            margin-left: 15px;
+            margin-left: 12px;
         }
 
         .nav-links a:hover {
@@ -70,12 +72,12 @@
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
-            align-items: center;
+            align-items: flex-end;
         }
 
         .filter-group {
             flex: 1;
-            min-width: 200px;
+            min-width: 180px;
         }
 
         .filter-group label {
@@ -92,6 +94,21 @@
             border: 1px solid #0056b3;
             border-radius: 6px;
             font-size: 0.95rem;
+        }
+
+        .btn-add-student {
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            display: inline-block;
+        }
+
+        .btn-add-student:hover {
+            background: #218838;
         }
 
         /* Data Table */
@@ -112,6 +129,7 @@
             padding: 14px 16px;
             border-bottom: 1px solid #edf2f7;
             font-size: 0.95rem;
+            vertical-align: middle;
         }
 
         th {
@@ -149,33 +167,29 @@
             background: #0056b3;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: bold;
-            margin-right: 5px;
+            margin-right: 4px;
         }
 
-        .btn-action:hover {
-            background: #003366;
-        }
+        .btn-action:hover { background: #003366; }
+        .btn-edit { background: #ffc107; color: #333; }
+        .btn-edit:hover { background: #e0a800; }
+        .btn-idcard { background: #17a2b8; }
+        .btn-idcard:hover { background: #138496; }
+        .btn-delete { background: #dc3545; }
+        .btn-delete:hover { background: #bd2130; }
 
-        .btn-delete {
-            background: #dc3545;
-        }
-
-        .btn-delete:hover {
-            background: #bd2130;
-        }
-
-        /* Modal Popup */
+        /* General Modal Popup */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -185,17 +199,13 @@
             background: white;
             padding: 25px;
             border-radius: 10px;
-            text-align: center;
-            max-width: 320px;
             width: 90%;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
         }
 
-        #qrcode {
-            display: flex;
-            justify-content: center;
-            margin: 15px 0;
-        }
+        .modal-small { max-width: 400px; }
+        .modal-medium { max-width: 480px; }
 
         .btn-close {
             background: #6c757d;
@@ -205,6 +215,79 @@
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
+            margin-top: 15px;
+        }
+
+        /* Printable ID Card Graphic Styling */
+        .id-card-frame {
+            width: 340px;
+            background: linear-gradient(135deg, #003366 0%, #0056b3 100%);
+            border-radius: 12px;
+            padding: 18px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .id-card-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .id-card-body {
+            background: white;
+            color: #333;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .id-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #e8f4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            border: 2px solid #0056b3;
+        }
+
+        .id-card-body h3 {
+            margin: 0;
+            color: #003366;
+            font-size: 1.1rem;
+        }
+
+        .id-card-body p {
+            margin: 3px 0;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .id-qr-box {
+            margin-top: 10px;
+            background: white;
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px dashed #0056b3;
+        }
+
+        .id-card-footer {
+            margin-top: 10px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.8);
         }
     </style>
 </head>
@@ -215,7 +298,7 @@
         <div class="header">
             <div>
                 <h1>📚 Student Admin Panel</h1>
-                <p style="margin: 5px 0 0 0; color: #666;">Manage registered students, track payments & inspect QR codes</p>
+                <p style="margin: 5px 0 0 0; color: #666;">Manage student records, edit details, print ID cards & track payments</p>
             </div>
             <div class="nav-links">
                 <a href="index.html">📸 Scanner</a>
@@ -252,6 +335,9 @@
                     <option value="Pending">Pending Only</option>
                 </select>
             </div>
+            <div>
+                <a href="register.html" class="btn-add-student">➕ Register Student</a>
+            </div>
         </div>
 
         <!-- Student Database Table -->
@@ -275,13 +361,61 @@
         </div>
     </div>
 
-    <!-- QR Code Viewer Modal -->
-    <div id="qrModal" class="modal">
-        <div class="modal-content">
-            <h3 id="modalStudentName" style="margin-top: 0; color: #003366;">QR Code</h3>
-            <p id="modalStudentId" style="font-weight: bold; color: #555; margin-bottom: 10px;"></p>
-            <div id="qrcode"></div>
-            <button class="btn-close" onclick="closeQrModal()">Close</button>
+    <!-- 1. EDIT STUDENT MODAL -->
+    <div id="editModal" class="modal">
+        <div class="modal-content modal-medium">
+            <h3 style="margin-top: 0; color: #003366;">✏️ Edit Student Details</h3>
+            <form id="editStudentForm" style="text-align: left;">
+                <input type="hidden" id="editStudentId">
+                <div style="margin-bottom: 12px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Student Name:</label>
+                    <input type="text" id="editName" required style="width: 100%; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;">
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Grade:</label>
+                    <select id="editGrade" required style="width: 100%; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;">
+                        <option value="Grade 6">Grade 6</option>
+                        <option value="Grade 7">Grade 7</option>
+                        <option value="Grade 8">Grade 8</option>
+                        <option value="Grade 9">Grade 9</option>
+                        <option value="Grade 10">Grade 10</option>
+                        <option value="Grade 11">Grade 11</option>
+                        <option value="A/L">A/L</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Phone / WhatsApp:</label>
+                    <input type="text" id="editPhone" required style="width: 100%; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;">
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <button type="submit" class="btn-action" style="padding: 8px 16px; background: #28a745;">Save Changes</button>
+                    <button type="button" class="btn-close" style="margin-top:0;" onclick="closeModal('editModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. STUDENT ID CARD MODAL -->
+    <div id="idCardModal" class="modal">
+        <div class="modal-content modal-small" style="text-align: center;">
+            <div id="idCardGraphic" class="id-card-frame">
+                <div class="id-card-header">ENGLISH WITH SUDAN SIR</div>
+                <div class="id-card-body">
+                    <div class="id-avatar">🎓</div>
+                    <h3 id="cardName">Student Name</h3>
+                    <p><strong>ID:</strong> <span id="cardId">STU1001</span></p>
+                    <p><strong>Grade:</strong> <span id="cardGrade">Grade 10</span></p>
+                    <p><strong>Contact:</strong> <span id="cardPhone">0771234567</span></p>
+                    <div class="id-qr-box">
+                        <div id="cardQr"></div>
+                    </div>
+                </div>
+                <div class="id-card-footer">Official Student Identity Card</div>
+            </div>
+            <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                <button class="btn-action btn-idcard" onclick="downloadIdCard()">💾 Download ID Image</button>
+                <button class="btn-close" style="margin-top:0;" onclick="closeModal('idCardModal')">Close</button>
+            </div>
         </div>
     </div>
 
@@ -350,7 +484,8 @@
                         <td><span class="status-badge ${badgeClass}">${feeStatus}</span></td>
                         <td>${stu.lastPaymentAmount ? 'LKR ' + parseFloat(stu.lastPaymentAmount).toFixed(2) : '-'}</td>
                         <td>
-                            <button class="btn-action" onclick="showQrModal('${id}', '${(stu.name || 'Student').replace(/'/g, "\\'")}')">🔍 QR Code</button>
+                            <button class="btn-action btn-idcard" onclick="showIdCardModal('${id}', '${(stu.name || '').replace(/'/g, "\\'")}', '${stu.grade}', '${phone}')">🎴 ID Card</button>
+                            <button class="btn-action btn-edit" onclick="openEditModal('${id}', '${(stu.name || '').replace(/'/g, "\\'")}', '${stu.grade}', '${phone}')">✏️ Edit</button>
                             <button class="btn-action btn-delete" onclick="deleteStudent('${id}')">🗑️ Delete</button>
                         </td>
                     </tr>
@@ -395,7 +530,8 @@
                     <td><span class="status-badge ${badgeClass}">${stu.feeStatus}</span></td>
                     <td>${stu.lastPaymentAmount ? 'LKR ' + parseFloat(stu.lastPaymentAmount).toFixed(2) : '-'}</td>
                     <td>
-                        <button class="btn-action" onclick="showQrModal('${stu.id}', '${stu.name.replace(/'/g, "\\'")}')">🔍 QR Code</button>
+                        <button class="btn-action btn-idcard" onclick="showIdCardModal('${stu.id}', '${stu.name.replace(/'/g, "\\'")}', '${stu.grade}', '${stu.phone}')">🎴 ID Card</button>
+                        <button class="btn-action btn-edit" onclick="openEditModal('${stu.id}', '${stu.name.replace(/'/g, "\\'")}', '${stu.grade}', '${stu.phone}')">✏️ Edit</button>
                         <button class="btn-action btn-delete" onclick="deleteStudent('${stu.id}')">🗑️ Delete</button>
                     </td>
                 </tr>
@@ -404,24 +540,60 @@
         });
     }
 
-    // Modal QR Generator
-    function showQrModal(studentId, studentName) {
-        document.getElementById('modalStudentName').innerText = studentName;
-        document.getElementById('modalStudentId').innerText = `ID: ${studentId}`;
-        const qrContainer = document.getElementById('qrcode');
-        qrContainer.innerHTML = '';
-
-        new QRCode(qrContainer, {
-            text: studentId,
-            width: 160,
-            height: 160
-        });
-
-        document.getElementById('qrModal').style.display = 'flex';
+    // --- EDIT STUDENT LOGIC ---
+    function openEditModal(id, name, grade, phone) {
+        document.getElementById('editStudentId').value = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editGrade').value = grade;
+        document.getElementById('editPhone').value = phone;
+        document.getElementById('editModal').style.display = 'flex';
     }
 
-    function closeQrModal() {
-        document.getElementById('qrModal').style.display = 'none';
+    document.getElementById('editStudentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('editStudentId').value;
+        const name = document.getElementById('editName').value.trim();
+        const grade = document.getElementById('editGrade').value;
+        const phone = document.getElementById('editPhone').value.trim();
+
+        db.ref('students/' + id).update({
+            name: name,
+            grade: grade,
+            phone: phone,
+            whatsapp: phone
+        }).then(() => {
+            alert('✅ Student updated successfully!');
+            closeModal('editModal');
+        }).catch(err => alert('❌ Error updating: ' + err.message));
+    });
+
+    // --- ID CARD GRAPHIC LOGIC ---
+    function showIdCardModal(id, name, grade, phone) {
+        document.getElementById('cardId').innerText = id;
+        document.getElementById('cardName').innerText = name;
+        document.getElementById('cardGrade').innerText = grade;
+        document.getElementById('cardPhone').innerText = phone;
+
+        const qrContainer = document.getElementById('cardQr');
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, { text: id, width: 100, height: 100 });
+
+        document.getElementById('idCardModal').style.display = 'flex';
+    }
+
+    function downloadIdCard() {
+        const cardElem = document.getElementById('idCardGraphic');
+        html2canvas(cardElem, { scale: 3 }).then(canvas => {
+            const link = document.createElement('a');
+            const stuId = document.getElementById('cardId').innerText;
+            link.download = `ID_Card_${stuId}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
     }
 
     // Delete Student record
