@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Attendance Scanner - English with Sudan Sir</title>
+    <title>QR Attendance Scanner</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+    <!-- Html5-QRCode Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -19,154 +24,176 @@
             align-items: center;
         }
 
-        /* Class Header Styling */
-        .brand-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 15px;
-            background: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-
-        .brand-logo {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #0056b3;
-        }
-
-        .brand-title {
-            color: #003366;
-            margin: 0;
-            font-size: 1.3em;
-            font-weight: 800;
-        }
-
         .container {
             max-width: 500px;
             width: 100%;
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            text-align: center;
             box-sizing: border-box;
+            text-align: center;
         }
 
+        h2 { color: #003366; margin-top: 0; }
+
         .nav-links {
-            margin-bottom: 15px;
-            font-size: 0.85em;
+            margin-bottom: 20px;
+            font-size: 0.9em;
         }
 
         .nav-links a {
             text-decoration: none;
             color: #0056b3;
             font-weight: bold;
-            margin: 0 6px;
+            margin: 0 8px;
+        }
+
+        /* Day Selector Container */
+        .day-selection-box {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #0056b3;
+        }
+
+        .day-selection-box label {
+            font-weight: bold;
+            color: #003366;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .day-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .day-btn {
+            flex: 1;
+            padding: 10px 0;
+            border: 2px solid #0056b3;
+            background: white;
+            color: #0056b3;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s ease;
+        }
+
+        .day-btn.active {
+            background: #0056b3;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,86,179,0.3);
         }
 
         #reader {
             width: 100%;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            border: 2px dashed #0056b3;
+            border: 2px solid #0056b3;
             margin-bottom: 15px;
         }
 
-        .result-box {
-            display: none;
+        .manual-input {
+            display: flex;
+            gap: 10px;
             margin-top: 15px;
-            padding: 15px;
-            border-radius: 8px;
-            background: #e9ecef;
-            text-align: left;
         }
 
-        .result-box.success {
+        .manual-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #0056b3;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .btn-mark {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-mark:hover { background: #218838; }
+
+        /* Notification Card */
+        .status-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            font-size: 1em;
+        }
+
+        .status-success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
 
-        .result-box.warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-
-        .result-box.error {
+        .status-error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
 
-        .stu-card-preview {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .stu-card-preview img {
-            width: 60px;
-            height: 60px;
+        .student-preview-img {
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid #28a745;
-        }
-
-        .wa-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 12px;
-            padding: 10px 18px;
-            background-color: #25D366;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 6px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            font-size: 0.95em;
-        }
-
-        .wa-btn:hover {
-            background-color: #1eb954;
+            border: 2px solid #155724;
+            margin-bottom: 8px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Class Logo & Name Header -->
-    <div class="brand-header">
-        <img src="logo.png" alt="English with Sudan Sir Logo" class="brand-logo">
-        <h2 class="brand-title">English with Sudan Sir</h2>
-    </div>
-
     <div class="container">
+        <h2>📸 Attendance Scanner</h2>
+        
         <div class="nav-links">
             <a href="index.html">📸 Scanner</a> | 
             <a href="register.html">+ New Register</a> | 
             <a href="fee.html">💳 Fee Payment</a> | 
-            <a href="students_list.html">📚 Admin Panel</a> | 
-            <a href="teacher.html">👨‍🏫 Teacher Dashboard</a>
+            <a href="students_list.html">📚 Admin Panel</a>
         </div>
 
-        <h3 style="margin-top:0; color:#444;">QR Attendance Scanner</h3>
+        <!-- Class Day Selector -->
+        <div class="day-selection-box">
+            <label>📅 Select Class Session / Day:</label>
+            <div class="day-buttons">
+                <button type="button" class="day-btn active" onclick="selectDay('Day 1', this)">Day 1</button>
+                <button type="button" class="day-btn" onclick="selectDay('Day 2', this)">Day 2</button>
+                <button type="button" class="day-btn" onclick="selectDay('Day 3', this)">Day 3</button>
+                <button type="button" class="day-btn" onclick="selectDay('Day 4', this)">Day 4</button>
+            </div>
+        </div>
 
-        <!-- Camera Scanner Region -->
+        <!-- Camera Container -->
         <div id="reader"></div>
 
-        <!-- Attendance Status Output Box -->
-        <div id="result" class="result-box"></div>
+        <!-- Manual ID Search -->
+        <div class="manual-input">
+            <input type="text" id="manualId" placeholder="Or enter Student ID manually...">
+            <button type="button" class="btn-mark" onclick="markManualAttendance()">Mark</button>
+        </div>
+
+        <!-- Attendance Notification Display -->
+        <div id="statusBox" class="status-box"></div>
     </div>
 
 <script>
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
         authDomain: "class-management-system-8c1a1.firebaseapp.com",
@@ -180,189 +207,108 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let html5QrcodeScanner;
-    let audioCtx = null;
+    let selectedDay = 'Day 1';
+    let isProcessing = false;
 
-    // Web Audio API Audio Feedback
-    function playAudioFeedback(type) {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Day Selection Logic
+    function selectDay(dayName, element) {
+        selectedDay = dayName;
+        document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+        showStatus(`Selected: <strong>${selectedDay}</strong> for upcoming scans.`, 'success');
+    }
+
+    // Process Attendance
+    function processScan(studentId) {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        const cleanId = studentId.trim();
+        if (!cleanId) {
+            showStatus('⚠️ Invalid ID Scanned!', 'error');
+            isProcessing = false;
+            return;
         }
 
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        // Search student in database
+        db.ref('students/' + cleanId).once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                showStatus(`❌ Student ID <strong>${cleanId}</strong> not found!`, 'error');
+                setTimeout(() => { isProcessing = false; }, 2000);
+                return;
+            }
 
-        if (type === 'success') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.25);
-        } else if (type === 'error' || type === 'warning') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.15);
-            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.4);
-        }
-    }
+            const student = snapshot.val();
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateStr = now.toISOString().split('T')[0];
 
-    // Auto calculate Day 1 to Day 4 based on day of month
-    function getCurrentDayLabel() {
-        const currentDate = new Date().getDate();
-        if (currentDate <= 7) return "Day 1";
-        if (currentDate <= 14) return "Day 2";
-        if (currentDate <= 21) return "Day 3";
-        return "Day 4";
-    }
+            // Save Attendance to Firebase under node: attendance/{selectedDay}/{studentId}
+            const attendanceData = {
+                stuId: cleanId,
+                name: student.name || 'Unknown',
+                grade: student.grade || 'N/A',
+                day: selectedDay,
+                date: dateStr,
+                time: timeStr,
+                timestamp: now.getTime()
+            };
 
-    function onScanSuccess(decodedText, decodedResult) {
-        const scannedId = decodedText.trim();
-        html5QrcodeScanner.clear();
-        markAttendance(scannedId);
-    }
-
-    function markAttendance(stuId) {
-        const resultDiv = document.getElementById('result');
-        resultDiv.style.display = 'block';
-        resultDiv.className = 'result-box';
-        resultDiv.innerHTML = "දත්ත පරීක්ෂා කරමින් පවතියි...";
-
-        db.ref('students/' + stuId).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                verifyAndSave(stuId, snapshot.val());
-            } else {
-                db.ref('students').orderByChild('id').equalTo(stuId).once('value', (searchSnap) => {
-                    if (searchSnap.exists()) {
-                        searchSnap.forEach(child => verifyAndSave(child.key, child.val()));
-                    } else {
-                        playAudioFeedback('error');
-                        resultDiv.className = 'result-box error';
-                        resultDiv.innerHTML = `❌ <strong>ID: ${stuId}</strong> හිමි ශිෂ්‍යයෙකු Database එකෙහි හමු නොවිණි!`;
-                        setTimeout(restartScanner, 3000);
-                    }
+            // Save under overall log and update individual student record
+            db.ref(`attendance/${selectedDay}/${cleanId}`).set(attendanceData).then(() => {
+                db.ref(`students/${cleanId}/lastAttendance`).set({
+                    day: selectedDay,
+                    date: dateStr,
+                    time: timeStr
                 });
-            }
+
+                const photoSrc = student.photo || student.photoUrl || 'logo.png';
+
+                showStatus(`
+                    <img src="${photoSrc}" class="student-preview-img"><br>
+                    ✅ <strong>${student.name}</strong> (${cleanId})<br>
+                    Attendance Marked for <strong>${selectedDay}</strong><br>
+                    <small>Time: ${timeStr}</small>
+                `, 'success');
+
+                setTimeout(() => { isProcessing = false; }, 2500);
+            }).catch(err => {
+                showStatus(`❌ Error saving attendance: ${err.message}`, 'error');
+                setTimeout(() => { isProcessing = false; }, 2000);
+            });
         });
     }
 
-    function verifyAndSave(dbKey, stuData) {
-        const resultDiv = document.getElementById('result');
-        const todayDay = getCurrentDayLabel();
-
-        // Check for duplicate scans
-        db.ref(`students/${dbKey}/attendance/${todayDay}`).once('value', (attSnap) => {
-            if (attSnap.exists() && (attSnap.val() === true || attSnap.val().present === true)) {
-                playAudioFeedback('warning');
-                const existingTime = attSnap.val().timestamp || 'Already Marked';
-
-                resultDiv.className = 'result-box warning';
-                resultDiv.innerHTML = `
-                    <div style="font-size: 1.1em; font-weight: bold;">⚠️ Attendance Already Marked!</div>
-                    <div class="stu-card-preview">
-                        <img src="${stuData.photo || 'logo.png'}" alt="Photo">
-                        <div>
-                            <div><strong>Name:</strong> ${stuData.name || '-'}</div>
-                            <div><strong>ID:</strong> ${stuData.id || dbKey}</div>
-                            <div><strong>Session:</strong> ${todayDay}</div>
-                            <div><strong>Status:</strong> Already Registered (${existingTime})</div>
-                        </div>
-                    </div>
-                `;
-                setTimeout(restartScanner, 3500);
-            } else {
-                saveAttendance(dbKey, stuData, todayDay);
-            }
-        });
-    }
-
-    function saveAttendance(dbKey, stuData, todayDay) {
-        const resultDiv = document.getElementById('result');
-        const now = new Date();
-        const formattedDate = now.toISOString().split('T')[0];
-        const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-        const attendanceRecord = {
-            present: true,
-            date: formattedDate,
-            timestamp: formattedTime
-        };
-
-        db.ref(`students/${dbKey}/attendance/${todayDay}`).set(attendanceRecord).then(() => {
-            playAudioFeedback('success');
-
-            // Generate WhatsApp Web link
-            const phone = stuData.whatsapp || stuData.mobile || stuData.phone || stuData.parentPhone || '';
-            const waLink = generateWhatsAppLink(phone, stuData.name, todayDay, formattedDate, formattedTime);
-
-            let waButtonHTML = '';
-            if (phone) {
-                waButtonHTML = `
-                    <a href="${waLink}" target="_blank" class="wa-btn">
-                        📲 Send WhatsApp Message Manually
-                    </a>
-                `;
-            } else {
-                waButtonHTML = `<div style="color:#d9534f; margin-top:10px; font-size:0.85em;">⚠️ No phone number found for manual message.</div>`;
-            }
-
-            resultDiv.className = 'result-box success';
-            resultDiv.innerHTML = `
-                <div style="font-size: 1.1em; font-weight: bold;">✅ Attendance Marked Successfully!</div>
-                <div class="stu-card-preview">
-                    <img src="${stuData.photo || 'logo.png'}" alt="Photo">
-                    <div>
-                        <div><strong>Name:</strong> ${stuData.name || '-'}</div>
-                        <div><strong>ID:</strong> ${stuData.id || dbKey}</div>
-                        <div><strong>Grade:</strong> ${stuData.grade || '-'}</div>
-                        <div><strong>Status:</strong> ${todayDay} Present</div>
-                        <div><strong>Date:</strong> ${formattedDate}</div>
-                        <div><strong>Time:</strong> ${formattedTime}</div>
-                    </div>
-                </div>
-                ${waButtonHTML}
-            `;
-
-            // Auto-open WhatsApp in a new tab if allowed by browser settings
-            if (phone) {
-                window.open(waLink, '_blank');
-            }
-
-            setTimeout(restartScanner, 4000);
-        });
-    }
-
-    function generateWhatsAppLink(phone, studentName, dayLabel, dateStr, timeStr) {
-        let formattedPhone = phone.toString().replace(/[^0-9]/g, '');
-        if (formattedPhone.startsWith('0')) {
-            formattedPhone = '94' + formattedPhone.substring(1);
+    // Manual Mark Button Handler
+    function markManualAttendance() {
+        const input = document.getElementById('manualId');
+        const val = input.value;
+        if (val) {
+            processScan(val);
+            input.value = '';
+        } else {
+            showStatus('⚠️ Please enter a Student ID.', 'error');
         }
-
-        const rawMessage = `📚 *English with Sudan Sir*\n\nDear Parent,\nYour child *${studentName}* has arrived at class and marked attendance.\n\n📅 *Session:* ${dayLabel}\n🗓️ *Date:* ${dateStr}\n⏰ *Time:* ${timeStr}`;
-        
-        return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(rawMessage)}`;
     }
 
-    function restartScanner() {
-        startScanner();
+    function showStatus(htmlContent, type) {
+        const statusBox = document.getElementById('statusBox');
+        statusBox.innerHTML = htmlContent;
+        statusBox.className = 'status-box ' + (type === 'success' ? 'status-success' : 'status-error');
+        statusBox.style.display = 'block';
     }
 
-    function startScanner() {
-        html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", 
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            false
-        );
-        html5QrcodeScanner.render(onScanSuccess, (errorMessage) => {});
+    // Initialize Camera Scanner
+    function onScanSuccess(decodedText) {
+        processScan(decodedText);
     }
 
-    window.onload = startScanner;
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        /* verbose= */ false
+    );
+    html5QrcodeScanner.render(onScanSuccess);
 </script>
 </body>
 </html>
