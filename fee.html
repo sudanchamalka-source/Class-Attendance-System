@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fee Payment & Free Image Receipt</title>
+    <title>Fee Payment & Image Receipt</title>
     <link rel="icon" type="image/png" href="logo.png">
 
     <!-- Firebase SDKs -->
@@ -63,6 +63,8 @@
             margin-bottom: 15px;
         }
 
+        .btn-qr-toggle:hover { background: #003366; }
+
         #qr-reader-container {
             display: none;
             margin-bottom: 15px;
@@ -74,9 +76,18 @@
 
         .upload-section {
             background: #e9ecef;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             margin-bottom: 15px;
+            border: 1px dashed #0056b3;
+        }
+
+        .upload-section label {
+            font-weight: bold;
+            color: #003366;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
         }
 
         .form-group { margin-bottom: 15px; }
@@ -108,15 +119,24 @@
         }
 
         .student-details-card {
-            background: #e9ecef;
-            border-left: 4px solid #28a745;
+            background: #e8f4f8;
+            border-left: 4px solid #0056b3;
             padding: 12px;
             border-radius: 6px;
             margin-bottom: 15px;
             display: none;
         }
 
-        .student-details-card p { margin: 4px 0; font-size: 0.95em; }
+        .student-details-card p { margin: 6px 0; font-size: 0.95em; color: #333; }
+        .student-details-card span { font-weight: bold; color: #003366; }
+
+        .phone-highlight {
+            background: #25D366;
+            color: white !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
 
         .btn-submit {
             width: 100%;
@@ -131,7 +151,9 @@
             margin-top: 10px;
         }
 
-        /* Printable Receipt Styling Hidden off-screen */
+        .btn-submit:hover { background: #218838; }
+
+        /* Off-screen hidden receipt container */
         #receiptWrapper {
             position: absolute;
             left: -9999px;
@@ -215,6 +237,7 @@
             <a href="students_list.html">📚 Admin Panel</a>
         </div>
 
+        <!-- Camera Scanner Toggle -->
         <button type="button" class="btn-qr-toggle" onclick="toggleScanner()">
             📷 <span id="scannerToggleText">Open Camera QR Scanner</span>
         </button>
@@ -223,26 +246,30 @@
             <div id="reader"></div>
         </div>
 
+        <!-- Upload Image Scanner -->
         <div class="upload-section">
-            <label for="feeQrFile">📁 Or Upload QR Image File:</label>
+            <label for="feeQrFile">📁 Camera Blocked? Upload QR Image File:</label>
             <input type="file" id="feeQrFile" accept="image/*" onchange="uploadScanFeeQr(event)">
         </div>
 
+        <!-- Student ID Lookup Form -->
         <div class="form-group">
             <label for="studentId">Student ID / Index No:</label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="studentId" placeholder="Enter or Scan ID..." required>
+                <input type="text" id="studentId" placeholder="Enter or Scan ID (e.g. STU1001)" required>
                 <button type="button" class="search-btn" style="width: 80px;" onclick="loadStudentDetails()">Lookup</button>
             </div>
         </div>
 
+        <!-- Student Information Card -->
         <div id="studentCard" class="student-details-card">
             <p><strong>Name:</strong> <span id="lblStudentName">-</span></p>
             <p><strong>Grade:</strong> <span id="lblGrade">-</span></p>
-            <p><strong>Phone:</strong> <span id="lblPhone">-</span></p>
-            <p><strong>Current Status:</strong> <span id="lblStatus">-</span></p>
+            <p><strong>WhatsApp / Phone:</strong> <span id="lblPhone" class="phone-highlight">-</span></p>
+            <p><strong>Current Fee Status:</strong> <span id="lblStatus">-</span></p>
         </div>
 
+        <!-- Fee Payment Form -->
         <form id="feeForm">
             <div class="form-group">
                 <label for="month">Payment Month:</label>
@@ -272,7 +299,7 @@
         </form>
     </div>
 
-    <!-- Hidden Receipt Card Graphic for Canvas Conversion -->
+    <!-- Hidden Receipt Card Template -->
     <div id="receiptWrapper">
         <div class="receipt-card" id="receiptCard">
             <div class="receipt-header">
@@ -335,7 +362,8 @@
     let isScannerOpen = false;
     let loadedStudent = null;
 
-    function toggleScanner() {
+    // Toggle Camera Scanner safely
+    async function toggleScanner() {
         const container = document.getElementById('qr-reader-container');
         const toggleText = document.getElementById('scannerToggleText');
 
@@ -344,20 +372,31 @@
             toggleText.innerText = 'Close Camera Scanner';
             isScannerOpen = true;
 
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 200, height: 200 } }, false);
-            html5QrcodeScanner.render((decodedText) => {
-                document.getElementById('studentId').value = decodedText.trim();
-                loadStudentDetails();
-                toggleScanner();
-            });
+            try {
+                // Pre-check permissions
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                stream.getTracks().forEach(track => track.stop());
+
+                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 200, height: 200 } }, false);
+                html5QrcodeScanner.render((decodedText) => {
+                    document.getElementById('studentId').value = decodedText.trim();
+                    loadStudentDetails();
+                    toggleScanner();
+                });
+            } catch (err) {
+                alert("⚠️ Camera Access Error!\n\nEnsure:\n1. URL starts with HTTPS (https://).\n2. Camera permissions are allowed in site settings.\n\nUse the File Upload option below.");
+            }
         } else {
-            if (html5QrcodeScanner) html5QrcodeScanner.clear();
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+            }
             container.style.display = 'none';
             toggleText.innerText = 'Open Camera QR Scanner';
             isScannerOpen = false;
         }
     }
 
+    // Scan QR Code from Uploaded File
     function uploadScanFeeQr(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -368,9 +407,10 @@
                 document.getElementById('studentId').value = decodedText.trim();
                 loadStudentDetails();
             })
-            .catch(err => alert('❌ Failed to scan QR from uploaded image.'));
+            .catch(err => alert('❌ Failed to scan QR from uploaded image file.'));
     }
 
+    // Load Student Info & Phone Number
     function loadStudentDetails() {
         const id = document.getElementById('studentId').value.trim();
         if (!id) return alert('⚠️ Please enter or scan a Student ID.');
@@ -384,16 +424,22 @@
             }
 
             loadedStudent = snapshot.val();
+
+            // Extract phone across common field names
+            const phoneNo = loadedStudent.phone || loadedStudent.whatsapp || loadedStudent.parentPhone || loadedStudent.mobile || 'Not Provided';
+
             document.getElementById('lblStudentName').innerText = loadedStudent.name || 'N/A';
             document.getElementById('lblGrade').innerText = loadedStudent.grade || 'N/A';
-            document.getElementById('lblPhone').innerText = loadedStudent.phone || loadedStudent.whatsapp || 'N/A';
+            document.getElementById('lblPhone').innerText = phoneNo;
             document.getElementById('lblStatus').innerText = loadedStudent.fee || 'Not Paid';
             document.getElementById('studentCard').style.display = 'block';
         });
     }
 
+    // Submit Payment, Generate Image & Open WhatsApp
     document.getElementById('feeForm').addEventListener('submit', function(e) {
         e.preventDefault();
+
         const id = document.getElementById('studentId').value.trim();
         const month = document.getElementById('month').value;
         const amount = document.getElementById('amount').value;
@@ -404,7 +450,7 @@
         const recNo = '#REC-' + Math.floor(1000 + Math.random() * 9000);
         const dateTimeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        // Update Hidden Printable Card Data
+        // Update Hidden Receipt Image Card
         document.getElementById('rDateTime').innerText = dateTimeStr;
         document.getElementById('rRecNo').innerText = recNo;
         document.getElementById('rStuId').innerText = id;
@@ -413,7 +459,6 @@
         document.getElementById('rMonth').innerText = month;
         document.getElementById('rAmount').innerText = parseFloat(amount).toFixed(2);
 
-        // Record payment in Firebase
         const paymentData = {
             fee: 'Paid',
             lastPaymentMonth: month,
@@ -421,33 +466,34 @@
             lastPaymentDate: now.toISOString().split('T')[0]
         };
 
+        // Write to Firebase
         db.ref('students/' + id).update(paymentData).then(() => {
             db.ref(`payments/${id}/${month}`).set({ amount: amount, paidDate: now.toISOString(), month: month });
 
-            // Generate Image via html2canvas
+            // Generate graphic bill with html2canvas
             const receiptCard = document.getElementById('receiptCard');
             html2canvas(receiptCard, { scale: 3 }).then(canvas => {
                 canvas.toBlob(blob => {
-                    // Try copying image directly to Clipboard
+                    // Try copying image to clipboard
                     try {
                         const item = new ClipboardItem({ 'image/png': blob });
                         navigator.clipboard.write([item]);
-                        alert('✅ Receipt image copied to your Clipboard! Paste it directly into WhatsApp chat (Ctrl+V or Long Press Paste).');
+                        alert('✅ Receipt image copied to Clipboard! Paste it directly into the WhatsApp chat (Ctrl+V or Long-Press Paste).');
                     } catch (err) {
-                        // Fallback: Download image file if clipboard permission is restricted
+                        // Fallback download if clipboard is restricted
                         const link = document.createElement('a');
                         link.download = `Receipt_${id}_${month}.png`;
                         link.href = canvas.toDataURL('image/png');
                         link.click();
-                        alert('✅ Receipt image downloaded to your device! Attach it in the WhatsApp chat.');
+                        alert('✅ Receipt image downloaded! Attach it in the WhatsApp chat.');
                     }
 
-                    // Format phone number & Open WhatsApp
-                    let rawPhone = loadedStudent.phone || loadedStudent.whatsapp || '';
+                    // Format phone number
+                    let rawPhone = loadedStudent.phone || loadedStudent.whatsapp || loadedStudent.parentPhone || '';
                     let phoneNum = rawPhone.replace(/\D/g, '');
                     if (phoneNum.startsWith('0')) phoneNum = '94' + phoneNum.substring(1);
 
-                    const textMsg = `🧾 Official Payment Receipt for ${loadedStudent.name} (${id}) - Month: ${month}. (Please see attached image receipt).`;
+                    const textMsg = `🧾 Official Fee Payment Receipt for ${loadedStudent.name} (${id}) - Month: ${month}. (Please see attached image receipt).`;
 
                     if (phoneNum) {
                         window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(textMsg)}`, '_blank');
@@ -460,7 +506,7 @@
                     loadedStudent = null;
                 });
             });
-        });
+        }).catch(err => alert('❌ Payment update failed: ' + err.message));
     });
 </script>
 </body>
