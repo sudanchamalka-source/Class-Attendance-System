@@ -3,530 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Directory & Admin Panel</title>
-    <link rel="icon" type="image/png" href="logo.png">
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    <!-- QRCode Generator Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- html2canvas Library for Printing ID Card -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Teacher Dashboard - English with Sudan Sir</title>
+    <!-- Firebase SDK (v8 Compatibility Layer) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         * {
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
+            background-color: #f4f6f9;
             color: #333;
+            padding: 15px;
         }
 
         .container {
-            max-width: 1250px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        .header {
+        /* Header Layout */
+        header {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 26px;
+            color: #1e3a8a;
+        }
+
+        header p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-right: auto;
+            color: #1e293b;
+        }
+
+        .nav-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
+            background-color: #f3f4f6;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn:hover { background-color: #e5e7eb; color: #111827; }
+        .nav-btn.active { background-color: #2563eb; color: white; }
+
+        /* Dashboard Table Container */
+        .dashboard-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #ffffff;
-            padding: 20px 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .header h1 {
-            margin: 0;
-            color: #003366;
-            font-size: 1.8rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: #0056b3;
-            font-weight: bold;
-            margin-left: 12px;
-        }
-
-        .nav-links a:hover {
-            text-decoration: underline;
-        }
-
-        /* Filter Section */
-        .filter-card {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-        }
-
-        .filter-group {
-            flex: 1;
-            min-width: 180px;
-        }
-
-        .filter-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: #003366;
-            margin-bottom: 5px;
-        }
-
-        .filter-group input, .filter-group select {
-            width: 100%;
-            padding: 9px 12px;
-            border: 1px solid #0056b3;
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
-
-        .btn-add-student {
-            background: #28a745;
-            color: white;
-            text-decoration: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 0.95rem;
-            display: inline-block;
-        }
-
-        .btn-add-student:hover {
-            background: #218838;
-        }
-
-        /* Data Table */
-        .table-container {
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            overflow-x: auto;
+            gap: 10px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            text-align: left;
+            font-size: 14px;
         }
 
         th, td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #edf2f7;
-            font-size: 0.95rem;
-            vertical-align: middle;
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         th {
             background-color: #f8fafc;
-            color: #003366;
+            color: #475569;
             font-weight: 600;
         }
 
-        tbody tr:hover {
-            background-color: #f1f5f9;
+        input[type="text"], input[type="tel"] {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
         }
 
-        /* Status Badges */
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.82rem;
+        /* Action Buttons */
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: bold;
-            display: inline-block;
-        }
-
-        .status-paid {
-            background-color: #e8f5e9;
-            color: #28a745;
-            border: 1px solid #28a745;
-        }
-
-        .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-
-        .btn-action {
-            background: #0056b3;
-            color: white;
             border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.82rem;
-            font-weight: bold;
+            transition: 0.2s;
             margin-right: 4px;
         }
 
-        .btn-action:hover { background: #003366; }
-        .btn-edit { background: #ffc107; color: #333; }
-        .btn-edit:hover { background: #e0a800; }
-        .btn-idcard { background: #17a2b8; }
-        .btn-idcard:hover { background: #138496; }
-        .btn-delete { background: #dc3545; }
-        .btn-delete:hover { background: #bd2130; }
+        .btn-save { background-color: #10b981; color: white; }
+        .btn-save:hover { background-color: #059669; }
 
-        /* General Modal Popup */
+        .btn-card { background-color: #6366f1; color: white; }
+        .btn-card:hover { background-color: #4f46e5; }
+
+        .btn-delete { background-color: #ef4444; color: white; }
+        .btn-delete:hover { background-color: #dc2626; }
+
+        /* ID Card Modal Styling */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.6);
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             z-index: 1000;
         }
 
-        .modal-content {
+        .id-card-wrapper {
             background: white;
+            width: 320px;
             padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
             position: relative;
-        }
-
-        .modal-small { max-width: 400px; }
-        .modal-medium { max-width: 480px; }
-
-        .btn-close {
-            background: #6c757d;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-
-        /* --- STANDARD CREDIT CARD RATIO DESIGN (85.6mm x 53.9mm) --- */
-        .id-card-frame {
-            width: 338px;
-            height: 213px;
-            background: #0066c8;
-            border-radius: 14px;
-            padding: 10px 14px;
-            color: white;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-            margin: 0 auto;
-            position: relative;
-            box-sizing: border-box;
-            text-align: left;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            border: 2px solid #2563eb;
         }
 
         .id-card-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            padding-bottom: 4px;
+            background: #1e3a8a;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
         }
 
-        .id-card-header img {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #fff;
-            object-fit: cover;
-        }
+        .id-card-header h3 { font-size: 16px; }
+        .id-card-header p { font-size: 11px; }
 
-        .id-card-header-title {
-            font-size: 0.95rem;
-            font-weight: 800;
-            line-height: 1;
-            color: #ffffff;
-        }
-
-        .id-card-header-subtitle {
-            font-size: 0.52rem;
-            font-weight: 800;
-            color: #ffcc00;
-            letter-spacing: 0.4px;
-            margin-top: 2px;
-        }
-
-        .id-card-body {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 6px;
-            margin: 2px 0;
-        }
-
-        .id-photo-box {
-            width: 72px;
-            height: 85px;
-            background: #fff;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 2px solid #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            flex-shrink: 0;
+        .qr-placeholder {
+            margin: 15px auto;
+            width: 120px;
+            height: 120px;
+            background: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
         }
 
-        .id-photo-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .close-modal {
+            position: absolute;
+            top: 10px; right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #64748b;
         }
 
-        .id-details-box {
-            flex: 1;
-            padding: 0 4px;
-        }
-
-        .id-student-name {
-            font-size: 0.76rem;
-            font-weight: 800;
-            color: #ffffff;
-            margin: 0 0 4px 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 135px;
-        }
-
-        .id-tag {
-            background: #ffc107;
-            color: #000;
-            font-weight: 800;
-            font-size: 0.62rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            display: inline-block;
-            margin-bottom: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-        }
-
-        .id-phone {
-            font-size: 0.62rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 0;
-        }
-
-        .id-qr-box {
-            background: white;
-            padding: 3px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .id-card-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-            padding-top: 4px;
-            text-align: center;
-            font-size: 0.52rem;
-            font-weight: 700;
-            color: #ffffff;
-            line-height: 1.2;
-        }
-
-        .id-card-footer-sub {
-            font-size: 0.5rem;
-            margin-top: 1px;
-            color: #ffffff;
-            opacity: 0.95;
+        @media (max-width: 768px) {
+            .nav-bar { flex-direction: column; align-items: stretch; }
+            .nav-title { margin-right: 0; text-align: center; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Admin Header -->
-        <div class="header">
-            <div>
-                <h1>📚 Student Admin Panel</h1>
-                <p style="margin: 5px 0 0 0; color: #666;">Manage student records, edit details, print ID cards & track payments</p>
-            </div>
-            <div class="nav-links">
-                <a href="index.html">📸 Scanner</a>
-                <a href="register.html">+ New Register</a>
-                <a href="fee.html">💳 Fee Payment</a>
-                <a href="teacher_dashboard.html">📊 Revenue Dashboard</a>
-            </div>
-        </div>
+<div class="container">
+    <header>
+        <h1>English with Sudan Sir</h1>
+        <p>Teacher Dashboard - Manage & Edit Student Records</p>
+    </header>
 
-        <!-- Filter Controls -->
-        <div class="filter-card">
-            <div class="filter-group">
-                <label for="searchInput">Search Student:</label>
-                <input type="text" id="searchInput" onkeyup="filterStudents()" placeholder="Search by ID or Name...">
-            </div>
-            <div class="filter-group">
-                <label for="gradeFilter">Filter by Grade:</label>
-                <select id="gradeFilter" onchange="filterStudents()">
-                    <option value="ALL">All Grades</option>
-                    <option value="Grade 1">Grade 1</option>
-                    <option value="Grade 2">Grade 2</option>
-                    <option value="Grade 3">Grade 3</option>
-                    <option value="Grade 4">Grade 4</option>
-                    <option value="Grade 5">Grade 5</option>
-                    <option value="Grade 6">Grade 6</option>
-                    <option value="Grade 7">Grade 7</option>
-                    <option value="Grade 8">Grade 8</option>
-                    <option value="Grade 9">Grade 9</option>
-                    <option value="Grade 10">Grade 10</option>
-                    <option value="Grade 11">Grade 11</option>
-                    <option value="Grade 12">Grade 12</option>
-                    <option value="Grade 13">Grade 13</option>
-                    <option value="A/L">A/L</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="statusFilter">Payment Status:</label>
-                <select id="statusFilter" onchange="filterStudents()">
-                    <option value="ALL">All Statuses</option>
-                    <option value="Paid">Paid Only</option>
-                    <option value="Pending">Pending Only</option>
-                </select>
-            </div>
-            <div>
-                <a href="register.html" class="btn-add-student">➕ Register Student</a>
-            </div>
-        </div>
-
-        <!-- Student Database Table -->
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Student ID</th>
-                        <th>Student Name</th>
-                        <th>Grade</th>
-                        <th>Contact No</th>
-                        <th>Fee Status</th>
-                        <th>Class Fee (LKR)</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="studentsTableBody">
-                    <tr><td colspan="7" style="text-align: center;">Loading students database...</td></tr>
-                </tbody>
-            </table>
-        </div>
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <span class="nav-title">📊 Teacher Dashboard</span>
+        <a href="index.html" class="nav-btn">📸 Scanner</a>
+        <a href="students_list.html" class="nav-btn">📋 Student List</a>
+        <a href="register.html" class="nav-btn">+ New Register</a>
+        <a href="fee.html" class="nav-btn">💳 Fee Payment</a>
+        <a href="admin_fees.html" class="nav-btn">🗂️ Admin Panel</a>
+        <a href="teacher_dashboard.html" class="nav-btn active">📊 Dashboard</a>
     </div>
 
-    <!-- 1. EDIT STUDENT MODAL -->
-    <div id="editModal" class="modal">
-        <div class="modal-content modal-medium">
-            <h3 style="margin-top: 0; color: #003366;">✏️ Edit Student Details</h3>
-            <form id="editStudentForm" style="text-align: left;">
-                <input type="hidden" id="editStudentId">
-                <div style="margin-bottom: 12px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Student Name:</label>
-                    <input type="text" id="editName" required style="width: 100%; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;">
-                </div>
-                <div style="margin-bottom: 12px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Grade:</label>
-                    <select id="editGrade" required style="width: 100%; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;">
-                        <option value="Grade 1">Grade 1</option>
-                        <option value="Grade 2">Grade 2</option>
-                        <option value="Grade 3">Grade 3</option>
-                        <option value="Grade 4">Grade 4</option>
-                        <option value="Grade 5">Grade 5</option>
-                        <option value="Grade 6">Grade 6</option>
-                        <option value="Grade 7">Grade 7</option>
-                        <option value="Grade 8">Grade 8</option>
-                        <option value="Grade 9">Grade 9</option>
-                        <option value="Grade 10">Grade 10</option>
-                        <option value="Grade 11">Grade 11</option>
-                        <option value="Grade 12">Grade 12</option>
-                        <option value="Grade 13">Grade 13</option>
-                        <option value="A/L">A/L</option>
-                    </select>
-                </div>
-                <div style="margin-bottom: 12px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Phone / WhatsApp:</label>
-                    <input type="text" id="editPhone" required style="width: 100%; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;">
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Class Fee Amount (LKR):</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="number" id="editFeeAmount" step="0.01" style="flex: 1; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;" placeholder="e.g. 1500">
-                        <button type="button" class="btn-action btn-delete" style="padding: 8px 12px; font-size: 0.85rem;" onclick="removeFeeAmount()">❌ Clear Fee</button>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <button type="submit" class="btn-action" style="padding: 8px 16px; background: #28a745;">Save Changes</button>
-                    <button type="button" class="btn-close" style="margin-top:0;" onclick="closeModal('editModal')">Cancel</button>
-                </div>
-            </form>
+    <!-- Editable Student Table -->
+    <div class="dashboard-card">
+        <div class="table-header">
+            <h2>Student Management</h2>
+            <span id="studentCount">Total: 0</span>
         </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Grade</th>
+                    <th>Contact Phone</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="editableTableBody">
+                <tr><td colspan="5" style="text-align:center;">Loading database records...</td></tr>
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <!-- 2. STUDENT ID CARD MODAL -->
-    <div id="idCardModal" class="modal">
-        <div class="modal-content modal-small" style="text-align: center;">
-            
-            <div id="idCardGraphic" class="id-card-frame">
-                <div class="id-card-header">
-                    <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/30'">
-                    <div>
-                        <div class="id-card-header-title">English with Sudan Sir</div>
-                        <div class="id-card-header-subtitle">STUDENT OFFICIAL PASS</div>
-                    </div>
-                </div>
-
-                <div class="id-card-body">
-                    <div class="id-photo-box">
-                        <img id="cardPhoto" src="https://via.placeholder.com/72x85?text=No+Photo" alt="Student Photo">
-                    </div>
-
-                    <div class="id-details-box">
-                        <h3 id="cardName" class="id-student-name">Student Name</h3>
-                        <div class="id-tag">ID: <span id="cardId">STU1001</span></div>
-                        <p class="id-phone">Phone: <span id="cardPhone">0771234567</span></p>
-                    </div>
-
-                    <div class="id-qr-box">
-                        <div id="cardQr"></div>
-                    </div>
-                </div>
-
-                <div class="id-card-footer">
-                    <strong>R.M.S.CHAMALKA</strong> (BEd ICT, NDIT English and ICT)<br>
-                    <div class="id-card-footer-sub">📞 0706562952 &nbsp;|&nbsp; 💬 WhatsApp: 0716562952</div>
-                </div>
-            </div>
-
-            <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
-                <button class="btn-action btn-idcard" onclick="downloadIdCard()">💾 Download Credit Card HD</button>
-                <button class="btn-close" style="margin-top:0;" onclick="closeModal('idCardModal')">Close</button>
-            </div>
+<!-- Student ID Card Modal -->
+<div class="modal" id="cardModal">
+    <div class="id-card-wrapper">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div class="id-card-header">
+            <h3>English with Sudan Sir</h3>
+            <p>STUDENT IDENTIFICATION CARD</p>
         </div>
+        <div class="qr-placeholder" id="modalQrCode">
+            <!-- QR Image Rendered Here -->
+        </div>
+        <h4 id="cardStudentName">Student Name</h4>
+        <p style="font-size: 13px; color: #475569;" id="cardStudentID">ID: ST-0000</p>
+        <p style="font-size: 13px; color: #475569;" id="cardStudentGrade">Grade: N/A</p>
+        <br>
+        <button class="action-btn btn-card" onclick="window.print()">🖨️ Print Card</button>
     </div>
+</div>
 
 <script>
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
         authDomain: "class-management-system-8c1a1.firebaseapp.com",
@@ -538,188 +284,94 @@
         measurementId: "G-XZW2VLFXT2"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
-    let allStudentsCache = [];
-
-    function loadAllStudents() {
-        const tableBody = document.getElementById('studentsTableBody');
+    // Fetch and display student data for editing
+    function loadDashboardData() {
+        const tbody = document.getElementById('editableTableBody');
 
         db.ref('students').on('value', (snapshot) => {
-            tableBody.innerHTML = '';
-            allStudentsCache = [];
+            tbody.innerHTML = '';
 
             if (!snapshot.exists()) {
-                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No students found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No student records found.</td></tr>';
+                document.getElementById('studentCount').innerText = 'Total: 0';
                 return;
             }
 
+            let count = 0;
             snapshot.forEach((childSnap) => {
+                count++;
+                const key = childSnap.key;
                 const stu = childSnap.val();
-                const id = childSnap.key;
-
-                const phone = stu.phone || stu.whatsapp || stu.parentPhone || stu.mobile || 'N/A';
-                const photoUrl = stu.photoUrl || stu.imageUrl || stu.photo || '';
-                const classFee = (stu.classFee !== undefined && stu.classFee !== null) ? stu.classFee : (stu.monthlyFee || stu.feeAmount || 0);
-                const isPaid = stu.fee === 'Paid' || stu.status === 'Paid';
-                const feeStatus = isPaid ? `Paid (${stu.lastPaymentMonth || 'Yes'})` : `Pending`;
-                const badgeClass = isPaid ? 'status-paid' : 'status-pending';
-
-                allStudentsCache.push({
-                    id: id,
-                    name: stu.name || 'N/A',
-                    grade: stu.grade || 'N/A',
-                    phone: phone,
-                    photoUrl: photoUrl,
-                    feeStatus: feeStatus,
-                    isPaid: isPaid,
-                    classFee: classFee
-                });
 
                 const row = `
                     <tr>
-                        <td><strong>${id}</strong></td>
-                        <td>${stu.name || 'N/A'}</td>
-                        <td>${stu.grade || 'N/A'}</td>
-                        <td>${phone}</td>
-                        <td><span class="status-badge ${badgeClass}">${feeStatus}</span></td>
-                        <td>${parseFloat(classFee) > 0 ? 'LKR ' + parseFloat(classFee).toFixed(2) : '<span style="color:#888;">No Fee (LKR 0)</span>'}</td>
+                        <td><strong>${key}</strong></td>
+                        <td><input type="text" id="name_${key}" value="${stu.name || ''}"></td>
+                        <td><input type="text" id="grade_${key}" value="${stu.grade || ''}"></td>
+                        <td><input type="tel" id="phone_${key}" value="${stu.phone || ''}"></td>
                         <td>
-                            <button class="btn-action btn-idcard" onclick="showIdCardModal('${id}', '${(stu.name || '').replace(/'/g, "\\'")}', '${stu.grade}', '${phone}', '${photoUrl}')">🎴 ID Card</button>
-                            <button class="btn-action btn-edit" onclick="openEditModal('${id}', '${(stu.name || '').replace(/'/g, "\\'")}', '${stu.grade}', '${phone}', '${classFee}')">✏️ Edit</button>
-                            <button class="btn-action btn-delete" onclick="deleteStudent('${id}')">🗑️ Delete</button>
+                            <button class="action-btn btn-save" onclick="updateStudent('${key}')">💾 Save</button>
+                            <button class="action-btn btn-card" onclick="showIdCard('${key}', '${stu.name || ''}', '${stu.grade || ''}')">🪪 Card</button>
+                            <button class="action-btn btn-delete" onclick="deleteStudent('${key}')">🗑️</button>
                         </td>
                     </tr>
                 `;
-                tableBody.innerHTML += row;
+                tbody.innerHTML += row;
             });
+
+            document.getElementById('studentCount').innerText = `Total: ${count}`;
         });
     }
 
-    function filterStudents() {
-        const searchVal = document.getElementById('searchInput').value.toLowerCase();
-        const selectedGrade = document.getElementById('gradeFilter').value;
-        const selectedStatus = document.getElementById('statusFilter').value;
-        const tableBody = document.getElementById('studentsTableBody');
+    // Update Student Data in Firebase
+    function updateStudent(studentId) {
+        const updatedName = document.getElementById(`name_${studentId}`).value;
+        const updatedGrade = document.getElementById(`grade_${studentId}`).value;
+        const updatedPhone = document.getElementById(`phone_${studentId}`).value;
 
-        tableBody.innerHTML = '';
-
-        const filtered = allStudentsCache.filter(stu => {
-            const matchesSearch = stu.id.toLowerCase().includes(searchVal) || stu.name.toLowerCase().includes(searchVal);
-            const matchesGrade = (selectedGrade === 'ALL') || (stu.grade === selectedGrade);
-            const matchesStatus = (selectedStatus === 'ALL') || 
-                                 (selectedStatus === 'Paid' && stu.isPaid) || 
-                                 (selectedStatus === 'Pending' && !stu.isPaid);
-
-            return matchesSearch && matchesGrade && matchesStatus;
-        });
-
-        if (filtered.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No matching student records found.</td></tr>';
-            return;
-        }
-
-        filtered.forEach(stu => {
-            const badgeClass = stu.isPaid ? 'status-paid' : 'status-pending';
-            const row = `
-                <tr>
-                    <td><strong>${stu.id}</strong></td>
-                    <td>${stu.name}</td>
-                    <td>${stu.grade}</td>
-                    <td>${stu.phone}</td>
-                    <td><span class="status-badge ${badgeClass}">${stu.feeStatus}</span></td>
-                    <td>${parseFloat(stu.classFee) > 0 ? 'LKR ' + parseFloat(stu.classFee).toFixed(2) : '<span style="color:#888;">No Fee (LKR 0)</span>'}</td>
-                    <td>
-                        <button class="btn-action btn-idcard" onclick="showIdCardModal('${stu.id}', '${stu.name.replace(/'/g, "\\'")}', '${stu.grade}', '${stu.phone}', '${stu.photoUrl}')">🎴 ID Card</button>
-                        <button class="btn-action btn-edit" onclick="openEditModal('${stu.id}', '${stu.name.replace(/'/g, "\\'")}', '${stu.grade}', '${stu.phone}', '${stu.classFee}')">✏️ Edit</button>
-                        <button class="btn-action btn-delete" onclick="deleteStudent('${stu.id}')">🗑️ Delete</button>
-                    </td>
-                </tr>
-            `;
-            tableBody.innerHTML += row;
-        });
-    }
-
-    function openEditModal(id, name, grade, phone, classFee) {
-        document.getElementById('editStudentId').value = id;
-        document.getElementById('editName').value = name;
-        document.getElementById('editGrade').value = grade;
-        document.getElementById('editPhone').value = phone;
-        document.getElementById('editFeeAmount').value = (classFee && parseFloat(classFee) > 0) ? classFee : '';
-        document.getElementById('editModal').style.display = 'flex';
-    }
-
-    function removeFeeAmount() {
-        document.getElementById('editFeeAmount').value = '';
-    }
-
-    document.getElementById('editStudentForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const id = document.getElementById('editStudentId').value;
-        const name = document.getElementById('editName').value.trim();
-        const grade = document.getElementById('editGrade').value;
-        const phone = document.getElementById('editPhone').value.trim();
-        const classFeeInput = document.getElementById('editFeeAmount').value;
-        const classFee = classFeeInput === '' ? 0 : parseFloat(classFeeInput);
-
-        db.ref('students/' + id).update({
-            name: name,
-            grade: grade,
-            phone: phone,
-            whatsapp: phone,
-            classFee: classFee,
-            monthlyFee: classFee,
-            feeAmount: classFee
+        db.ref('students/' + studentId).update({
+            name: updatedName,
+            grade: updatedGrade,
+            phone: updatedPhone
         }).then(() => {
-            alert('✅ Student details and fee updated successfully!');
-            closeModal('editModal');
-        }).catch(err => alert('❌ Error updating: ' + err.message));
-    });
-
-    function showIdCardModal(id, name, grade, phone, photoUrl) {
-        document.getElementById('cardId').innerText = id;
-        document.getElementById('cardName').innerText = name;
-        document.getElementById('cardPhone').innerText = phone;
-
-        const photoElem = document.getElementById('cardPhoto');
-        if (photoUrl && photoUrl !== '') {
-            photoElem.src = photoUrl;
-        } else {
-            photoElem.src = 'https://via.placeholder.com/72x85?text=No+Photo';
-        }
-
-        const qrContainer = document.getElementById('cardQr');
-        qrContainer.innerHTML = '';
-        new QRCode(qrContainer, { text: id, width: 56, height: 56 });
-
-        document.getElementById('idCardModal').style.display = 'flex';
-    }
-
-    function downloadIdCard() {
-        const cardElem = document.getElementById('idCardGraphic');
-        html2canvas(cardElem, { scale: 4, useCORS: true }).then(canvas => {
-            const link = document.createElement('a');
-            const stuId = document.getElementById('cardId').innerText;
-            link.download = `CreditCard_ID_${stuId}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            alert(`Student ${studentId} updated successfully!`);
+        }).catch((err) => {
+            alert('Error updating record: ' + err.message);
         });
     }
 
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-
+    // Delete Student Data from Firebase
     function deleteStudent(studentId) {
-        if (confirm(`Are you sure you want to delete student ${studentId}? This cannot be undone.`)) {
-            db.ref('students/' + studentId).remove()
-                .then(() => alert('✅ Student record deleted.'))
-                .catch(err => alert('❌ Error deleting record: ' + err.message));
+        if (confirm(`Are you sure you want to delete student ${studentId}?`)) {
+            db.ref('students/' + studentId).remove();
         }
     }
 
-    window.onload = loadAllStudents;
+    // Display ID Card Modal with Generated QR Code
+    function showIdCard(studentId, name, grade) {
+        document.getElementById('cardStudentName').innerText = name || 'Student Name';
+        document.getElementById('cardStudentID').innerText = `ID: ${studentId}`;
+        document.getElementById('cardStudentGrade').innerText = `Grade: ${grade || 'N/A'}`;
+        
+        // Render QR Code using Google Chart API
+        const qrContainer = document.getElementById('modalQrCode');
+        qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(studentId)}" alt="QR Code">`;
+
+        document.getElementById('cardModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('cardModal').style.display = 'none';
+    }
+
+    // Load data on start
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
 </script>
+
 </body>
 </html>
