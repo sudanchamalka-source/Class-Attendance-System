@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fee Payment & QR Scanner</title>
+    <title>Fee Payment & Free Image Receipt</title>
     <link rel="icon" type="image/png" href="logo.png">
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <!-- Html5-QRCode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- html2canvas Library for Image Receipt Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         body {
@@ -127,12 +130,83 @@
             cursor: pointer;
             margin-top: 10px;
         }
+
+        /* Printable Receipt Styling Hidden off-screen */
+        #receiptWrapper {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
+
+        .receipt-card {
+            width: 380px;
+            background: #ffffff;
+            border: 3px solid #003366;
+            border-radius: 12px;
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px dashed #003366;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .receipt-header h2 {
+            margin: 0;
+            color: #003366;
+            font-size: 1.4em;
+        }
+
+        .receipt-header p {
+            margin: 2px 0 0 0;
+            font-size: 0.85em;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .receipt-row strong { color: #003366; }
+
+        .receipt-total {
+            background: #e8f5e9;
+            border: 1px dashed #28a745;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .receipt-total h3 {
+            margin: 0;
+            color: #28a745;
+            font-size: 1.2em;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.75em;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 8px;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>💳 Class Fee Payment</h2>
+        <h2>💳 Fee Payment & Image Receipt</h2>
         
         <div class="nav-links">
             <a href="index.html">📸 Scanner</a> | 
@@ -194,8 +268,53 @@
                 <input type="number" id="amount" placeholder="e.g. 2000" required>
             </div>
 
-            <button type="submit" class="btn-submit">💳 Record Payment & Send Receipt</button>
+            <button type="submit" class="btn-submit">🖼️ Generate Image Bill & Open WhatsApp</button>
         </form>
+    </div>
+
+    <!-- Hidden Receipt Card Graphic for Canvas Conversion -->
+    <div id="receiptWrapper">
+        <div class="receipt-card" id="receiptCard">
+            <div class="receipt-header">
+                <h2>ENGLISH WITH SUDAN SIR</h2>
+                <p>OFFICIAL PAYMENT RECEIPT</p>
+            </div>
+            <div class="receipt-row">
+                <span>Date & Time:</span>
+                <strong id="rDateTime">2026-09-13</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Receipt No:</span>
+                <strong id="rRecNo">#REC-0000</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Student ID:</span>
+                <strong id="rStuId">STU1001</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Student Name:</span>
+                <strong id="rStuName">Student Name</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Grade / Class:</span>
+                <strong id="rGrade">Grade 10</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Payment Month:</span>
+                <strong id="rMonth">September</strong>
+            </div>
+
+            <div class="receipt-total">
+                <p style="margin: 0; font-size: 0.85em; color: #555;">AMOUNT RECEIVED</p>
+                <h3>LKR <span id="rAmount">2000.00</span></h3>
+                <small style="color: #28a745; font-weight: bold;">STATUS: SUCCESSFUL ✅</small>
+            </div>
+
+            <div class="receipt-footer">
+                Thank you for your payment!<br>
+                Contact: 0706562952 | WhatsApp: 0716562952
+            </div>
+        </div>
     </div>
 
 <script>
@@ -232,9 +351,7 @@
                 toggleScanner();
             });
         } else {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear();
-            }
+            if (html5QrcodeScanner) html5QrcodeScanner.clear();
             container.style.display = 'none';
             toggleText.innerText = 'Open Camera QR Scanner';
             isScannerOpen = false;
@@ -283,32 +400,66 @@
 
         if (!id || !loadedStudent) return alert('⚠️ Select or lookup student details first.');
 
+        const now = new Date();
+        const recNo = '#REC-' + Math.floor(1000 + Math.random() * 9000);
+        const dateTimeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Update Hidden Printable Card Data
+        document.getElementById('rDateTime').innerText = dateTimeStr;
+        document.getElementById('rRecNo').innerText = recNo;
+        document.getElementById('rStuId').innerText = id;
+        document.getElementById('rStuName').innerText = loadedStudent.name;
+        document.getElementById('rGrade').innerText = loadedStudent.grade;
+        document.getElementById('rMonth').innerText = month;
+        document.getElementById('rAmount').innerText = parseFloat(amount).toFixed(2);
+
+        // Record payment in Firebase
         const paymentData = {
             fee: 'Paid',
             lastPaymentMonth: month,
             lastPaymentAmount: amount,
-            lastPaymentDate: new Date().toISOString().split('T')[0]
+            lastPaymentDate: now.toISOString().split('T')[0]
         };
 
         db.ref('students/' + id).update(paymentData).then(() => {
-            db.ref(`payments/${id}/${month}`).set({ amount: amount, paidDate: new Date().toISOString(), month: month });
+            db.ref(`payments/${id}/${month}`).set({ amount: amount, paidDate: now.toISOString(), month: month });
 
-            let rawPhone = loadedStudent.phone || loadedStudent.whatsapp || '';
-            let phoneNum = rawPhone.replace(/\D/g, '');
-            if (phoneNum.startsWith('0')) phoneNum = '94' + phoneNum.substring(1);
+            // Generate Image via html2canvas
+            const receiptCard = document.getElementById('receiptCard');
+            html2canvas(receiptCard, { scale: 3 }).then(canvas => {
+                canvas.toBlob(blob => {
+                    // Try copying image directly to Clipboard
+                    try {
+                        const item = new ClipboardItem({ 'image/png': blob });
+                        navigator.clipboard.write([item]);
+                        alert('✅ Receipt image copied to your Clipboard! Paste it directly into WhatsApp chat (Ctrl+V or Long Press Paste).');
+                    } catch (err) {
+                        // Fallback: Download image file if clipboard permission is restricted
+                        const link = document.createElement('a');
+                        link.download = `Receipt_${id}_${month}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        alert('✅ Receipt image downloaded to your device! Attach it in the WhatsApp chat.');
+                    }
 
-            const receiptMsg = `🧾 *FEE PAYMENT RECEIPT*\nStudent: ${loadedStudent.name} (${id})\nGrade: ${loadedStudent.grade}\nMonth: ${month}\nAmount Paid: LKR ${amount}\nStatus: SUCCESSFUL ✅\nThank you! - English with Sudan Sir`;
+                    // Format phone number & Open WhatsApp
+                    let rawPhone = loadedStudent.phone || loadedStudent.whatsapp || '';
+                    let phoneNum = rawPhone.replace(/\D/g, '');
+                    if (phoneNum.startsWith('0')) phoneNum = '94' + phoneNum.substring(1);
 
-            alert('✅ Payment recorded successfully!');
+                    const textMsg = `🧾 Official Payment Receipt for ${loadedStudent.name} (${id}) - Month: ${month}. (Please see attached image receipt).`;
 
-            if (phoneNum) {
-                window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(receiptMsg)}`, '_blank');
-            }
+                    if (phoneNum) {
+                        window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(textMsg)}`, '_blank');
+                    }
 
-            document.getElementById('feeForm').reset();
-            document.getElementById('studentId').value = '';
-            document.getElementById('studentCard').style.display = 'none';
-            loadedStudent = null;
+                    // Reset form
+                    document.getElementById('feeForm').reset();
+                    document.getElementById('studentId').value = '';
+                    document.getElementById('studentCard').style.display = 'none';
+                    loadedStudent = null;
+                });
+            });
         });
     });
 </script>
