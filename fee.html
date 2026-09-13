@@ -1,49 +1,58 @@
-// Updated Payment Submission Handler
+// Submit Payment, Save to Revenue Ledger, & Generate Receipt
 document.getElementById('feeForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const id = document.getElementById('studentId').value.trim();
     const month = document.getElementById('month').value;
-    const amount = document.getElementById('amount').value;
+    const amount = parseFloat(document.getElementById('amount').value);
 
     if (!id || !loadedStudent) return alert('⚠️ Please lookup student details first.');
 
     const now = new Date();
-    const recNo = '#REC-' + Math.floor(1000 + Math.random() * 9000);
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; // e.g., '2026-09'
     const dateString = now.toISOString().split('T')[0];
+    const recNo = '#REC-' + Math.floor(1000 + Math.random() * 9000);
 
-    // Data object for real-time sync across Admin Panel & Teacher views
-    const paymentRecord = {
-        status: 'Paid',
+    // 1. Update Student Profile Status
+    const studentUpdate = {
         fee: 'Paid',
         lastPaymentMonth: month,
         lastPaymentAmount: amount,
-        lastPaymentDate: dateString,
-        lastPaymentTimestamp: now.toISOString()
+        lastPaymentDate: dateString
     };
 
-    // 1. Update Student's primary status
-    db.ref('students/' + id).update(paymentRecord).then(() => {
+    db.ref('students/' + id).update(studentUpdate).then(() => {
 
-        // 2. Save into monthly payment ledger for Admin reporting
-        const ledgerEntry = {
+        // 2. Transaction Record for Revenue Ledger
+        const paymentRecord = {
             studentId: id,
             studentName: loadedStudent.name || 'N/A',
             grade: loadedStudent.grade || 'N/A',
-            amount: amount,
             month: month,
+            amount: amount,
             date: dateString,
-            time: timeString,
+            timestamp: now.toISOString(),
             receiptNo: recNo
         };
 
-        // Write to root payments node AND student history node
-        db.ref(`payments/${month}/${id}`).set(ledgerEntry);
-        db.ref(`students/${id}/paymentHistory/${month}`).set(ledgerEntry);
+        // Write to monthly ledger
+        db.ref(`revenue/${yearMonth}/transactions/${recNo.replace('#', '')}`).set(paymentRecord);
 
-        alert('✅ Payment successfully recorded in Database & Admin Panel!');
+        // 3. Atomically update Total Monthly Revenue Counter for Teacher Dashboard
+        db.ref(`revenue/${yearMonth}/totalAmount`).transaction((currentTotal) => {
+            return (currentTotal || 0) + amount;
+        });
 
-        // (Receipt generation & WhatsApp code continues below...)
-    }).catch(err => alert('❌ Database write failed: ' + err.message));
+        // 4. Update Grade-wise Revenue Breakdown
+        const gradeKey = (loadedStudent.grade || 'Unknown').replace(/\s+/g, '_');
+        db.ref(`revenue/${yearMonth}/byGrade/${gradeKey}`).transaction((currentGradeTotal) => {
+            return (currentGradeTotal || 0) + amount;
+        });
+
+        alert('✅ Payment recorded! Revenue dashboard updated.');
+
+        // (Receipt generation & WhatsApp trigger script continues below...)
+        generateReceiptAndOpenWhatsApp(recNo, month, amount);
+
+    }).catch(err => alert('❌ Error saving payment: ' + err.message));
 });
