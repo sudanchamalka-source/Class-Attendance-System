@@ -9,7 +9,6 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    <!-- Html5-QRCode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
@@ -59,13 +58,7 @@
             cursor: pointer;
             font-size: 0.95em;
             margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
         }
-
-        .btn-qr-toggle:hover { background: #003366; }
 
         #qr-reader-container {
             display: none;
@@ -76,9 +69,14 @@
             background: #000;
         }
 
-        .form-group {
+        .upload-section {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
             margin-bottom: 15px;
         }
+
+        .form-group { margin-bottom: 15px; }
 
         label {
             display: block;
@@ -104,8 +102,6 @@
             padding: 10px 15px;
             cursor: pointer;
             font-weight: bold;
-            margin-top: 8px;
-            width: 100%;
         }
 
         .student-details-card {
@@ -117,10 +113,7 @@
             display: none;
         }
 
-        .student-details-card p {
-            margin: 4px 0;
-            font-size: 0.95em;
-        }
+        .student-details-card p { margin: 4px 0; font-size: 0.95em; }
 
         .btn-submit {
             width: 100%;
@@ -134,8 +127,6 @@
             cursor: pointer;
             margin-top: 10px;
         }
-
-        .btn-submit:hover { background: #218838; }
     </style>
 </head>
 <body>
@@ -150,7 +141,6 @@
             <a href="students_list.html">📚 Admin Panel</a>
         </div>
 
-        <!-- Camera QR Scanner Toggle -->
         <button type="button" class="btn-qr-toggle" onclick="toggleScanner()">
             📷 <span id="scannerToggleText">Open Camera QR Scanner</span>
         </button>
@@ -159,15 +149,19 @@
             <div id="reader"></div>
         </div>
 
+        <div class="upload-section">
+            <label for="feeQrFile">📁 Or Upload QR Image File:</label>
+            <input type="file" id="feeQrFile" accept="image/*" onchange="uploadScanFeeQr(event)">
+        </div>
+
         <div class="form-group">
             <label for="studentId">Student ID / Index No:</label>
             <div style="display: flex; gap: 8px;">
-                <input type="text" id="studentId" placeholder="Enter or Scan ID (e.g. STU1001)" required>
-                <button type="button" class="search-btn" style="width: 80px; margin-top: 0;" onclick="loadStudentDetails()">Lookup</button>
+                <input type="text" id="studentId" placeholder="Enter or Scan ID..." required>
+                <button type="button" class="search-btn" style="width: 80px;" onclick="loadStudentDetails()">Lookup</button>
             </div>
         </div>
 
-        <!-- Student Info Preview -->
         <div id="studentCard" class="student-details-card">
             <p><strong>Name:</strong> <span id="lblStudentName">-</span></p>
             <p><strong>Grade:</strong> <span id="lblGrade">-</span></p>
@@ -235,7 +229,7 @@
             html5QrcodeScanner.render((decodedText) => {
                 document.getElementById('studentId').value = decodedText.trim();
                 loadStudentDetails();
-                toggleScanner(); // Close scanner after successful scan
+                toggleScanner();
             });
         } else {
             if (html5QrcodeScanner) {
@@ -245,6 +239,19 @@
             toggleText.innerText = 'Open Camera QR Scanner';
             isScannerOpen = false;
         }
+    }
+
+    function uploadScanFeeQr(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.scanFile(file, true)
+            .then(decodedText => {
+                document.getElementById('studentId').value = decodedText.trim();
+                loadStudentDetails();
+            })
+            .catch(err => alert('❌ Failed to scan QR from uploaded image.'));
     }
 
     function loadStudentDetails() {
@@ -270,13 +277,11 @@
 
     document.getElementById('feeForm').addEventListener('submit', function(e) {
         e.preventDefault();
-
         const id = document.getElementById('studentId').value.trim();
         const month = document.getElementById('month').value;
         const amount = document.getElementById('amount').value;
 
-        if (!id) return alert('⚠️ Student ID is required.');
-        if (!loadedStudent) return alert('⚠️ Please lookup student details before recording payment.');
+        if (!id || !loadedStudent) return alert('⚠️ Select or lookup student details first.');
 
         const paymentData = {
             fee: 'Paid',
@@ -285,43 +290,25 @@
             lastPaymentDate: new Date().toISOString().split('T')[0]
         };
 
-        // Update Student node and save history
         db.ref('students/' + id).update(paymentData).then(() => {
-            db.ref(`payments/${id}/${month}`).set({
-                amount: amount,
-                paidDate: new Date().toISOString(),
-                month: month
-            });
+            db.ref(`payments/${id}/${month}`).set({ amount: amount, paidDate: new Date().toISOString(), month: month });
 
-            // Formulate WhatsApp receipt text
             let rawPhone = loadedStudent.phone || loadedStudent.whatsapp || '';
             let phoneNum = rawPhone.replace(/\D/g, '');
-            if (phoneNum.startsWith('0')) {
-                phoneNum = '94' + phoneNum.substring(1);
-            }
+            if (phoneNum.startsWith('0')) phoneNum = '94' + phoneNum.substring(1);
 
-            const receiptMsg = `🧾 *FEE PAYMENT RECEIPT*\n` +
-                               `Student: ${loadedStudent.name} (${id})\n` +
-                               `Grade: ${loadedStudent.grade}\n` +
-                               `Month: ${month}\n` +
-                               `Amount Paid: LKR ${amount}\n` +
-                               `Status: SUCCESSFUL ✅\n` +
-                               `Thank you! - English with Sudan Sir`;
+            const receiptMsg = `🧾 *FEE PAYMENT RECEIPT*\nStudent: ${loadedStudent.name} (${id})\nGrade: ${loadedStudent.grade}\nMonth: ${month}\nAmount Paid: LKR ${amount}\nStatus: SUCCESSFUL ✅\nThank you! - English with Sudan Sir`;
 
             alert('✅ Payment recorded successfully!');
 
             if (phoneNum) {
-                const waUrl = `https://wa.me/${phoneNum}?text=${encodeURIComponent(receiptMsg)}`;
-                window.open(waUrl, '_blank');
+                window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(receiptMsg)}`, '_blank');
             }
 
-            // Reset form
             document.getElementById('feeForm').reset();
             document.getElementById('studentId').value = '';
             document.getElementById('studentCard').style.display = 'none';
             loadedStudent = null;
-        }).catch((err) => {
-            alert('❌ Error recording payment: ' + err.message);
         });
     });
 </script>
