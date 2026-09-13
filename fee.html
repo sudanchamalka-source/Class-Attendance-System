@@ -1,58 +1,553 @@
-// Submit Payment, Save to Revenue Ledger, & Generate Receipt
-document.getElementById('feeForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fee Payment & Image Receipt</title>
+    <link rel="icon" type="image/png" href="logo.png">
 
-    const id = document.getElementById('studentId').value.trim();
-    const month = document.getElementById('month').value;
-    const amount = parseFloat(document.getElementById('amount').value);
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <!-- Html5-QRCode Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- html2canvas Library for Receipt Graphic -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    if (!id || !loadedStudent) return alert('⚠️ Please lookup student details first.');
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-    const now = new Date();
-    const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; // e.g., '2026-09'
-    const dateString = now.toISOString().split('T')[0];
-    const recNo = '#REC-' + Math.floor(1000 + Math.random() * 9000);
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
 
-    // 1. Update Student Profile Status
-    const studentUpdate = {
-        fee: 'Paid',
-        lastPaymentMonth: month,
-        lastPaymentAmount: amount,
-        lastPaymentDate: dateString
+        h2 { text-align: center; color: #003366; margin-top: 0; }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #0056b3;
+            font-weight: bold;
+            margin: 0 8px;
+        }
+
+        .btn-qr-toggle {
+            width: 100%;
+            background: #0056b3;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+
+        .btn-qr-toggle:hover { background: #003366; }
+
+        #qr-reader-container {
+            display: none;
+            margin-bottom: 15px;
+            border: 2px solid #0056b3;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #reader { width: 100%; min-height: 250px; }
+
+        .upload-section {
+            background: #e9ecef;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px dashed #0056b3;
+        }
+
+        .upload-section label {
+            font-weight: bold;
+            color: #003366;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .form-group { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #0056b3;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        .search-btn {
+            background: #003366;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .student-details-card {
+            background: #e8f4f8;
+            border-left: 4px solid #0056b3;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .student-details-card p { margin: 6px 0; font-size: 0.95em; color: #333; }
+        .student-details-card span { font-weight: bold; color: #003366; }
+
+        .phone-highlight {
+            background: #25D366;
+            color: white !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #28a745;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover { background: #218838; }
+
+        /* Hidden Receipt Frame */
+        #receiptWrapper {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+        }
+
+        .receipt-card {
+            width: 380px;
+            background: #ffffff;
+            border: 3px solid #003366;
+            border-radius: 12px;
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px dashed #003366;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .receipt-header h2 { margin: 0; color: #003366; font-size: 1.4em; }
+        .receipt-header p { margin: 2px 0 0 0; font-size: 0.85em; color: #555; font-weight: bold; }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .receipt-row strong { color: #003366; }
+
+        .receipt-total {
+            background: #e8f5e9;
+            border: 1px dashed #28a745;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .receipt-total h3 { margin: 0; color: #28a745; font-size: 1.2em; }
+
+        .receipt-footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.75em;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>💳 Fee Payment & Image Receipt</h2>
+        
+        <div class="nav-links">
+            <a href="index.html">📸 Scanner</a> | 
+            <a href="register.html">+ New Register</a> | 
+            <a href="fee.html">💳 Fee Payment</a> | 
+            <a href="students_list.html">📚 Admin Panel</a>
+        </div>
+
+        <!-- Camera Scanner Toggle -->
+        <button type="button" class="btn-qr-toggle" onclick="toggleScanner()">
+            📷 <span id="scannerToggleText">Open Camera QR Scanner</span>
+        </button>
+
+        <div id="qr-reader-container">
+            <div id="reader"></div>
+        </div>
+
+        <!-- Image Upload Fallback -->
+        <div class="upload-section">
+            <label for="feeQrFile">📁 Camera Blocked? Upload QR Image File:</label>
+            <input type="file" id="feeQrFile" accept="image/*" onchange="uploadScanFeeQr(event)">
+        </div>
+
+        <!-- Student Lookup Form -->
+        <div class="form-group">
+            <label for="studentId">Student ID / Index No:</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="studentId" placeholder="Enter or Scan ID (e.g. STU1001)" required>
+                <button type="button" class="search-btn" style="width: 80px;" onclick="loadStudentDetails()">Lookup</button>
+            </div>
+        </div>
+
+        <!-- Student Information Display -->
+        <div id="studentCard" class="student-details-card">
+            <p><strong>Name:</strong> <span id="lblStudentName">-</span></p>
+            <p><strong>Grade:</strong> <span id="lblGrade">-</span></p>
+            <p><strong>WhatsApp / Phone:</strong> <span id="lblPhone" class="phone-highlight">-</span></p>
+            <p><strong>Current Fee Status:</strong> <span id="lblStatus">-</span></p>
+        </div>
+
+        <!-- Payment Form -->
+        <form id="feeForm">
+            <div class="form-group">
+                <label for="month">Payment Month:</label>
+                <select id="month" required>
+                    <option value="">Select Month</option>
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Amount Paid (LKR):</label>
+                <input type="number" id="amount" placeholder="e.g. 2000" required>
+            </div>
+
+            <button type="submit" class="btn-submit">🖼️ Submit Payment & Send WhatsApp Receipt</button>
+        </form>
+    </div>
+
+    <!-- Hidden Receipt Card Template -->
+    <div id="receiptWrapper">
+        <div class="receipt-card" id="receiptCard">
+            <div class="receipt-header">
+                <h2>ENGLISH WITH SUDAN SIR</h2>
+                <p>OFFICIAL PAYMENT RECEIPT</p>
+            </div>
+            <div class="receipt-row">
+                <span>Date & Time:</span>
+                <strong id="rDateTime">2026-09-13</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Receipt No:</span>
+                <strong id="rRecNo">#REC-0000</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Student ID:</span>
+                <strong id="rStuId">STU1001</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Student Name:</span>
+                <strong id="rStuName">Student Name</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Grade / Class:</span>
+                <strong id="rGrade">Grade 10</strong>
+            </div>
+            <div class="receipt-row">
+                <span>Payment Month:</span>
+                <strong id="rMonth">September</strong>
+            </div>
+
+            <div class="receipt-total">
+                <p style="margin: 0; font-size: 0.85em; color: #555;">AMOUNT RECEIVED</p>
+                <h3>LKR <span id="rAmount">2000.00</span></h3>
+                <small style="color: #28a745; font-weight: bold;">STATUS: SUCCESSFUL ✅</small>
+            </div>
+
+            <div class="receipt-footer">
+                Thank you for your payment!<br>
+                Contact: 0706562952 | WhatsApp: 0716562952
+            </div>
+        </div>
+    </div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    db.ref('students/' + id).update(studentUpdate).then(() => {
+    let html5QrCode = null;
+    let isScannerOpen = false;
+    let loadedStudent = null;
 
-        // 2. Transaction Record for Revenue Ledger
-        const paymentRecord = {
-            studentId: id,
-            studentName: loadedStudent.name || 'N/A',
-            grade: loadedStudent.grade || 'N/A',
-            month: month,
-            amount: amount,
-            date: dateString,
-            timestamp: now.toISOString(),
-            receiptNo: recNo
+    // Browser Security Diagnostic
+    function checkBrowserSecurityContext() {
+        if (window.location.protocol === 'file:') {
+            alert("❌ SECURITY ERROR: Opened via file:///\n\nBrowsers block camera access on local file paths. Open using Live Server (http://localhost:5500) or HTTPS!");
+            return false;
+        }
+        if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            alert("❌ SECURITY ERROR: Plain HTTP detected.\n\nBrowsers block camera access unless using HTTPS or localhost.");
+            return false;
+        }
+        return true;
+    }
+
+    // Camera Toggle Logic
+    async function toggleScanner() {
+        const container = document.getElementById('qr-reader-container');
+        const toggleText = document.getElementById('scannerToggleText');
+
+        if (!isScannerOpen) {
+            if (!checkBrowserSecurityContext()) return;
+
+            container.style.display = 'block';
+            toggleText.innerText = 'Close Camera Scanner';
+            isScannerOpen = true;
+
+            try {
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length > 0) {
+                    const backCam = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('environment'));
+                    const selectedCamId = backCam ? backCam.id : devices[0].id;
+
+                    if (!html5QrCode) {
+                        html5QrCode = new Html5Qrcode("reader");
+                    }
+
+                    await html5QrCode.start(
+                        selectedCamId,
+                        { fps: 10, qrbox: { width: 220, height: 220 } },
+                        (decodedText) => {
+                            document.getElementById('studentId').value = decodedText.trim();
+                            loadStudentDetails();
+                            toggleScanner();
+                        },
+                        (errorMessage) => {}
+                    );
+                } else {
+                    alert("⚠️ No cameras found.");
+                }
+            } catch (err) {
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    alert("🚫 Camera permission denied! Please allow access in site settings.");
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    alert("📷 Camera in use by another app. Close background apps.");
+                } else {
+                    alert("⚠️ Camera Error: " + (err.message || err));
+                }
+            }
+        } else {
+            if (html5QrCode) {
+                await html5QrCode.stop().catch(() => {});
+            }
+            container.style.display = 'none';
+            toggleText.innerText = 'Open Camera QR Scanner';
+            isScannerOpen = false;
+        }
+    }
+
+    // QR Code Image Upload Handler
+    function uploadScanFeeQr(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const scanner = new Html5Qrcode("reader");
+        scanner.scanFile(file, true)
+            .then(decodedText => {
+                document.getElementById('studentId').value = decodedText.trim();
+                loadStudentDetails();
+            })
+            .catch(err => alert('❌ Failed to scan QR code from image file.'));
+    }
+
+    // Retrieve Student Info & Display Contact Number
+    function loadStudentDetails() {
+        const id = document.getElementById('studentId').value.trim();
+        if (!id) return alert('⚠️ Please enter or scan a Student ID.');
+
+        db.ref('students/' + id).once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                alert('❌ Student ID not found!');
+                document.getElementById('studentCard').style.display = 'none';
+                loadedStudent = null;
+                return;
+            }
+
+            loadedStudent = snapshot.val();
+            const phoneNo = loadedStudent.phone || loadedStudent.whatsapp || loadedStudent.parentPhone || loadedStudent.mobile || 'Not Provided';
+
+            document.getElementById('lblStudentName').innerText = loadedStudent.name || 'N/A';
+            document.getElementById('lblGrade').innerText = loadedStudent.grade || 'N/A';
+            document.getElementById('lblPhone').innerText = phoneNo;
+            document.getElementById('lblStatus').innerText = loadedStudent.fee || 'Not Paid';
+            document.getElementById('studentCard').style.display = 'block';
+        });
+    }
+
+    // Process Payment, Update Database, Write to Revenue Ledger & Trigger WhatsApp Image Receipt
+    document.getElementById('feeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const id = document.getElementById('studentId').value.trim();
+        const month = document.getElementById('month').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+
+        if (!id || !loadedStudent) return alert('⚠️ Select or lookup student details first.');
+
+        const now = new Date();
+        const dateString = now.toISOString().split('T')[0];
+        const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        const recNo = '#REC-' + Math.floor(1000 + Math.random() * 9000);
+        const dateTimeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Update hidden card UI for image capture
+        document.getElementById('rDateTime').innerText = dateTimeStr;
+        document.getElementById('rRecNo').innerText = recNo;
+        document.getElementById('rStuId').innerText = id;
+        document.getElementById('rStuName').innerText = loadedStudent.name;
+        document.getElementById('rGrade').innerText = loadedStudent.grade;
+        document.getElementById('rMonth').innerText = month;
+        document.getElementById('rAmount').innerText = amount.toFixed(2);
+
+        // 1. Primary Student Status Update
+        const studentUpdate = {
+            fee: 'Paid',
+            status: 'Paid',
+            lastPaymentMonth: month,
+            lastPaymentAmount: amount,
+            lastPaymentDate: dateString
         };
 
-        // Write to monthly ledger
-        db.ref(`revenue/${yearMonth}/transactions/${recNo.replace('#', '')}`).set(paymentRecord);
+        db.ref('students/' + id).update(studentUpdate).then(() => {
+            
+            // 2. Transaction object for Revenue Ledgers
+            const transactionRecord = {
+                studentId: id,
+                studentName: loadedStudent.name || 'N/A',
+                grade: loadedStudent.grade || 'N/A',
+                amount: amount,
+                month: month,
+                date: dateString,
+                timestamp: now.toISOString(),
+                receiptNo: recNo
+            };
 
-        // 3. Atomically update Total Monthly Revenue Counter for Teacher Dashboard
-        db.ref(`revenue/${yearMonth}/totalAmount`).transaction((currentTotal) => {
-            return (currentTotal || 0) + amount;
-        });
+            // Write into root payments ledger & monthly revenue node for Teacher Dashboard
+            db.ref(`payments/${month}/${id}`).set(transactionRecord);
+            db.ref(`revenue/${yearMonth}/transactions/${recNo.replace('#', '')}`).set(transactionRecord);
 
-        // 4. Update Grade-wise Revenue Breakdown
-        const gradeKey = (loadedStudent.grade || 'Unknown').replace(/\s+/g, '_');
-        db.ref(`revenue/${yearMonth}/byGrade/${gradeKey}`).transaction((currentGradeTotal) => {
-            return (currentGradeTotal || 0) + amount;
-        });
+            // Increment Teacher Dashboard total monthly revenue counter atomically
+            db.ref(`revenue/${yearMonth}/totalAmount`).transaction((currentTotal) => {
+                return (currentTotal || 0) + amount;
+            });
 
-        alert('✅ Payment recorded! Revenue dashboard updated.');
+            // 3. Render graphic receipt image
+            const receiptCard = document.getElementById('receiptCard');
+            html2canvas(receiptCard, { scale: 3 }).then(canvas => {
+                canvas.toBlob(blob => {
+                    try {
+                        const item = new ClipboardItem({ 'image/png': blob });
+                        navigator.clipboard.write([item]);
+                        alert('✅ Payment saved to Database & Revenue Dashboard!\n\nReceipt copied to clipboard. Press Ctrl+V in WhatsApp to paste.');
+                    } catch (err) {
+                        const link = document.createElement('a');
+                        link.download = `Receipt_${id}_${month}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        alert('✅ Payment saved to Database & Revenue Dashboard!\n\nReceipt downloaded. Attach it in WhatsApp.');
+                    }
 
-        // (Receipt generation & WhatsApp trigger script continues below...)
-        generateReceiptAndOpenWhatsApp(recNo, month, amount);
+                    // Format phone number for WhatsApp Web API
+                    let rawPhone = loadedStudent.phone || loadedStudent.whatsapp || loadedStudent.parentPhone || '';
+                    let phoneNum = rawPhone.replace(/\D/g, '');
+                    if (phoneNum.startsWith('0')) phoneNum = '94' + phoneNum.substring(1);
 
-    }).catch(err => alert('❌ Error saving payment: ' + err.message));
-});
+                    const textMsg = `🧾 Official Fee Payment Receipt for ${loadedStudent.name} (${id}) - Month: ${month}. Amount: LKR ${amount.toFixed(2)}.`;
+
+                    if (phoneNum) {
+                        window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(textMsg)}`, '_blank');
+                    }
+
+                    // Reset state
+                    document.getElementById('feeForm').reset();
+                    document.getElementById('studentId').value = '';
+                    document.getElementById('studentCard').style.display = 'none';
+                    loadedStudent = null;
+                });
+            });
+        }).catch(err => alert('❌ Error processing payment: ' + err.message));
+    });
+</script>
+</body>
+</html>
