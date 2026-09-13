@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Attendance & Verification</title>
+    <title>Student Attendance & Verification - English with Sudan Sir</title>
     <link rel="icon" type="image/png" href="logo.png">
 
     <!-- Firebase SDKs -->
@@ -26,8 +26,42 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 0 auto;
+        }
+
+        /* Top Class Branding Header */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            background: #ffffff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .class-logo {
+            width: 65px;
+            height: 65px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .brand-text h1 {
+            margin: 0;
+            color: #003366;
+            font-size: 1.8rem;
+        }
+
+        .brand-text p {
+            margin: 3px 0 0 0;
+            color: #666;
+            font-size: 0.95rem;
+            font-weight: 500;
         }
 
         /* Responsive Navigation Bar */
@@ -36,7 +70,7 @@
             justify-content: space-between;
             align-items: center;
             background: #ffffff;
-            padding: 20px 30px;
+            padding: 15px 25px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             margin-bottom: 25px;
@@ -44,10 +78,10 @@
             gap: 15px;
         }
 
-        .header h1 {
+        .header h2 {
             margin: 0;
             color: #003366;
-            font-size: 1.6rem;
+            font-size: 1.3rem;
         }
 
         .nav-links {
@@ -64,6 +98,7 @@
             border-radius: 6px;
             background-color: #f0f4f9;
             transition: all 0.2s ease;
+            font-size: 0.95rem;
         }
 
         .nav-links a:hover, .nav-links a.active {
@@ -180,12 +215,18 @@
 <body>
 
     <div class="container">
+        <!-- Top Branding Header -->
+        <div class="brand-header">
+            <img src="logo.png" alt="Class Logo" class="class-logo" onerror="this.style.display='none'">
+            <div class="brand-text">
+                <h1>English with Sudan Sir</h1>
+                <p>Student Attendance & Class Management System</p>
+            </div>
+        </div>
+
         <!-- Main Navigation Bar -->
         <div class="header">
-            <div>
-                <h1>📸 Attendance Scanner</h1>
-                <p style="margin: 5px 0 0 0; color: #666;">English with Sudan Sir</p>
-            </div>
+            <h2>📸 Attendance Scanner</h2>
             <div class="nav-links">
                 <a href="index.html" class="active">📸 Scanner</a>
                 <a href="register.html">+ New Register</a>
@@ -212,10 +253,10 @@
             <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 20px 0;">
 
             <!-- Option 1: QR Code Scanner -->
-            <h3>Scan Student QR Code</h3>
+            <h3 style="color: #003366; text-align: center;">Scan Student QR Code</h3>
             <div id="reader"></div>
 
-            <p style="font-weight: bold; color: #888; margin: 15px 0;">- OR -</p>
+            <p style="font-weight: bold; color: #888; margin: 15px 0; text-align: center;">- OR -</p>
 
             <!-- Option 2: Manual Student ID Input -->
             <div class="form-group">
@@ -317,7 +358,6 @@
                 const waContainer = document.getElementById('whatsappContainer');
                 
                 if (parentPhone) {
-                    // Clean phone number format for WhatsApp API
                     const formattedPhone = parentPhone.replace(/[^0-9]/g, '');
                     const messageText = `Dear Parent, your child ${data.name || cleanId} has attended English class (${selectedDay}) today (${dateString}) at ${timeString}. Fee Status: ${isPaid ? 'Paid' : 'Pending'}. Thank you! - English with Sudan Sir`;
                     const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(messageText)}`;
