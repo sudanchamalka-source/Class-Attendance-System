@@ -42,13 +42,6 @@
             text-align: center;
         }
 
-        header img {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
         .header-title h1 {
             font-size: 26px;
             color: #1e3a8a;
@@ -128,18 +121,18 @@
 
         .days-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
         }
 
         .day-btn {
-            padding: 12px 6px;
+            padding: 14px 10px;
             border: 2px solid #e5e7eb;
             background: #ffffff;
             color: #374151;
             border-radius: 8px;
-            font-weight: 600;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: center;
@@ -194,12 +187,6 @@
             }
 
             .days-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        @media (max-width: 480px) {
-            .days-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
@@ -215,33 +202,30 @@
         </div>
     </header>
 
-    <!-- Navigation Bar with Fixed Lowercase Links -->
+    <!-- Navigation Bar (Matched to Repo Files) -->
     <div class="nav-bar">
         <span class="nav-title">📸 Attendance Scanner</span>
         <a href="index.html" class="nav-btn active">📸 Scanner</a>
         <a href="register.html" class="nav-btn">+ New Register</a>
-        <a href="fee_payment.html" class="nav-btn">💳 Fee Payment</a>
-        <a href="admin_panel.html" class="nav-btn">🗂️ Admin Panel</a>
+        <a href="fee.html" class="nav-btn">💳 Fee Payment</a>
+        <a href="admin_fees.html" class="nav-btn">🗂️ Admin Panel</a>
         <a href="teacher_dashboard.html" class="nav-btn">📊 Dashboard</a>
     </div>
 
-    <!-- Clickable Day Selection Option -->
+    <!-- Day Selection Option (Day 1 - Day 4 Only) -->
     <div class="day-selection-card">
         <h3>Select Class Session Day</h3>
         <div class="days-grid" id="daysContainer">
-            <button class="day-btn" onclick="selectDay(this, 'Monday')">Monday</button>
-            <button class="day-btn" onclick="selectDay(this, 'Tuesday')">Tuesday</button>
-            <button class="day-btn" onclick="selectDay(this, 'Wednesday')">Wednesday</button>
-            <button class="day-btn" onclick="selectDay(this, 'Thursday')">Thursday</button>
-            <button class="day-btn" onclick="selectDay(this, 'Friday')">Friday</button>
-            <button class="day-btn" onclick="selectDay(this, 'Saturday')">Saturday</button>
-            <button class="day-btn" onclick="selectDay(this, 'Sunday')">Sunday</button>
+            <button class="day-btn selected" onclick="selectDay(this, 'Day 1')">Day 1</button>
+            <button class="day-btn" onclick="selectDay(this, 'Day 2')">Day 2</button>
+            <button class="day-btn" onclick="selectDay(this, 'Day 3')">Day 3</button>
+            <button class="day-btn" onclick="selectDay(this, 'Day 4')">Day 4</button>
         </div>
     </div>
 
     <!-- Attendance Area -->
     <div class="scanner-card">
-        <h2 id="activeDayDisplay">Active Session: Today</h2>
+        <h2 id="activeDayDisplay">Active Session: Day 1</h2>
         <div class="scanner-box">
             <p>📷 QR Code Camera Stream Ready</p>
         </div>
@@ -249,8 +233,8 @@
 </div>
 
 <script>
-    // Clickable Day Selection Logic
-    let activeSelectedDay = '';
+    // Day Selection Logic
+    let activeSelectedDay = 'Day 1';
 
     function selectDay(element, dayName) {
         // Remove active class from all buttons
@@ -264,19 +248,6 @@
         // Update active UI title
         document.getElementById('activeDayDisplay').innerText = `Active Session: ${dayName}`;
     }
-
-    // Automatically highlight current day of week on load
-    document.addEventListener('DOMContentLoaded', () => {
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const todayName = days[new Date().getDay()];
-        
-        const buttons = document.querySelectorAll('.day-btn');
-        buttons.forEach(btn => {
-            if (btn.innerText.trim() === todayName) {
-                selectDay(btn, todayName);
-            }
-        });
-    });
 </script>
 
 </body>
