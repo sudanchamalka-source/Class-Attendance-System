@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Attendance Scanner</title>
+    <title>Student Attendance & QR Scanner</title>
     <link rel="icon" type="image/png" href="logo.png">
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+    <!-- Html5-QRCode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
@@ -30,81 +31,136 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             box-sizing: border-box;
+        }
+
+        h2 { text-align: center; color: #003366; margin-top: 0; }
+
+        .nav-links {
             text-align: center;
-        }
-
-        h2 { color: #003366; margin-top: 0; }
-
-        .nav-links { margin-bottom: 20px; font-size: 0.9em; }
-        .nav-links a { text-decoration: none; color: #0056b3; font-weight: bold; margin: 0 8px; }
-
-        .day-selection-box {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 10px;
             margin-bottom: 20px;
-            border: 2px solid #0056b3;
+            font-size: 0.9em;
         }
 
-        .day-selection-box label { font-weight: bold; color: #003366; display: block; margin-bottom: 8px; }
-        .day-buttons { display: flex; gap: 8px; justify-content: center; }
-
-        .day-btn {
-            flex: 1;
-            padding: 10px 0;
-            border: 2px solid #0056b3;
-            background: white;
+        .nav-links a {
+            text-decoration: none;
             color: #0056b3;
             font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
+            margin: 0 8px;
         }
 
-        .day-btn.active { background: #0056b3; color: white; }
+        .btn-qr-toggle {
+            width: 100%;
+            background: #0056b3;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
 
-        #reader { width: 100%; border-radius: 10px; border: 2px solid #0056b3; margin-bottom: 15px; overflow: hidden; }
+        .btn-qr-toggle:hover { background: #003366; }
+
+        #qr-reader-container {
+            display: none;
+            margin-bottom: 15px;
+            border: 2px solid #0056b3;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #reader {
+            width: 100%;
+            min-height: 250px;
+        }
 
         .upload-section {
-            background: #fff3cd;
-            border: 1px solid #ffeeba;
+            background: #e9ecef;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 6px;
             margin-bottom: 15px;
+            border: 1px dashed #0056b3;
         }
 
         .upload-section label {
             font-weight: bold;
-            color: #856404;
+            color: #003366;
             display: block;
             margin-bottom: 5px;
+            font-size: 0.9em;
         }
 
-        .manual-input { display: flex; gap: 10px; margin-top: 15px; }
-        .manual-input input { flex: 1; padding: 10px; border: 1px solid #0056b3; border-radius: 6px; }
+        .form-group { margin-bottom: 15px; }
 
-        .btn-mark { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
 
-        .status-box { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
-        .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .status-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .student-preview-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid #155724; margin-bottom: 8px; }
-
-        .btn-wa {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background-color: #25D366;
-            color: white;
-            text-decoration: none;
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #0056b3;
             border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        .search-btn {
+            background: #003366;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 15px;
+            cursor: pointer;
             font-weight: bold;
         }
+
+        .student-details-card {
+            background: #e8f4f8;
+            border-left: 4px solid #0056b3;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .student-details-card p { margin: 6px 0; font-size: 0.95em; color: #333; }
+        .student-details-card span { font-weight: bold; color: #003366; }
+
+        .phone-highlight {
+            background: #25D366;
+            color: white !important;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #28a745;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover { background: #218838; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>📸 Attendance Scanner</h2>
+        <h2>📸 Attendance & QR Scanner</h2>
         
         <div class="nav-links">
             <a href="index.html">📸 Scanner</a> | 
@@ -113,33 +169,40 @@
             <a href="students_list.html">📚 Admin Panel</a>
         </div>
 
-        <!-- Class Day Selector -->
-        <div class="day-selection-box">
-            <label>📅 Select Class Session / Day:</label>
-            <div class="day-buttons">
-                <button type="button" class="day-btn active" onclick="selectDay('Day 1', this)">Day 1</button>
-                <button type="button" class="day-btn" onclick="selectDay('Day 2', this)">Day 2</button>
-                <button type="button" class="day-btn" onclick="selectDay('Day 3', this)">Day 3</button>
-                <button type="button" class="day-btn" onclick="selectDay('Day 4', this)">Day 4</button>
+        <!-- Camera Scanner Toggle Button -->
+        <button type="button" class="btn-qr-toggle" onclick="toggleScanner()">
+            📷 <span id="scannerToggleText">Open Camera QR Scanner</span>
+        </button>
+
+        <div id="qr-reader-container">
+            <div id="reader"></div>
+        </div>
+
+        <!-- File Upload Camera Backup -->
+        <div class="upload-section">
+            <label for="qrFile">📁 Camera Blocked? Upload QR Image File:</label>
+            <input type="file" id="qrFile" accept="image/*" onchange="uploadScanQr(event)">
+        </div>
+
+        <!-- Student Lookup Form -->
+        <div class="form-group">
+            <label for="studentId">Student ID / Index No:</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="studentId" placeholder="Enter or Scan ID (e.g. STU1001)" required>
+                <button type="button" class="search-btn" style="width: 80px;" onclick="loadStudentDetails()">Lookup</button>
             </div>
         </div>
 
-        <!-- QR Camera Reader Container -->
-        <div id="reader"></div>
-
-        <!-- QR File Upload Fallback -->
-        <div class="upload-section">
-            <label for="qrFileInput">📁 Camera blocked? Upload QR Image File:</label>
-            <input type="file" id="qrFileInput" accept="image/*" onchange="scanFromFile(event)">
+        <!-- Student Details Information Display Card -->
+        <div id="studentCard" class="student-details-card">
+            <p><strong>Name:</strong> <span id="lblStudentName">-</span></p>
+            <p><strong>Grade:</strong> <span id="lblGrade">-</span></p>
+            <p><strong>WhatsApp / Phone:</strong> <span id="lblPhone" class="phone-highlight">-</span></p>
+            <p><strong>Fee Status:</strong> <span id="lblStatus">-</span></p>
         </div>
 
-        <!-- Manual ID Input -->
-        <div class="manual-input">
-            <input type="text" id="manualId" placeholder="Or type Student ID manually...">
-            <button type="button" class="btn-mark" onclick="markManualAttendance()">Mark</button>
-        </div>
-
-        <div id="statusBox" class="status-box"></div>
+        <!-- Attendance Action Button -->
+        <button type="button" class="btn-submit" onclick="markAttendance()">✅ Mark Attendance</button>
     </div>
 
 <script>
@@ -156,118 +219,140 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let selectedDay = 'Day 1';
-    let isProcessing = false;
+    let html5QrCode = null;
+    let isScannerOpen = false;
+    let loadedStudent = null;
 
-    function selectDay(dayName, element) {
-        selectedDay = dayName;
-        document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
-        element.classList.add('active');
-        showStatus(`Selected: <strong>${selectedDay}</strong> for scans.`, 'success');
-    }
-
-    function processScan(studentId) {
-        if (isProcessing) return;
-        isProcessing = true;
-
-        const cleanId = studentId.trim();
-        if (!cleanId) {
-            showStatus('⚠️ Invalid ID Scanned!', 'error');
-            isProcessing = false;
-            return;
+    // Verify context protocol before accessing camera APIs
+    function checkBrowserSecurityContext() {
+        if (window.location.protocol === 'file:') {
+            alert("❌ SECURITY ERROR: You opened this file directly from your computer (file:///).\n\nBrowsers PERMANENTLY block camera permissions on local file paths. Run this page using VS Code Live Server (http://localhost:5500) or deploy to GitHub Pages (HTTPS)!");
+            return false;
         }
-
-        db.ref('students/' + cleanId).once('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                showStatus(`❌ Student ID <strong>${cleanId}</strong> not found!`, 'error');
-                setTimeout(() => { isProcessing = false; }, 2000);
-                return;
-            }
-
-            const student = snapshot.val();
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const dateStr = now.toISOString().split('T')[0];
-
-            const attendanceData = {
-                stuId: cleanId,
-                name: student.name || 'Unknown',
-                grade: student.grade || 'N/A',
-                day: selectedDay,
-                date: dateStr,
-                time: timeStr,
-                timestamp: now.getTime()
-            };
-
-            db.ref(`attendance/${selectedDay}/${cleanId}`).set(attendanceData).then(() => {
-                db.ref(`students/${cleanId}/attendance/${selectedDay}`).set(attendanceData);
-                db.ref(`students/${cleanId}/lastAttendance`).set(attendanceData);
-
-                let rawPhone = student.phone || student.whatsapp || '';
-                let phoneNum = rawPhone.replace(/\D/g, '');
-                if (phoneNum.startsWith('0')) {
-                    phoneNum = '94' + phoneNum.substring(1);
-                }
-
-                const msg = `Dear Parent, ${student.name} (${cleanId}) has attended English with Sudan Sir class on ${dateStr} at ${timeStr} (${selectedDay}).`;
-                const waUrl = `https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`;
-
-                if (phoneNum) {
-                    window.open(waUrl, '_blank');
-                }
-
-                const photoSrc = student.photo || student.photoUrl || 'logo.png';
-                showStatus(`
-                    <img src="${photoSrc}" class="student-preview-img"><br>
-                    ✅ <strong>${student.name}</strong> (${cleanId})<br>
-                    Attendance Recorded for <strong>${selectedDay}</strong><br>
-                    <small>Time: ${timeStr}</small><br>
-                    ${phoneNum ? `<a href="${waUrl}" target="_blank" class="btn-wa">💬 Send WhatsApp Message</a>` : ''}
-                `, 'success');
-
-                setTimeout(() => { isProcessing = false; }, 2500);
-            }).catch(err => {
-                showStatus(`❌ Error: ${err.message}`, 'error');
-                setTimeout(() => { isProcessing = false; }, 2000);
-            });
-        });
+        if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            alert("❌ SECURITY ERROR: Your site is using plain HTTP.\n\nBrowsers block camera access unless the URL starts with https:// or http://localhost.");
+            return false;
+        }
+        return true;
     }
 
-    // Scan QR Code from Uploaded Image File
-    function scanFromFile(event) {
+    // Toggle Camera Scanner safely
+    async function toggleScanner() {
+        const container = document.getElementById('qr-reader-container');
+        const toggleText = document.getElementById('scannerToggleText');
+
+        if (!isScannerOpen) {
+            if (!checkBrowserSecurityContext()) return;
+
+            container.style.display = 'block';
+            toggleText.innerText = 'Close Camera Scanner';
+            isScannerOpen = true;
+
+            try {
+                const devices = await Html5Qrcode.getCameras();
+                
+                if (devices && devices.length > 0) {
+                    // Prioritize back camera for smartphones
+                    const backCam = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('environment'));
+                    const selectedCamId = backCam ? backCam.id : devices[0].id;
+
+                    if (!html5QrCode) {
+                        html5QrCode = new Html5Qrcode("reader");
+                    }
+
+                    await html5QrCode.start(
+                        selectedCamId,
+                        { fps: 10, qrbox: { width: 220, height: 220 } },
+                        (decodedText) => {
+                            document.getElementById('studentId').value = decodedText.trim();
+                            loadStudentDetails();
+                            toggleScanner(); // Auto-close scanner on scan success
+                        },
+                        (errorMessage) => {}
+                    );
+                } else {
+                    alert("⚠️ No video cameras found on this device.");
+                }
+            } catch (err) {
+                console.error("Camera Access Error:", err);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    alert("🚫 Camera permission denied!\n\nPlease tap the lock/tune icon near your URL address bar and change Camera permission to Allow.");
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    alert("📷 Camera is currently occupied by another app (e.g., Zoom, WhatsApp, or standard Camera). Please close background camera apps and try again.");
+                } else {
+                    alert("⚠️ Camera Error: " + (err.message || err));
+                }
+            }
+        } else {
+            if (html5QrCode) {
+                await html5QrCode.stop().catch(() => {});
+            }
+            container.style.display = 'none';
+            toggleText.innerText = 'Open Camera QR Scanner';
+            isScannerOpen = false;
+        }
+    }
+
+    // Process uploaded image files as QR code
+    function uploadScanQr(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        const html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.scanFile(file, true)
+        const scanner = new Html5Qrcode("reader");
+        scanner.scanFile(file, true)
             .then(decodedText => {
-                processScan(decodedText);
+                document.getElementById('studentId').value = decodedText.trim();
+                loadStudentDetails();
             })
-            .catch(err => {
-                showStatus('❌ Failed to read QR code from image file.', 'error');
-            });
+            .catch(err => alert('❌ Could not read QR code from image file. Ensure the photo is clear.'));
     }
 
-    function markManualAttendance() {
-        const input = document.getElementById('manualId');
-        if (input.value) {
-            processScan(input.value);
-            input.value = '';
-        } else {
-            showStatus('⚠️ Please enter a Student ID.', 'error');
-        }
+    // Load student data & render phone number on screen
+    function loadStudentDetails() {
+        const id = document.getElementById('studentId').value.trim();
+        if (!id) return alert('⚠️ Please enter or scan a Student ID.');
+
+        db.ref('students/' + id).once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                alert('❌ Student ID not found!');
+                document.getElementById('studentCard').style.display = 'none';
+                loadedStudent = null;
+                return;
+            }
+
+            loadedStudent = snapshot.val();
+
+            // Extract contact number across multiple possible database keys
+            const phoneNo = loadedStudent.phone || loadedStudent.whatsapp || loadedStudent.parentPhone || loadedStudent.mobile || 'Not Provided';
+
+            document.getElementById('lblStudentName').innerText = loadedStudent.name || 'N/A';
+            document.getElementById('lblGrade').innerText = loadedStudent.grade || 'N/A';
+            document.getElementById('lblPhone').innerText = phoneNo;
+            document.getElementById('lblStatus').innerText = loadedStudent.fee || 'Not Paid';
+            document.getElementById('studentCard').style.display = 'block';
+        });
     }
 
-    function showStatus(htmlContent, type) {
-        const statusBox = document.getElementById('statusBox');
-        statusBox.innerHTML = htmlContent;
-        statusBox.className = 'status-box ' + (type === 'success' ? 'status-success' : 'status-error');
-        statusBox.style.display = 'block';
-    }
+    // Mark attendance entry into Realtime Database
+    function markAttendance() {
+        const id = document.getElementById('studentId').value.trim();
+        if (!id || !loadedStudent) return alert('⚠️ Please lookup student details first.');
 
-    // Initialize Camera Scanner with File Upload Fallback options
-    const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 220, height: 220 } }, false);
-    html5QrcodeScanner.render((decodedText) => processScan(decodedText));
+        const today = new Date().toISOString().split('T')[0];
+        const timeNow = new Date().toLocaleTimeString();
+
+        db.ref(`attendance/${today}/${id}`).set({
+            name: loadedStudent.name,
+            grade: loadedStudent.grade,
+            timestamp: timeNow,
+            status: 'Present'
+        }).then(() => {
+            alert(`✅ Attendance marked for ${loadedStudent.name} (${id}) at ${timeNow}!`);
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentCard').style.display = 'none';
+            loadedStudent = null;
+        }).catch(err => alert('❌ Error saving attendance: ' + err.message));
+    }
 </script>
 </body>
 </html>
