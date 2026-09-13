@@ -471,7 +471,10 @@
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label style="font-weight: bold; display: block; margin-bottom: 5px;">Class Fee Amount (LKR):</label>
-                    <input type="number" id="editFeeAmount" step="0.01" required style="width: 100%; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;" placeholder="e.g. 1500">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="editFeeAmount" step="0.01" style="flex: 1; padding: 8px; border: 1px solid #0056b3; border-radius: 5px;" placeholder="e.g. 1500">
+                        <button type="button" class="btn-action btn-delete" style="padding: 8px 12px; font-size: 0.85rem;" onclick="removeFeeAmount()">❌ Clear Fee</button>
+                    </div>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                     <button type="submit" class="btn-action" style="padding: 8px 16px; background: #28a745;">Save Changes</button>
@@ -558,7 +561,7 @@
 
                 const phone = stu.phone || stu.whatsapp || stu.parentPhone || stu.mobile || 'N/A';
                 const photoUrl = stu.photoUrl || stu.imageUrl || stu.photo || '';
-                const classFee = stu.classFee || stu.monthlyFee || stu.feeAmount || stu.lastPaymentAmount || 0;
+                const classFee = (stu.classFee !== undefined && stu.classFee !== null) ? stu.classFee : (stu.monthlyFee || stu.feeAmount || 0);
                 const isPaid = stu.fee === 'Paid' || stu.status === 'Paid';
                 const feeStatus = isPaid ? `Paid (${stu.lastPaymentMonth || 'Yes'})` : `Pending`;
                 const badgeClass = isPaid ? 'status-paid' : 'status-pending';
@@ -581,7 +584,7 @@
                         <td>${stu.grade || 'N/A'}</td>
                         <td>${phone}</td>
                         <td><span class="status-badge ${badgeClass}">${feeStatus}</span></td>
-                        <td>${classFee ? 'LKR ' + parseFloat(classFee).toFixed(2) : '-'}</td>
+                        <td>${parseFloat(classFee) > 0 ? 'LKR ' + parseFloat(classFee).toFixed(2) : '<span style="color:#888;">No Fee (LKR 0)</span>'}</td>
                         <td>
                             <button class="btn-action btn-idcard" onclick="showIdCardModal('${id}', '${(stu.name || '').replace(/'/g, "\\'")}', '${stu.grade}', '${phone}', '${photoUrl}')">🎴 ID Card</button>
                             <button class="btn-action btn-edit" onclick="openEditModal('${id}', '${(stu.name || '').replace(/'/g, "\\'")}', '${stu.grade}', '${phone}', '${classFee}')">✏️ Edit</button>
@@ -626,7 +629,7 @@
                     <td>${stu.grade}</td>
                     <td>${stu.phone}</td>
                     <td><span class="status-badge ${badgeClass}">${stu.feeStatus}</span></td>
-                    <td>${stu.classFee ? 'LKR ' + parseFloat(stu.classFee).toFixed(2) : '-'}</td>
+                    <td>${parseFloat(stu.classFee) > 0 ? 'LKR ' + parseFloat(stu.classFee).toFixed(2) : '<span style="color:#888;">No Fee (LKR 0)</span>'}</td>
                     <td>
                         <button class="btn-action btn-idcard" onclick="showIdCardModal('${stu.id}', '${stu.name.replace(/'/g, "\\'")}', '${stu.grade}', '${stu.phone}', '${stu.photoUrl}')">🎴 ID Card</button>
                         <button class="btn-action btn-edit" onclick="openEditModal('${stu.id}', '${stu.name.replace(/'/g, "\\'")}', '${stu.grade}', '${stu.phone}', '${stu.classFee}')">✏️ Edit</button>
@@ -643,8 +646,12 @@
         document.getElementById('editName').value = name;
         document.getElementById('editGrade').value = grade;
         document.getElementById('editPhone').value = phone;
-        document.getElementById('editFeeAmount').value = classFee || '';
+        document.getElementById('editFeeAmount').value = (classFee && parseFloat(classFee) > 0) ? classFee : '';
         document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function removeFeeAmount() {
+        document.getElementById('editFeeAmount').value = '';
     }
 
     document.getElementById('editStudentForm').addEventListener('submit', function(e) {
@@ -653,7 +660,8 @@
         const name = document.getElementById('editName').value.trim();
         const grade = document.getElementById('editGrade').value;
         const phone = document.getElementById('editPhone').value.trim();
-        const classFee = parseFloat(document.getElementById('editFeeAmount').value) || 0;
+        const classFeeInput = document.getElementById('editFeeAmount').value;
+        const classFee = classFeeInput === '' ? 0 : parseFloat(classFeeInput);
 
         db.ref('students/' + id).update({
             name: name,
@@ -664,7 +672,7 @@
             monthlyFee: classFee,
             feeAmount: classFee
         }).then(() => {
-            alert('✅ Student details and class fee updated successfully!');
+            alert('✅ Student details and fee updated successfully!');
             closeModal('editModal');
         }).catch(err => alert('❌ Error updating: ' + err.message));
     });
