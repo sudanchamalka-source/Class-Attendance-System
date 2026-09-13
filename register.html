@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Student Registration</title>
+    <title>Student Registration & Edit</title>
     <link rel="icon" type="image/png" href="logo.png">
 
     <!-- Firebase SDKs -->
@@ -22,7 +22,7 @@
         }
 
         .container {
-            max-width: 500px;
+            max-width: 520px;
             width: 100%;
             background: white;
             padding: 25px;
@@ -44,6 +44,53 @@
             color: #0056b3;
             font-weight: bold;
             margin: 0 8px;
+        }
+
+        /* Mode Switch Tabs */
+        .tab-switcher {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #0056b3;
+            background: white;
+            color: #0056b3;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+
+        .tab-btn.active {
+            background: #0056b3;
+            color: white;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            background: #e9ecef;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .search-box input {
+            flex: 1;
+        }
+
+        .btn-search {
+            background: #003366;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0 15px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         .form-group {
@@ -77,13 +124,10 @@
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #0056b3;
-            display: none;
         }
 
         .btn-submit {
             width: 100%;
-            background: #28a745;
-            color: white;
             padding: 12px;
             border: none;
             border-radius: 6px;
@@ -91,15 +135,20 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
+            color: white;
         }
 
-        .btn-submit:hover { background: #218838; }
+        .btn-green { background: #28a745; }
+        .btn-green:hover { background: #218838; }
+
+        .btn-orange { background: #ff9800; }
+        .btn-orange:hover { background: #e68a00; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>📝 Register New Student</h2>
+        <h2 id="pageTitle">📝 Register New Student</h2>
         
         <div class="nav-links">
             <a href="index.html">📸 Scanner</a> | 
@@ -108,7 +157,19 @@
             <a href="students_list.html">📚 Admin Panel</a>
         </div>
 
-        <form id="registerForm">
+        <!-- Mode Tabs -->
+        <div class="tab-switcher">
+            <button class="tab-btn active" id="tabRegister" onclick="switchMode('new')">➕ Register New</button>
+            <button class="tab-btn" id="tabEdit" onclick="switchMode('edit')">✏️ Edit Existing</button>
+        </div>
+
+        <!-- Search Bar (Visible only in Edit Mode) -->
+        <div class="search-box" id="searchContainer" style="display: none;">
+            <input type="text" id="searchId" placeholder="Enter Student ID / Index No...">
+            <button type="button" class="btn-search" onclick="loadStudentData()">🔍 Search</button>
+        </div>
+
+        <form id="studentForm">
             <div class="form-group">
                 <label for="studentId">Student ID / Index No:</label>
                 <input type="text" id="studentId" placeholder="e.g. STU1001" required>
@@ -149,11 +210,11 @@
                 <label for="photo">Student Photo:</label>
                 <input type="file" id="photo" accept="image/*" onchange="previewImage(event)">
                 <div class="preview-box">
-                    <img id="imgPreview" alt="Preview">
+                    <img id="imgPreview" src="logo.png" alt="Preview" style="display: none;">
                 </div>
             </div>
 
-            <button type="submit" class="btn-submit">➕ Save Student</button>
+            <button type="submit" id="btnSubmit" class="btn-submit btn-green">➕ Save New Student</button>
         </form>
     </div>
 
@@ -171,61 +232,153 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let base64Photo = '';
+    let currentMode = 'new'; // 'new' or 'edit'
+    let currentPhotoBase64 = '';
+
+    function switchMode(mode) {
+        currentMode = mode;
+        const pageTitle = document.getElementById('pageTitle');
+        const tabRegister = document.getElementById('tabRegister');
+        const tabEdit = document.getElementById('tabEdit');
+        const searchContainer = document.getElementById('searchContainer');
+        const studentIdInput = document.getElementById('studentId');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        resetForm();
+
+        if (mode === 'new') {
+            pageTitle.innerText = '📝 Register New Student';
+            tabRegister.classList.add('active');
+            tabEdit.classList.remove('active');
+            searchContainer.style.display = 'none';
+            studentIdInput.removeAttribute('readonly');
+            btnSubmit.innerText = '➕ Save New Student';
+            btnSubmit.className = 'btn-submit btn-green';
+        } else {
+            pageTitle.innerText = '✏️ Edit Student Details';
+            tabEdit.classList.add('active');
+            tabRegister.classList.remove('active');
+            searchContainer.style.display = 'flex';
+            studentIdInput.setAttribute('readonly', 'true');
+            btnSubmit.innerText = '💾 Update Student Details';
+            btnSubmit.className = 'btn-submit btn-orange';
+        }
+    }
 
     function previewImage(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                base64Photo = e.target.result;
+                currentPhotoBase64 = e.target.result;
                 const img = document.getElementById('imgPreview');
-                img.src = base64Photo;
+                img.src = currentPhotoBase64;
                 img.style.display = 'inline-block';
             };
             reader.readAsDataURL(file);
         }
     }
 
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
+    function loadStudentData() {
+        const idToSearch = document.getElementById('searchId').value.trim();
+        if (!idToSearch) {
+            alert('⚠️ Enter a Student ID to search.');
+            return;
+        }
+
+        db.ref('students/' + idToSearch).once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                alert('❌ No student found with ID: ' + idToSearch);
+                resetForm();
+                return;
+            }
+
+            const data = snapshot.val();
+            document.getElementById('studentId').value = data.id || data.stuId || idToSearch;
+            document.getElementById('fullName').value = data.name || '';
+            document.getElementById('grade').value = data.grade || '';
+            document.getElementById('phone').value = data.phone || data.whatsapp || '';
+
+            currentPhotoBase64 = data.photo || data.photoUrl || '';
+            const img = document.getElementById('imgPreview');
+            if (currentPhotoBase64) {
+                img.src = currentPhotoBase64;
+                img.style.display = 'inline-block';
+            } else {
+                img.style.display = 'none';
+            }
+
+            alert('✅ Student details loaded!');
+        });
+    }
+
+    function resetForm() {
+        document.getElementById('studentForm').reset();
+        document.getElementById('searchId').value = '';
+        const img = document.getElementById('imgPreview');
+        img.style.display = 'none';
+        img.src = '';
+        currentPhotoBase64 = '';
+    }
+
+    document.getElementById('studentForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
         const id = document.getElementById('studentId').value.trim();
         const name = document.getElementById('fullName').value.trim();
         const grade = document.getElementById('grade').value;
         const phone = document.getElementById('phone').value.trim();
-        
-        // Default photo if none provided
-        const photoUrl = base64Photo || 'logo.png';
 
-        // Check if student ID already exists
-        db.ref('students/' + id).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                alert('⚠️ A student with ID "' + id + '" already exists!');
-                return;
-            }
+        if (!id) {
+            alert('⚠️ Student ID is required!');
+            return;
+        }
 
-            // Save new student to Firebase
-            db.ref('students/' + id).set({
-                id: id,
-                stuId: id,
+        const photoUrl = currentPhotoBase64 || 'logo.png';
+
+        if (currentMode === 'new') {
+            // New Registration Logic
+            db.ref('students/' + id).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    alert('⚠️ A student with ID "' + id + '" already exists! Switch to Edit tab to modify.');
+                    return;
+                }
+
+                db.ref('students/' + id).set({
+                    id: id,
+                    stuId: id,
+                    name: name,
+                    grade: grade,
+                    phone: phone,
+                    whatsapp: phone,
+                    photo: photoUrl,
+                    photoUrl: photoUrl,
+                    fee: 'Not Paid',
+                    registeredAt: new Date().toISOString()
+                }).then(() => {
+                    alert('✅ Student registered successfully!');
+                    resetForm();
+                }).catch((err) => {
+                    alert('❌ Error: ' + err.message);
+                });
+            });
+
+        } else {
+            // Edit / Update Existing Logic
+            db.ref('students/' + id).update({
                 name: name,
                 grade: grade,
                 phone: phone,
                 whatsapp: phone,
                 photo: photoUrl,
-                photoUrl: photoUrl,
-                fee: 'Not Paid',
-                registeredAt: new Date().toISOString()
+                photoUrl: photoUrl
             }).then(() => {
-                alert('✅ Student registered successfully!');
-                document.getElementById('registerForm').reset();
-                document.getElementById('imgPreview').style.display = 'none';
-                base64Photo = '';
+                alert('✅ Student details updated successfully!');
+                resetForm();
             }).catch((err) => {
-                alert('❌ Error: ' + err.message);
+                alert('❌ Error updating: ' + err.message);
             });
-        });
+        }
     });
 </script>
 </body>
