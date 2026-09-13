@@ -3,209 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Attendance & QR Scanner</title>
+    <title>Teacher Revenue & Analytics Dashboard</title>
     <link rel="icon" type="image/png" href="logo.png">
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs (Compat Version 10.12.0) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    <!-- Html5-QRCode Scanner Library -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Chart.js for Visual Reports -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body {
+        * {
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f4f8;
+        }
+
+        body {
+            background-color: #f4f7f6;
             margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            color: #333;
         }
 
         .container {
-            max-width: 500px;
-            width: 100%;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            box-sizing: border-box;
+            max-width: 1250px;
+            margin: 0 auto;
         }
 
-        h2 { text-align: center; color: #003366; margin-top: 0; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
 
-        .nav-links {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 0.9em;
+        .header h1 {
+            margin: 0;
+            color: #003366;
+            font-size: 1.8rem;
         }
 
         .nav-links a {
             text-decoration: none;
             color: #0056b3;
             font-weight: bold;
-            margin: 0 8px;
+            margin-left: 12px;
+            padding: 6px 10px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
         }
 
-        .btn-qr-toggle {
-            width: 100%;
-            background: #0056b3;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 1em;
-            margin-bottom: 15px;
+        .nav-links a:hover {
+            background-color: #eaf2fd;
+            text-decoration: underline;
         }
 
-        .btn-qr-toggle:hover { background: #003366; }
-
-        #qr-reader-container {
-            display: none;
-            margin-bottom: 15px;
-            border: 2px solid #0056b3;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #000;
+        /* Metric Cards Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
         }
 
-        #reader {
-            width: 100%;
-            min-height: 250px;
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-left: 5px solid #0056b3;
         }
 
-        .upload-section {
-            background: #e9ecef;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            border: 1px dashed #0056b3;
+        .metric-card.green { border-left-color: #28a745; }
+        .metric-card.amber { border-left-color: #ffc107; }
+        .metric-card.purple { border-left-color: #6f42c1; }
+
+        .metric-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .upload-section label {
+        .metric-card .value {
+            font-size: 1.8rem;
             font-weight: bold;
             color: #003366;
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.9em;
         }
 
-        .form-group { margin-bottom: 15px; }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
+        /* Charts Layout */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
         }
 
-        input {
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .chart-card h3 {
+            margin-top: 0;
+            color: #003366;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 10px;
+        }
+
+        /* Recent Transactions Table */
+        .table-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .table-card h3 {
+            margin-top: 0;
+            color: #003366;
+        }
+
+        table {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #0056b3;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1em;
+            border-collapse: collapse;
+            text-align: left;
         }
 
-        .search-btn {
-            background: #003366;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-weight: bold;
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 0.95rem;
         }
 
-        .student-details-card {
-            background: #e8f4f8;
-            border-left: 4px solid #0056b3;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
+        th {
+            background-color: #f8fafc;
+            color: #003366;
+        }
+
+        .error-banner {
             display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
         }
-
-        .student-details-card p { margin: 6px 0; font-size: 0.95em; color: #333; }
-        .student-details-card span { font-weight: bold; color: #003366; }
-
-        .phone-highlight {
-            background: #25D366;
-            color: white !important;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-
-        .btn-submit {
-            width: 100%;
-            background: #28a745;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .btn-submit:hover { background: #218838; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>📸 Attendance & QR Scanner</h2>
-        
-        <div class="nav-links">
-            <a href="index.html">📸 Scanner</a> | 
-            <a href="register.html">+ New Register</a> | 
-            <a href="fee.html">💳 Fee Payment</a> | 
-            <a href="students_list.html">📚 Admin Panel</a>
-        </div>
-
-        <!-- Camera Scanner Toggle Button -->
-        <button type="button" class="btn-qr-toggle" onclick="toggleScanner()">
-            📷 <span id="scannerToggleText">Open Camera QR Scanner</span>
-        </button>
-
-        <div id="qr-reader-container">
-            <div id="reader"></div>
-        </div>
-
-        <!-- File Upload Camera Backup -->
-        <div class="upload-section">
-            <label for="qrFile">📁 Camera Blocked? Upload QR Image File:</label>
-            <input type="file" id="qrFile" accept="image/*" onchange="uploadScanQr(event)">
-        </div>
-
-        <!-- Student Lookup Form -->
-        <div class="form-group">
-            <label for="studentId">Student ID / Index No:</label>
-            <div style="display: flex; gap: 8px;">
-                <input type="text" id="studentId" placeholder="Enter or Scan ID (e.g. STU1001)" required>
-                <button type="button" class="search-btn" style="width: 80px;" onclick="loadStudentDetails()">Lookup</button>
+        <!-- Dashboard Header -->
+        <div class="header">
+            <div>
+                <h1>📊 Teacher Revenue Dashboard</h1>
+                <p style="margin: 5px 0 0 0; color: #666;">English with Sudan Sir - Revenue & Enrollment Insights</p>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">📸 Scanner</a>
+                <a href="students_list.html">👥 Student Directory</a>
+                <a href="fee.html">💳 Fee Payment</a>
             </div>
         </div>
 
-        <!-- Student Details Information Display Card -->
-        <div id="studentCard" class="student-details-card">
-            <p><strong>Name:</strong> <span id="lblStudentName">-</span></p>
-            <p><strong>Grade:</strong> <span id="lblGrade">-</span></p>
-            <p><strong>WhatsApp / Phone:</strong> <span id="lblPhone" class="phone-highlight">-</span></p>
-            <p><strong>Fee Status:</strong> <span id="lblStatus">-</span></p>
+        <div id="errorMessage" class="error-banner"></div>
+
+        <!-- Metric Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card green">
+                <h3>Total Collection</h3>
+                <div class="value" id="totalRevenue">LKR 0.00</div>
+            </div>
+            <div class="metric-card">
+                <h3>Total Registered</h3>
+                <div class="value" id="totalStudents">0</div>
+            </div>
+            <div class="metric-card purple">
+                <h3>Fees Paid Count</h3>
+                <div class="value" id="paidStudents">0</div>
+            </div>
+            <div class="metric-card amber">
+                <h3>Pending Payments</h3>
+                <div class="value" id="pendingStudents">0</div>
+            </div>
         </div>
 
-        <!-- Attendance Action Button -->
-        <button type="button" class="btn-submit" onclick="markAttendance()">✅ Mark Attendance</button>
+        <!-- Analytics Charts -->
+        <div class="charts-container">
+            <div class="chart-card">
+                <h3>Grade-wise Student Distribution</h3>
+                <canvas id="gradeChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Fee Collection Status</h3>
+                <canvas id="feeStatusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Payments Table -->
+        <div class="table-card">
+            <h3>Recent Paid Payments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Grade</th>
+                        <th>Amount Paid</th>
+                        <th>Month / Reference</th>
+                    </tr>
+                </thead>
+                <tbody id="recentPaymentsTable">
+                    <tr><td colspan="5" style="text-align: center;">Loading data...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
 <script>
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
         authDomain: "class-management-system-8c1a1.firebaseapp.com",
@@ -216,143 +245,162 @@
         appId: "1:759521896885:web:ab834180d9ab45968791fc",
         measurementId: "G-XZW2VLFXT2"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    // Safe Firebase Initialization
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
-    let html5QrCode = null;
-    let isScannerOpen = false;
-    let loadedStudent = null;
+    let gradeChartInstance = null;
+    let feeStatusChartInstance = null;
 
-    // Verify context protocol before accessing camera APIs
-    function checkBrowserSecurityContext() {
-        if (window.location.protocol === 'file:') {
-            alert("❌ SECURITY ERROR: You opened this file directly from your computer (file:///).\n\nBrowsers PERMANENTLY block camera permissions on local file paths. Run this page using VS Code Live Server (http://localhost:5500) or deploy to GitHub Pages (HTTPS)!");
-            return false;
-        }
-        if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            alert("❌ SECURITY ERROR: Your site is using plain HTTP.\n\nBrowsers block camera access unless the URL starts with https:// or http://localhost.");
-            return false;
-        }
-        return true;
+    function showError(msg) {
+        const errBox = document.getElementById('errorMessage');
+        errBox.style.display = 'block';
+        errBox.innerText = '⚠️ Dashboard Error: ' + msg;
     }
 
-    // Toggle Camera Scanner safely
-    async function toggleScanner() {
-        const container = document.getElementById('qr-reader-container');
-        const toggleText = document.getElementById('scannerToggleText');
-
-        if (!isScannerOpen) {
-            if (!checkBrowserSecurityContext()) return;
-
-            container.style.display = 'block';
-            toggleText.innerText = 'Close Camera Scanner';
-            isScannerOpen = true;
-
+    function loadDashboardData() {
+        db.ref('students').on('value', (snapshot) => {
             try {
-                const devices = await Html5Qrcode.getCameras();
-                
-                if (devices && devices.length > 0) {
-                    // Prioritize back camera for smartphones
-                    const backCam = devices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('environment'));
-                    const selectedCamId = backCam ? backCam.id : devices[0].id;
+                let totalStudents = 0;
+                let paidStudents = 0;
+                let pendingStudents = 0;
+                let totalRevenue = 0;
 
-                    if (!html5QrCode) {
-                        html5QrCode = new Html5Qrcode("reader");
-                    }
+                const gradeCounts = {};
+                const paidList = [];
 
-                    await html5QrCode.start(
-                        selectedCamId,
-                        { fps: 10, qrbox: { width: 220, height: 220 } },
-                        (decodedText) => {
-                            document.getElementById('studentId').value = decodedText.trim();
-                            loadStudentDetails();
-                            toggleScanner(); // Auto-close scanner on scan success
-                        },
-                        (errorMessage) => {}
-                    );
-                } else {
-                    alert("⚠️ No video cameras found on this device.");
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnap) => {
+                        const stu = childSnap.val() || {};
+                        const id = childSnap.key;
+                        totalStudents++;
+
+                        // Grade tracking
+                        const grade = stu.grade || 'Unassigned';
+                        gradeCounts[grade] = (gradeCounts[grade] || 0) + 1;
+
+                        // Payment verification
+                        const isPaid = stu.fee === 'Paid' || stu.status === 'Paid';
+                        const paymentAmt = parseFloat(stu.lastPaymentAmount || stu.amount || 0);
+
+                        if (isPaid) {
+                            paidStudents++;
+                            totalRevenue += isNaN(paymentAmt) ? 0 : paymentAmt;
+                            paidList.push({
+                                id: id,
+                                name: stu.name || 'N/A',
+                                grade: grade,
+                                amount: paymentAmt,
+                                month: stu.lastPaymentMonth || stu.month || 'Paid'
+                            });
+                        } else {
+                            pendingStudents++;
+                        }
+                    });
                 }
+
+                // Update Overview Metrics
+                document.getElementById('totalStudents').innerText = totalStudents;
+                document.getElementById('paidStudents').innerText = paidStudents;
+                document.getElementById('pendingStudents').innerText = pendingStudents;
+                document.getElementById('totalRevenue').innerText = 'LKR ' + totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                // Update UI Components
+                renderRecentPaymentsTable(paidList);
+                renderGradeChart(gradeCounts);
+                renderFeeStatusChart(paidStudents, pendingStudents);
+
             } catch (err) {
-                console.error("Camera Access Error:", err);
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    alert("🚫 Camera permission denied!\n\nPlease tap the lock/tune icon near your URL address bar and change Camera permission to Allow.");
-                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-                    alert("📷 Camera is currently occupied by another app (e.g., Zoom, WhatsApp, or standard Camera). Please close background camera apps and try again.");
-                } else {
-                    alert("⚠️ Camera Error: " + (err.message || err));
-                }
+                console.error("Dashboard calculation error:", err);
+                showError(err.message);
             }
-        } else {
-            if (html5QrCode) {
-                await html5QrCode.stop().catch(() => {});
-            }
-            container.style.display = 'none';
-            toggleText.innerText = 'Open Camera QR Scanner';
-            isScannerOpen = false;
-        }
-    }
-
-    // Process uploaded image files as QR code
-    function uploadScanQr(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const scanner = new Html5Qrcode("reader");
-        scanner.scanFile(file, true)
-            .then(decodedText => {
-                document.getElementById('studentId').value = decodedText.trim();
-                loadStudentDetails();
-            })
-            .catch(err => alert('❌ Could not read QR code from image file. Ensure the photo is clear.'));
-    }
-
-    // Load student data & render phone number on screen
-    function loadStudentDetails() {
-        const id = document.getElementById('studentId').value.trim();
-        if (!id) return alert('⚠️ Please enter or scan a Student ID.');
-
-        db.ref('students/' + id).once('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                alert('❌ Student ID not found!');
-                document.getElementById('studentCard').style.display = 'none';
-                loadedStudent = null;
-                return;
-            }
-
-            loadedStudent = snapshot.val();
-
-            // Extract contact number across multiple possible database keys
-            const phoneNo = loadedStudent.phone || loadedStudent.whatsapp || loadedStudent.parentPhone || loadedStudent.mobile || 'Not Provided';
-
-            document.getElementById('lblStudentName').innerText = loadedStudent.name || 'N/A';
-            document.getElementById('lblGrade').innerText = loadedStudent.grade || 'N/A';
-            document.getElementById('lblPhone').innerText = phoneNo;
-            document.getElementById('lblStatus').innerText = loadedStudent.fee || 'Not Paid';
-            document.getElementById('studentCard').style.display = 'block';
+        }, (error) => {
+            showError("Firebase Database connection failed: " + error.message);
         });
     }
 
-    // Mark attendance entry into Realtime Database
-    function markAttendance() {
-        const id = document.getElementById('studentId').value.trim();
-        if (!id || !loadedStudent) return alert('⚠️ Please lookup student details first.');
+    function renderRecentPaymentsTable(payments) {
+        const tableBody = document.getElementById('recentPaymentsTable');
+        tableBody.innerHTML = '';
 
-        const today = new Date().toISOString().split('T')[0];
-        const timeNow = new Date().toLocaleTimeString();
+        if (payments.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No paid records available.</td></tr>';
+            return;
+        }
 
-        db.ref(`attendance/${today}/${id}`).set({
-            name: loadedStudent.name,
-            grade: loadedStudent.grade,
-            timestamp: timeNow,
-            status: 'Present'
-        }).then(() => {
-            alert(`✅ Attendance marked for ${loadedStudent.name} (${id}) at ${timeNow}!`);
-            document.getElementById('studentId').value = '';
-            document.getElementById('studentCard').style.display = 'none';
-            loadedStudent = null;
-        }).catch(err => alert('❌ Error saving attendance: ' + err.message));
+        // Render recent 10 records
+        payments.slice(-10).reverse().forEach(p => {
+            const row = `
+                <tr>
+                    <td><strong>${p.id}</strong></td>
+                    <td>${p.name}</td>
+                    <td>${p.grade}</td>
+                    <td><strong style="color: #28a745;">LKR ${p.amount.toFixed(2)}</strong></td>
+                    <td>${p.month}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
     }
+
+    function renderGradeChart(gradeCounts) {
+        const ctx = document.getElementById('gradeChart').getContext('2d');
+        const labels = Object.keys(gradeCounts);
+        const data = Object.values(gradeCounts);
+
+        if (gradeChartInstance) {
+            gradeChartInstance.destroy();
+        }
+
+        gradeChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Students Count',
+                    data: data,
+                    backgroundColor: '#0056b3',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+    }
+
+    function renderFeeStatusChart(paidCount, pendingCount) {
+        const ctx = document.getElementById('feeStatusChart').getContext('2d');
+
+        if (feeStatusChartInstance) {
+            feeStatusChartInstance.destroy();
+        }
+
+        feeStatusChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Paid', 'Pending'],
+                datasets: [{
+                    data: [paidCount, pendingCount],
+                    backgroundColor: ['#28a745', '#ffc107']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    window.onload = loadDashboardData;
 </script>
 </body>
 </html>
