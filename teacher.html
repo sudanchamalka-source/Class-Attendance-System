@@ -1,74 +1,372 @@
-<!-- Revenue Cards HTML -->
-<div class="dashboard-summary">
-    <div class="card">
-        <h3>Total Monthly Revenue</h3>
-        <h2 id="lblTotalRevenue">LKR 0.00</h2>
-    </div>
-    <div class="card">
-        <h3>Total Payments Received</h3>
-        <h2 id="lblTotalTransactions">0</h2>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Monthly Revenue Dashboard</title>
+    <link rel="icon" type="image/png" href="logo.png">
 
-<table border="1" style="width:100%; margin-top: 20px;">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Student ID</th>
-            <th>Name</th>
-            <th>Grade</th>
-            <th>Month</th>
-            <th>Amount (LKR)</th>
-        </tr>
-    </thead>
-    <tbody id="revenueTableBody">
-        <tr><td colspan="6">Loading revenue data...</td></tr>
-    </tbody>
-</table>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #003366;
+            font-size: 1.8rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #0056b3;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .month-selector select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #0056b3;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #003366;
+        }
+
+        /* Metric Cards Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-left: 5px solid #0056b3;
+        }
+
+        .card.success { border-left-color: #28a745; }
+        .card.warning { border-left-color: #ffc107; }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.95rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #003366;
+            margin: 0;
+        }
+
+        /* Layout Columns */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 850px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-box {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .section-box h2 {
+            margin-top: 0;
+            color: #003366;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #f0f4f8;
+            padding-bottom: 10px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #003366;
+            font-weight: 600;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        .badge-paid {
+            background: #e8f5e9;
+            color: #28a745;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="header">
+            <div>
+                <h1>📊 Teacher Revenue Dashboard</h1>
+                <p style="margin: 5px 0 0 0; color: #666;">Real-time monthly earnings & collection ledger</p>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">📸 Scanner</a>
+                <a href="register.html">+ New Register</a>
+                <a href="fee.html">💳 Fee Payment</a>
+                <a href="students_list.html">📚 Admin Panel</a>
+            </div>
+        </div>
+
+        <!-- Month Filter Controls -->
+        <div class="month-selector">
+            <label for="selectMonth"><strong>Active Month View:</strong></label>
+            <select id="selectMonth" onchange="fetchRevenueData()">
+                <!-- Auto-populated via JavaScript -->
+            </select>
+        </div>
+
+        <!-- Metric Overview Cards -->
+        <div class="metrics-grid">
+            <div class="card success">
+                <h3>Total Revenue Collected</h3>
+                <div class="value" id="lblTotalRevenue">LKR 0.00</div>
+            </div>
+            <div class="card">
+                <h3>Total Payments Received</h3>
+                <div class="value" id="lblTotalTransactions">0</div>
+            </div>
+            <div class="card warning">
+                <h3>Average Transaction Fee</h3>
+                <div class="value" id="lblAvgPayment">LKR 0.00</div>
+            </div>
+        </div>
+
+        <!-- Detailed Breakdown -->
+        <div class="content-grid">
+            <!-- Transaction History Ledger -->
+            <div class="section-box">
+                <h2>📜 Monthly Revenue Ledger</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Grade</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="revenueTableBody">
+                        <tr><td colspan="5">Loading transaction data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Grade Breakdown Table -->
+            <div class="section-box">
+                <h2>🎓 Earnings by Grade</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Grade</th>
+                            <th>Total Earned</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gradeTableBody">
+                        <tr><td colspan="2">Loading breakdown...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
 <script>
-    // Initialize Dashboard Live Listener
-    function listenToMonthlyRevenue() {
-        const now = new Date();
-        const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; // e.g., '2026-09'
+    const firebaseConfig = {
+        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
+        authDomain: "class-management-system-8c1a1.firebaseapp.com",
+        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "class-management-system-8c1a1",
+        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
+        messagingSenderId: "759521896885",
+        appId: "1:759521896885:web:ab834180d9ab45968791fc",
+        measurementId: "G-XZW2VLFXT2"
+    };
 
-        // Real-time listener for the active month's revenue summary
-        db.ref(`revenue/${currentYearMonth}`).on('value', (snapshot) => {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let currentListenerRef = null;
+
+    // Populate Year-Month Dropdown
+    function initMonthSelector() {
+        const select = document.getElementById('selectMonth');
+        const now = new Date();
+        select.innerHTML = '';
+
+        // Generate past 6 months to select from
+        for (let i = 0; i < 6; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const key = `${yyyy}-${mm}`;
+            
+            const monthName = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+            const option = document.createElement('option');
+            option.value = key;
+            option.text = monthName;
+            select.appendChild(option);
+        }
+
+        // Fetch current active month on load
+        fetchRevenueData();
+    }
+
+    // Attach Real-Time Listener for Selected Month
+    function fetchRevenueData() {
+        const selectedMonth = document.getElementById('selectMonth').value;
+
+        // Remove active Firebase listener if switching months
+        if (currentListenerRef) {
+            currentListenerRef.off();
+        }
+
+        currentListenerRef = db.ref(`revenue/${selectedMonth}`);
+
+        // Listen for live database updates
+        currentListenerRef.on('value', (snapshot) => {
+            const tbody = document.getElementById('revenueTableBody');
+            const gradeBody = document.getElementById('gradeTableBody');
+
             if (!snapshot.exists()) {
                 document.getElementById('lblTotalRevenue').innerText = 'LKR 0.00';
                 document.getElementById('lblTotalTransactions').innerText = '0';
-                document.getElementById('revenueTableBody').innerHTML = '<tr><td colspan="6">No payments recorded for this month.</td></tr>';
+                document.getElementById('lblAvgPayment').innerText = 'LKR 0.00';
+                tbody.innerHTML = '<tr><td colspan="5">No revenue recorded for this month.</td></tr>';
+                gradeBody.innerHTML = '<tr><td colspan="2">No data</td></tr>';
                 return;
             }
 
             const data = snapshot.val();
             const totalAmount = data.totalAmount || 0;
-            const transactions = data.transactions ? Object.values(data.transactions) : [];
+            const rawTransactions = data.transactions ? Object.values(data.transactions) : [];
 
-            // Update Total Revenue Cards
-            document.getElementById('lblTotalRevenue').innerText = `LKR ${totalAmount.toFixed(2)}`;
-            document.getElementById('lblTotalTransactions').innerText = transactions.length;
+            // Calculate Metrics
+            const transactionCount = rawTransactions.length;
+            const avgPayment = transactionCount > 0 ? (totalAmount / transactionCount) : 0;
 
-            // Render Payment Transactions Table
-            const tbody = document.getElementById('revenueTableBody');
+            // Render Cards
+            document.getElementById('lblTotalRevenue').innerText = `LKR ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('lblTotalTransactions').innerText = transactionCount;
+            document.getElementById('lblAvgPayment').innerText = `LKR ${avgPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            // Render Revenue Ledger Table
             tbody.innerHTML = '';
+            const gradeTotals = {};
 
-            transactions.reverse().forEach((tx) => {
+            // Reverse to show most recent transactions first
+            rawTransactions.slice().reverse().forEach(tx => {
+                const amountNum = parseFloat(tx.amount || 0);
+
+                // Aggregate Grade breakdown dynamically
+                const gradeName = (tx.grade || 'Unknown').replace(/_/g, ' ');
+                gradeTotals[gradeName] = (gradeTotals[gradeName] || 0) + amountNum;
+
                 const row = `
                     <tr>
-                        <td>${tx.date}</td>
-                        <td><strong>${tx.studentId}</strong></td>
-                        <td>${tx.studentName}</td>
-                        <td>${tx.grade}</td>
-                        <td>${tx.month}</td>
-                        <td><strong>LKR ${parseFloat(tx.amount).toFixed(2)}</strong></td>
+                        <td>${tx.date || '-'}</td>
+                        <td><strong>${tx.studentId || '-'}</strong></td>
+                        <td>${tx.studentName || '-'}</td>
+                        <td>${gradeName}</td>
+                        <td><span class="badge-paid">LKR ${amountNum.toFixed(2)}</span></td>
                     </tr>
                 `;
                 tbody.innerHTML += row;
             });
+
+            // Render Grade Breakdown Table
+            gradeBody.innerHTML = '';
+            for (const [grade, total] of Object.entries(gradeTotals)) {
+                const gradeRow = `
+                    <tr>
+                        <td><strong>${grade}</strong></td>
+                        <td>LKR ${total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                `;
+                gradeBody.innerHTML += gradeRow;
+            }
         });
     }
 
-    // Call on page load
-    window.onload = listenToMonthlyRevenue;
+    // Initialize Dashboard on Load
+    window.onload = initMonthSelector;
 </script>
+</body>
+</html>
