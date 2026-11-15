@@ -284,16 +284,19 @@ const lg=()=>D.logo?`<img src="${D.logo}" alt="">`:'📚',bn=()=>D.nm||'English 
 const idc=(s,c)=>{const k=c?D.c.indexOf(c):0,g=PAL[k%PAL.length];return `<div class="id" style="background:linear-gradient(135deg,${g[0]},${g[1]})"><div class="it"><span>${E(c?c.name:bn())}</span><i class="il">${lg()}</i></div><div class="ib"><div class="ip">${s.ph?`<img src="${s.ph}" alt="">`:lg()}</div><div class="ix"><b>${E(s.name)}</b><small>${E(s.grade)}</small><code>${s.id}</code></div><img class="iq" src="${qr(s.id)}" alt="QR"></div><div class="if">${E(bn())}</div></div>`};
 const tt=()=>({n:'R.M.S.CHAMALKA',q:'BEd ICT, NDIT English and ICT',p:'0706562952',w:'0716562952',...(D.t||{})}),nid=()=>(D.pf||'NEL')+String(++D.n).padStart(3,'0');
 const idc2=(s,c)=>{const k=c?D.c.indexOf(c):0,g=PAL[k%PAL.length],t=tt();return `<div class="idw"><div class="zid" style="background:linear-gradient(160deg,${g[0]},${g[1]})"><div class="zh"><i class="zl">${lg()}</i><div><b>${E(bn())}</b><small>STUDENT OFFICIAL PASS</small></div>${c?`<span class="zc">${E(c.name)}</span>`:''}</div><div class="zb"><div class="zp">${s.ph?`<img src="${s.ph}" alt="">`:lg()}</div><div class="zx"><b>${E(s.name)}</b><span class="zpill">ID: ${E(s.id.replace(/^([A-Za-z]+)(\d+)$/,'$1 $2'))}</span>${s.tel?`<span>Phone: ${E(s.tel)}</span>`:''}</div><img class="zq" src="${qr(s.id)}" alt="QR"></div><div class="zf">${t.n?`<b>${E(t.n)}</b>${t.q?' ('+E(t.q)+')':''}`:''}<div>${[t.p?'📞 '+E(t.p):'',t.w?'💬 WhatsApp: '+E(t.w):''].filter(Boolean).join(' &nbsp;|&nbsp; ')}</div></div></div></div>`};
-const cards=s=>{const cl=(s.cl||[]).map(i=>D.c.find(x=>x.id==i)).filter(Boolean);return `<div class="c" style="--k:#ffd21f"><div class="cg">${(cl.length?cl:[null]).map(c=>idc2(s,c)).join('')}</div><div class="np row"><label class="sb">📷 ඡායාරූපය<input type="file" accept="image/*" hidden data-ph="${s.id}"></label>${s.ph?`<button class="sb" data-rp="${s.id}">ඡායාරූපය ✕</button>`:''}<button class="sb" onclick="window.print()">🖨️ මුද්‍රණය</button></div><p class="mu np">ඡායාරූපය නැති නම් සර්ගේ ලාංඡනය භාවිත වේ.</p></div>`};
+const cards=s=>{const cl=(s.cl||[]).map(i=>D.c.find(x=>x.id==i)).filter(Boolean);return `<div class="c" style="--k:#ffd21f"><div class="cg">${(cl.length?cl:[null]).map(c=>idc2(s,c)).join('')}</div><div class="np row"><label class="sb">📷 ඡායාරූපය<input type="file" accept="image/*" hidden data-ph="${s.id}"></label>${s.ph?`<button class="sb" data-rp="${s.id}">ඡායාරූපය ✕</button>`:''}<button class="sb" data-qp="${s.id}">⬇ QR PNG</button><button class="sb" onclick="window.print()">🖨️ මුද්‍රණය</button></div><p class="mu np">ඡායාරූපය නැති නම් සර්ගේ ලාංඡනය භාවිත වේ.</p></div>`};
 const rsz=(f,n,cb,png)=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),x=c.getContext('2d');let w=im.width,h=im.height;if(png){const r=Math.min(1,n/Math.max(w,h));c.width=w*r;c.height=h*r;x.drawImage(im,0,0,c.width,c.height)}else{const m=Math.min(w,h);c.width=c.height=n;x.drawImage(im,(w-m)/2,(h-m)/2,m,m,0,0,n,n)}cb(c.toDataURL(png?'image/png':'image/jpeg',.8))};im.src=URL.createObjectURL(f)};
 document.addEventListener('change',e=>{const t=e.target,f=t.files&&t.files[0];if(!f)return;if(t.dataset.ph){const s=st(t.dataset.ph);if(s)rsz(f,220,u=>{s.ph=u;save();$('#pop').innerHTML=cards(s)})}if(t.id=='lgf')rsz(f,200,u=>{D.logo=u;save();setLogo();go('adm')},1)});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-rp]');if(b){const s=st(b.dataset.rp);delete s.ph;save();$('#pop').innerHTML=cards(s)}});
-V.stu=()=>`<div class="rib">ශිෂ්‍ය ලැයිස්තුව</div><div class="c" style="--k:#ff6b6b"><input id="q" class="in" placeholder="නම / අංකය / ශ්‍රේණිය සොයන්න" value="${E(S.q)}"><div class="sc"><table class="stt"><thead><tr><th>අංකය</th><th>නම</th><th>ශ්‍රේණිය</th><th>දුරකථන</th><th>පන්ති</th><th></th></tr></thead><tbody id="sr"></tbody></table></div></div><div id="pop"></div>`;
+V.stu=()=>`<div class="rib">ශිෂ්‍ය ලැයිස්තුව</div><div class="c" style="--k:#ff6b6b"><input id="q" class="in" placeholder="නම / අංකය / ශ්‍රේණිය සොයන්න" value="${E(S.q)}"><div class="row" style="margin:8px 0"><button class="sb" id="qz">⬇ පෙනෙන සියලුම QR (PNG ZIP)</button></div><div class="sc"><table class="stt"><thead><tr><th>අංකය</th><th>නම</th><th>ශ්‍රේණිය</th><th>දුරකථන</th><th>පන්ති</th><th></th></tr></thead><tbody id="sr"></tbody></table></div></div><div id="pop"></div>`;
 function rows(){const q=S.q.toLowerCase(),l=D.s.filter(s=>(s.id+s.name+s.grade).toLowerCase().includes(q));
- $('#sr').innerHTML=l.length?l.map(s=>`<tr><td>${s.id}</td><td>${E(s.name)}</td><td>${E(s.grade)}</td><td>${E(s.tel||'')}</td><td>${(s.cl||[]).map(c=>(D.c.find(x=>x.id==c)||{}).name).filter(Boolean).map(E).join(', ')||'—'}</td><td><button class="sb" data-q="${s.id}">QR</button><button class="sb" data-x="${s.id}">✕</button></td></tr>`).join(''):'<tr><td colspan="7" class="mu">ශිෂ්‍යයන් නැත</td></tr>';
+ $('#sr').innerHTML=l.length?l.map(s=>`<tr><td>${s.id}</td><td>${E(s.name)}</td><td>${E(s.grade)}</td><td>${E(s.tel||'')}</td><td>${(s.cl||[]).map(c=>(D.c.find(x=>x.id==c)||{}).name).filter(Boolean).map(E).join(', ')||'—'}</td><td><button class="sb" data-q="${s.id}">QR</button><button class="sb" data-qp="${s.id}">⬇ PNG</button><button class="sb" data-x="${s.id}">✕</button></td></tr>`).join(''):'<tr><td colspan="7" class="mu">ශිෂ්‍යයන් නැත</td></tr>';
  $$('[data-q]').forEach(b=>b.onclick=()=>{$('#pop').innerHTML=cards(st(b.dataset.q))});
  $$('[data-x]').forEach(b=>b.onclick=()=>two(b,()=>{D.s=D.s.filter(s=>s.id!=b.dataset.x);save();rows()}))}
-B.stu=()=>{$('#q').oninput=e=>{S.q=e.target.value;rows()};rows()};
+B.stu=()=>{$('#q').oninput=e=>{S.q=e.target.value;rows()};rows();
+ $('#qz').onclick=async()=>{const b=$('#qz'),o=b.textContent,q=S.q.toLowerCase(),l=D.s.filter(s=>(s.id+s.name+s.grade).toLowerCase().includes(q));if(!l.length)return;b.disabled=true;const fl=[];
+  for(let i=0;i<l.length;i++){b.textContent='⏳ '+(i+1)+' / '+l.length;const bl=await qrPng(l[i]);fl.push({name:sfn(l[i].id)+' - '+sfn(l[i].name)+'.png',data:new Uint8Array(await bl.arrayBuffer())})}
+  dwn(zipB(fl),'QR_codes.zip');b.textContent=o;b.disabled=false}};
 /* ---- QR බල්ක් මුද්‍රණය (A4, ක්‍රෙඩිට් කාඩ් ප්‍රමාණය) ---- */
 const bkPages=()=>{const P=[];(S.bk=='all'?D.c:D.c.filter(c=>c.id==S.bk)).forEach(c=>{const m=mem(c.id);for(let i=0;i<m.length;i+=10)P.push('<div class="bkp">'+m.slice(i,i+10).map(s=>idc2(s,c)).join('')+'</div>')});return P};
 V.bulk=()=>{S.bk=S.bk||(D.c[0]||{}).id;const P=bkPages(),n=P.join('').split('class="idw"').length-1,ng=S.bg===false;
@@ -335,6 +338,26 @@ async function cardCv(s,c){try{await document.fonts.load('700 40px \"Yaldevi\"')
  const ct=[t.p?'📞 '+t.p:'',t.w?'💬 WhatsApp: '+t.w:''].filter(Boolean).join('   |   ');if(ct){x.font='400 '+2.1*u+'px '+F;x.fillText(ct,W/2,ly)}
  return cv}
 const dwn=(b,n)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)};
+
+/* ---- QR → PNG (තනි / ZIP) ---- */
+async function qrPng(s){try{await document.fonts.load('700 40px "Poppins"');await document.fonts.load('700 40px "Yaldevi"')}catch(e){}
+ const q=qrcode(0,'M');q.addData(String(s.id));q.make();const n=q.getModuleCount(),cell=24,Q=4,W=(n+2*Q)*cell,H=W+170,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),F='"Poppins","Yaldevi","Noto Sans Sinhala",system-ui,sans-serif';
+ x.fillStyle='#fff';x.fillRect(0,0,W,H);x.fillStyle='#000';for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))x.fillRect((c+Q)*cell,(r+Q)*cell,cell,cell);
+ const tx=(str,y,sz,col)=>{str=String(str);x.font='700 '+sz+'px '+F;while(x.measureText(str).width>W-60&&sz>16){sz-=2;x.font='700 '+sz+'px '+F}x.fillStyle=col;x.textAlign='center';x.textBaseline='alphabetic';x.fillText(str,W/2,y)};
+ tx(s.name,W+14,46,'#14246a');tx(s.id,W+86,58,'#000');
+ return new Promise(r=>cv.toBlob(r,'image/png'))}
+const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=u=>{let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=crcT[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
+function zipB(files){const en=new TextEncoder(),parts=[],cen=[];let off=0,cs=0;
+ files.forEach(({name,data})=>{const nb=en.encode(name),crc=crc32(data),h=new DataView(new ArrayBuffer(30));
+  h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,nb.length,true);
+  parts.push(h,nb,data);
+  const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,nb.length,true);c.setUint32(42,off,true);
+  cen.push(c,nb);cs+=46+nb.length;off+=30+nb.length+data.length});
+ const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...cen,e],{type:'application/zip'})}
+const sfn=s=>String(s).replace(/[\\\\/:*?"<>|]/g,'').trim();
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-qp]');if(!b)return;const s=st(b.dataset.qp);if(!s)return;const o=b.textContent;b.textContent='⏳';try{dwn(await qrPng(s),'QR_'+sfn(s.id)+'.png')}catch(x){}b.textContent=o});
 function mkPdf(cv){const w=cv.width,h=cv.height,c2=document.createElement('canvas');c2.width=w;c2.height=h;const x=c2.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(cv,0,0);
  const bin=atob(c2.toDataURL('image/jpeg',.95).split(',')[1]),jpg=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)jpg[i]=bin.charCodeAt(i);
  const PW=595.28,PH=841.89,cw=283.46,ch=cw*h/w,cx=(PW-cw)/2,cy=PH-56.7-ch,en=new TextEncoder(),parts=[],off=[];let len=0;
