@@ -38,7 +38,7 @@ ft.append(sy);(document.querySelector('header .top')||ft).append(so);
 const st=t=>sy.textContent=t+(au&&au.currentUser?' · '+au.currentUser.email:'');
 const card=(inner)=>{let o=document.querySelector('#lg');if(!o){o=document.createElement('div');o.id='lg';document.body.appendChild(o)}LOCK().add('lock');
  let lo;try{lo=lg()}catch(e){lo='📚'}
- o.innerHTML='<div class="lc"><div class="lo">'+lo+'</div><h2>English with Sudan Sir</h2><p>පරිපාලක පිවිසුම (Admin Login)</p>'+inner+'</div><div class="pb">Powered by NEXORA TECHNOLOGY</div>';return o};
+ o.innerHTML='<div class="lc"><div class="lo">'+lo+'</div><h2>'+(()=>{let n='English with Sudan Sir';try{n=localStorage.getItem('esk_nm')||n}catch(e){}return n.replace(/[<>&"]/g,'')})()+'</h2><p>පරිපාලක පිවිසුම (Admin Login)</p>'+inner+'</div><div class="pb">Powered by NEXORA TECHNOLOGY</div>';return o};
 let Ap,Au,Fs;
 try{[Ap,Au,Fs]=await Promise.all([import(FB+'firebase-app.js'),import(FB+'firebase-auth.js'),import(FB+'firebase-firestore.js')])}
 catch(e){card('<div class="ms er">⚠️ අන්තර්ජාල සම්බන්ධතාවය නැත. සම්බන්ධ වී නැවත උත්සාහ කරන්න.</div><button class="go" id="rl">නැවත උත්සාහ කරන්න</button>').querySelector('#rl').onclick=()=>location.reload();return}
