@@ -538,12 +538,26 @@ B.adm=()=>{const cp=v=>Math.min(100,Math.max(0,+v||0));$('#ips').onclick=()=>{D.
  $('#bi').onclick=()=>{try{const x=JSON.parse($('#bk').value);if(!Array.isArray(x.s))throw 0;D=x;mig();save();say('ආනයනය කළා.',1)}catch(e){say('වලංගු නොවන දත්ත.',0)}};
  $('#bc').onclick=function(){two(this,()=>{D={s:[],a:{},f:{},fee:2000,n:0,c:[],k:0,dn:{},dd:{},sub:[]};save();say('දත්ත මකා දමන ලදී.',1)})}};
 /* ---- උපකරණ පුවරුව ---- */
-V.dash=()=>{const m=S.m,P=[];D.c.forEach(c=>mem(c.id).forEach(s=>P.push({c,s,p:pd(s.id,m,c.id)})));const paid=P.filter(x=>x.p),un=P.filter(x=>!x.p),tot=paid.reduce((a,x)=>a+x.c.fee,0),
- dc=dys(m).map(d=>D.c.reduce((a,c)=>a+((((D.a[m]||{})[c.id]||{})[d])||[]).length,0)),mx=Math.max(1,...dc),ab=P.filter(x=>pc(x.s.id,m,x.c.id)==0&&dc.some(n=>n));
- return `<div class="rib">උපකරණ පුවරුව</div><div class="g4">${[['ශිෂ්‍යයන්',D.s.length,'#6b8cff'],['ගාස්තු ගෙවූ',paid.length+'/'+P.length,'#16a56a'],['එකතු කළ මුදල',rs(tot),'#ffa133'],['ආයතන ගාස්තු',rs(paid.reduce((a,x)=>a+cut(x.c,x.c.fee),0)),'#b58cff'],['ගෙවීමට ඇති',un.length,'#e0527a']].map(([a,b,c])=>`<div class="c k" style="--k:${c}"><small class="mu">${a}</small><b>${b}</b></div>`).join('')}</div>
-<div class="c"><h3>දින අනුව පැමිණීම (${m})</h3>${dc.map((n,i)=>`<div class="bar"><span>${i+1} වන දිනය</span><i style="width:${n/mx*70}%"></i><b>${n}</b></div>`).join('')}</div>
-<div class="c" style="--k:#e0527a"><h3>ගාස්තු නොගෙවූ</h3>${un.map(x=>E(x.s.name)+' ('+E(x.c.name)+')').join(', ')||'සියලුදෙනා ගෙවා ඇත'}</div>
-<div class="c" style="--k:#ffa133"><h3>මෙම මාසයේ එක් දිනක්වත් නොපැමිණි</h3>${ab.map(x=>E(x.s.name)+' ('+E(x.c.name)+')').join(', ')||'—'}</div>`};
+/* ---- උපකරණ පුවරුව (පන්ති අනුව) ---- */
+const dashData=m=>D.c.map(c=>{const hd=rpHeld(m,c.id).length,ms=mem(c.id).slice().sort((x,y)=>String(x.id).localeCompare(String(y.id),undefined,{numeric:true})),rows=ms.map(s=>({s,a:pc(s.id,m,c.id),p:pd(s.id,m,c.id)})),paid=rows.filter(r=>r.p),att=rows.reduce((a,r)=>a+r.a,0);return{c,hd,rows,paid,un:rows.filter(r=>!r.p),ab:hd?rows.filter(r=>!r.a):[],att,col:paid.length*c.fee}});
+V.dash=()=>{const m=S.m,DD=dashData(m),n=DD.reduce((a,x)=>a+x.rows.length,0),np=DD.reduce((a,x)=>a+x.paid.length,0),tot=DD.reduce((a,x)=>a+x.col,0),inst=DD.reduce((a,x)=>a+cut(x.c,x.col),0),
+ dc=dys(m).map(d=>D.c.reduce((a,c)=>a+((((D.a[m]||{})[c.id]||{})[d])||[]).length,0)),mx=Math.max(1,...dc),nm=r=>r.map(x=>E(x.s.name)).join(', ');
+ return `<div class="rib">උපකරණ පුවරුව</div><div class="c"><div class="row" style="align-items:center;margin-top:0"><label class="ml">මාසය <input type="month" id="dm" class="in" style="width:auto" value="${m}"></label><button class="sb" data-dp="all">📄 උපකරණ පුවරුව PDF (සියලු පන්ති)</button></div></div><div class="g4">${[['ශිෂ්‍යයන්',D.s.length,'#6b8cff'],['ගාස්තු ගෙවූ',np+'/'+n,'#16a56a'],['එකතු කළ මුදල',rs(tot),'#ffa133'],['ආයතන ගාස්තු',rs(inst),'#b58cff'],['ගෙවීමට ඇති',n-np,'#e0527a']].map(([a,b,c])=>`<div class="c k" style="--k:${c}"><small class="mu">${a}</small><b>${b}</b></div>`).join('')}</div>
+<div class="c"><h3>දින අනුව පැමිණීම (${m})</h3>${dc.map((k,i)=>`<div class="bar"><span>${i+1} වන දිනය</span><i style="width:${k/mx*70}%"></i><b>${k}</b></div>`).join('')}</div>
+${DD.map(x=>`<div class="c" style="--k:#4dd0e1"><h3>${E(x.c.name)}${x.c.sub?' <small class="mu">· '+E(x.c.sub)+'</small>':''}</h3><div class="mu">ශිෂ්‍යයන්: <b>${x.rows.length}</b> · ගෙවූ: <b>${x.paid.length}/${x.rows.length}</b> · එකතුව: <b>${rs(x.col)}</b> · පැවති දින: <b>${x.hd}</b> · පැමිණීම: <b>${pct(x.att,x.hd*x.rows.length)}</b></div><p><b>ගාස්තු නොගෙවූ:</b> ${nm(x.un)||'සියලුදෙනා ගෙවා ඇත'}</p><p><b>මෙම මාසයේ එක් දිනක්වත් නොපැමිණි:</b> ${nm(x.ab)||'—'}</p><div class="row"><button class="sb" data-dp="${x.c.id}">📄 මෙම පන්තිය PDF</button></div></div>`).join('')||'<div class="c mu">පන්ති නැත</div>'}`};
+B.dash=()=>{$('#dm').onchange=e=>{S.m=e.target.value||mk();go('dash')}};
+async function dashPdf(cid){const m=S.m,one=cid&&cid!='all',DD=dashData(m).filter(x=>!one||x.c.id==cid);if(!DD.length)throw new Error('පන්ති නැත');
+ const doc=await pdfDoc('උපකරණ පුවරුව',m+(one?' · '+DD[0].c.name:' · පන්ති අනුව')),
+  tn=DD.reduce((a,x)=>a+x.rows.length,0),tp=DD.reduce((a,x)=>a+x.paid.length,0),tc=DD.reduce((a,x)=>a+x.col,0),ti=DD.reduce((a,x)=>a+cut(x.c,x.col),0),ta=DD.reduce((a,x)=>a+x.att,0),th=DD.reduce((a,x)=>a+x.hd*x.rows.length,0);
+ doc.chips([{l:'එකතු කළ මුදල',v:rs(tc),c:'#ffa133'},{l:'ආයතනයට',v:rs(ti),c:'#b58cff'},{l:'ගාස්තු ගෙවූ',v:tp+' / '+tn,c:GRN},{l:'සාමාන්‍ය පැමිණීම',v:pct(ta,th),c:'#6b8cff'}]);
+ if(!one){doc.h2('පන්ති සාරාංශය');doc.table([{h:'පන්තිය',w:.27},{h:'ශිෂ්‍ය',w:.10,al:'center'},{h:'පැවති',w:.10,al:'center'},{h:'පැමිණීම',w:.12,al:'center'},{h:'ගෙවූ',w:.12,al:'center'},{h:'එකතුව',w:.15,al:'right'},{h:'ආයතනයට',w:.14,al:'right'}],
+  DD.map(x=>[{t:x.c.name,b:1},x.rows.length+'',x.hd+'',pct(x.att,x.hd*x.rows.length),x.paid.length+' / '+x.rows.length,rs(x.col),rs(cut(x.c,x.col))]))}
+ DD.forEach(x=>{doc.h2(x.c.name+(x.c.sub?' · '+x.c.sub:'')+' – ශිෂ්‍යයන් '+x.rows.length);
+  if(!x.rows.length)return doc.para('ශිෂ්‍යයන් නැත.');
+  doc.table([{h:'#',w:.07,al:'center'},{h:'අංකය',w:.15},{h:'නම',w:.33},{h:'පැමිණි / පැවති',w:.17,al:'center'},{h:'ගාස්තුව',w:.14,al:'center'},{h:'ගෙවූ දිනය',w:.14,al:'center'}],
+   x.rows.map((r,i)=>[(i+1)+'',r.s.id,{t:r.s.name,b:1},r.a+' / '+x.hd,r.p?{t:'ගෙවා ඇත',c:GRN,b:1}:{t:'ගෙවා නැත',c:RED,b:1},r.p||'—']))});
+ dwn(pdfBlob(doc.finish()),'Dashboard_'+(one?sfn(DD[0].c.name)+'_':'AllClasses_')+m+'.pdf')}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-dp]');if(b)rpBusy(b,()=>dashPdf(b.dataset.dp))});
 $$('#nav button').forEach(b=>b.addEventListener('click',()=>scrollTo(0,0)));
 go('att');
 </script><script type="module" src="cloud.js"></script>
