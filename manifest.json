@@ -1,20 +1,15 @@
 {
-  "short_name": "SudanSirApp",
+  "short_name": "SudanSir",
   "name": "English with Sudan Sir",
+  "description": "පන්ති කළමනාකරණ පද්ධතිය",
+  "lang": "si",
   "icons": [
-    {
-      "src": "logo.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "logo.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
+    { "src": "logo-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "logo.png", "type": "image/png", "sizes": "512x512" }
   ],
   "start_url": "index.html",
-  "background_color": "#003366",
-  "theme_color": "#0056b3",
+  "scope": "./",
+  "background_color": "#14246b",
+  "theme_color": "#14246b",
   "display": "standalone"
 }
