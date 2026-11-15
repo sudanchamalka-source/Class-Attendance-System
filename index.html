@@ -117,7 +117,7 @@ $('#nav').innerHTML=T.map(([k,n,c])=>`<button data-t="${k}" class="${k=='att'||k
 $$('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
 const V={},B={};
 function go(t){stop();S.t=t;$$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==t));$('#main').innerHTML=V[t]();B[t]&&B[t]()}
-function stop(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}const v=$('#v');if(v)v.hidden=true;const b=$('#cs');if(b)b.textContent='කැමරාවෙන් QR කේතය ස්කෑන් කරන්න'}
+function stop(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}const v=$('#v');if(v)v.hidden=true;const z=$('#sstat');if(z)z.remove();const b=$('#cs');if(b)b.textContent='කැමරාවෙන් QR කේතය ස්කෑන් කරන්න'}
 /* ---- පැමිණීම ---- */
 V.att=()=>`<div class="rib">පැමිණීම් සටහන</div>
 ${D.c.length?'':'<div class="c"><b>පළමුව “පන්ති” ටැබයෙන් පන්තියක් එක් කරන්න.</b></div>'}<div class="c"><h3>පන්තිය තෝරන්න</h3>${cpick()}</div>
@@ -194,12 +194,26 @@ function mark(id){const s=fs(id);
  const m=((D.a[S.m]=D.a[S.m]||{})[k]=D.a[S.m][k]||{}),l=m[S.day]=m[S.day]||[];
  if(l.includes(id))return scanCard(s,'dup','දැනටමත් සටහන් කර ඇත');
  l.push(id);save();list();scanCard(s,'ok','✔ පැමිණීම සටහන් කළා'+(sw?' <small>(පන්තිය ස්වයංක්‍රීයව මාරු විය)</small>':''))}
-function qimg(f,fn){const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height),r=jsQR(d.data,d.width,d.height);r?fn(r.data.trim()):say('රූපයේ QR කේතයක් හමු නොවීය.',0)};im.src=URL.createObjectURL(f)}
-async function cam(fn){fn=fn||mark;const v=$('#v'),c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});
- try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});v.srcObject=stream;v.hidden=false;await v.play()}catch(e){stop();return say('කැමරාව විවෘත කළ නොහැක. QR රූපයක් උඩුගත කරන්න.',0)}
- $('#cs').textContent='කැමරාව නවත්වන්න';let last='',lt=0;
- (function loop(){if(!stream)return;if(v.videoWidth){c.width=v.videoWidth;c.height=v.videoHeight;x.drawImage(v,0,0);const d=x.getImageData(0,0,c.width,c.height),r=jsQR(d.data,d.width,d.height);
-  if(r){const t=Date.now();if(r.data!==last||t-lt>1500){last=r.data;fn(r.data.trim())}lt=t}}requestAnimationFrame(loop)})()}
+function qdec(src,w,h,c,x){ /* jsQR – රූපය කුඩා කර පරීක්ෂා කරයි */
+ const sc=Math.min(1,720/Math.max(w,h));c.width=Math.max(1,Math.round(w*sc));c.height=Math.max(1,Math.round(h*sc));x.drawImage(src,0,0,c.width,c.height);
+ const d=x.getImageData(0,0,c.width,c.height),r=window.jsQR&&jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});return r?r.data:''}
+function qimg(f,fn){const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true});let v=qdec(im,im.width,im.height,c,x);if(!v){const m=Math.min(im.width,im.height),cc=document.createElement('canvas'),cx=cc.getContext('2d',{willReadFrequently:true});cc.width=cc.height=Math.min(900,m);cx.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,cc.width,cc.height);const d=cx.getImageData(0,0,cc.width,cc.height),r=window.jsQR&&jsQR(d.data,d.width,d.height,{inversionAttempts:'attemptBoth'});v=r?r.data:''}
+ v?fn(v.trim()):say('රූපයේ QR කේතයක් හමු නොවීය.',0)};im.src=URL.createObjectURL(f)}
+let _bd=null;
+async function cam(fn){fn=fn||mark;const v=$('#v'),c=document.createElement('canvas'),x=c.getContext('2d',{willReadFrequently:true}),nb='BarcodeDetector' in window;
+ if(!window.jsQR)await new Promise(r=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';s.onload=s.onerror=r;document.head.appendChild(s)});
+ if(!window.jsQR&&!nb)return say('QR කියවන library එක load වුණේ නෑ. අන්තර්ජාලය පරීක්ෂා කර page එක refresh කරන්න.',0);
+ try{_bd=nb?new BarcodeDetector({formats:['qr_code']}):null}catch(e){_bd=null}
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});v.srcObject=stream;v.hidden=false;await v.play();try{stream.getVideoTracks()[0].applyConstraints({advanced:[{focusMode:'continuous'}]}).catch(()=>{})}catch(e){}}catch(e){stop();return say('කැමරාව විවෘත කළ නොහැක ('+E(e.name||'')+'). අවසර (Permission) දී ඇත්දැයි බලන්න, නැත්නම් QR රූපයක් උඩුගත කරන්න.',0)}
+ $('#cs').textContent='කැමරාව නවත්වන්න';if(!$('#sstat'))v.insertAdjacentHTML('afterend','<div id="sstat" class="mu" style="text-align:center;margin-top:6px;font-weight:600"></div>');
+ const ss=m=>{const z=$('#sstat');if(z)z.textContent=m};ss('🔍 ස්කෑන් කරමින්… QR එක කැමරාව ඉදිරියේ තබන්න');
+ let last='',lt=0,busy=0;
+ const tick=async()=>{if(!stream)return;
+  if(!busy&&v.videoWidth&&v.readyState>=2){busy=1;try{let val='';
+   if(_bd){try{const r=await _bd.detect(v);val=r[0]?r[0].rawValue:''}catch(e){_bd=null}}
+   if(!val&&window.jsQR)val=qdec(v,v.videoWidth,v.videoHeight,c,x);
+   if(val){const t=Date.now();if(val!==last||t-lt>2500){last=val;fn(val.trim())}lt=t}}catch(e){}busy=0}
+  setTimeout(tick,90)};tick()}
 B.att=()=>{$$('[data-d]').forEach(b=>b.onclick=()=>{S.day=+b.dataset.d;go('att')});
  $('#da').onclick=()=>{const n=nd(S.m)+1,t=ld();D.dn[S.m]=n;sd(S.m,n,t.slice(0,7)==S.m?t:S.m+'-01');S.day=n;save();go('att')};
  $('#dt').onchange=e=>{sd(S.m,S.day,e.target.value);save();go('att')};
