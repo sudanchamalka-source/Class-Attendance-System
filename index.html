@@ -131,12 +131,17 @@ function list(){const l=dl();$('#cnt').textContent=l.length;
 function slist(){const e=$('#sl');if(!e)return;const k=cid(),l=dl(),q=(($('#sq')||{}).value||'').toLowerCase(),ms=mem(k).filter(s=>(s.name+s.id+s.grade).toLowerCase().includes(q));
  e.style.setProperty('--k','#16a56a');e.innerHTML=ms.map(s=>`<button type="button" class="cc ${l.includes(s.id)?'on':''}" data-sp="${s.id}"><b>${E(s.name)}</b><small>ශ්‍රේණිය ${E(s.grade)} · ${s.id}</small></button>`).join('')||'<span class="mu">මෙම පන්තියේ ශිෂ්‍යයන් නැත</span>';
  $$('[data-sp]').forEach(b=>b.onclick=()=>{const id=b.dataset.sp,s=st(id);if(dl().includes(id)){D.a[S.m][cid()][S.day]=dl().filter(i=>i!=id);save();say('සටහන ඉවත් කළා: '+E(s.name),0);list()}else mark(id)})}
-function scanCard(s,t,msg){let e=$('#sc');if(!e){e=document.createElement('div');e.id='sc';document.body.appendChild(e)}
- const k=cid(),c=D.c.find(x=>x.id==k)||{},col={ok:'#16a56a',dup:'#f5a300',er:'#e0527a'}[t],p=s?pd(s.id,S.m,k):0;
- e.style.cssText='position:fixed;left:8px;right:8px;top:calc(8px + env(safe-area-inset-top,0px));z-index:60;max-width:520px;margin:auto;background:var(--card);color:var(--tx);border-left:8px solid '+col+';border-radius:14px;box-shadow:0 8px 30px #0006;padding:12px;display:flex;gap:12px;align-items:center';
- const h=(s?'<div style="flex:none;width:72px;height:72px;border-radius:12px;overflow:hidden;background:#fff;display:grid;place-items:center;font-size:34px">'+(s.ph?'<img src="'+s.ph+'" style="width:100%;height:100%;object-fit:cover" alt="">':lg())+'</div>':'<div style="font-size:40px">⚠️</div>')+'<div style="min-width:0;flex:1"><div style="font-weight:700;color:'+col+'">'+msg+'</div>'+(s?'<div style="font-size:18px;font-weight:700;overflow-wrap:anywhere">'+E(s.name)+'</div><div class="mu" style="font-size:13px">'+E(s.id)+' · ශ්‍රේණිය '+E(s.grade)+(s.tel?' · '+E(s.tel):'')+'</div><div style="font-size:13px">'+E(c.name||'')+' · '+S.m+' පැමිණි දින: <b>'+pc(s.id,S.m,k)+'</b> · ගාස්තුව: <b style="color:'+(p?'#16a56a':'#e0527a')+'">'+(p?'ගෙවා ඇත':'ගෙවා නැත')+'</b></div>':'')+'</div>';
- e.innerHTML=h;const mg=$('#msg');if(mg)mg.innerHTML='<div style="border-left:8px solid '+col+';background:var(--in);border-radius:10px;padding:10px;display:flex;gap:12px;align-items:center;margin-top:12px">'+h+'</div>';
- navigator.vibrate&&navigator.vibrate(t=='ok'?80:[80,60,80]);clearTimeout(e._t);e._t=setTimeout(()=>e.remove(),6000);e.onclick=()=>e.remove()}
+/* ---- QR scan popup (attendance + fee) ---- */
+function scanPop(s,t,msg,info){let e=$('#sp');if(!e){e=document.createElement('div');e.id='sp';e.className='ov';e.style.zIndex=70;document.body.appendChild(e)}
+ const col={ok:'#16a56a',dup:'#f5a300',er:'#e0527a'}[t]||'#e0527a',ico={ok:'✔',dup:'⚠️',er:'✖'}[t]||'⚠️';
+ const ph=s?'<div style="width:110px;height:110px;margin:0 auto 10px;border-radius:50%;overflow:hidden;background:#fff;border:4px solid '+col+';display:grid;place-items:center;font-size:52px">'+(s.ph?'<img src="'+s.ph+'" style="width:100%;height:100%;object-fit:cover" alt="">':lg())+'</div>':'<div style="font-size:60px;text-align:center">⚠️</div>';
+ e.innerHTML='<div class="mb" style="--k:'+col+';text-align:center;width:min(380px,100%)">'+ph+'<div style="font-weight:700;font-size:17px;color:'+col+'">'+(s?ico+' ':'')+msg+'</div>'+(s?'<div style="font-size:22px;font-weight:700;overflow-wrap:anywhere;margin-top:6px">'+E(s.name)+'</div><div class="mu" style="font-size:14px">'+E(s.id)+' · ශ්‍රේණිය '+E(s.grade)+(s.tel?' · '+E(s.tel):'')+'</div>':'')+(info?'<div style="margin-top:10px;font-size:14px;line-height:1.7">'+info+'</div>':'')+'<button class="b w" id="spx" style="margin-top:14px;background:'+col+'">හරි</button></div>';
+ const cl=()=>{clearTimeout(e._t);e.remove()};e.onclick=cl;$('#spx').onclick=cl;
+ navigator.vibrate&&navigator.vibrate(t=='ok'?80:[80,60,80]);clearTimeout(e._t);e._t=setTimeout(cl,t=='ok'?3500:5000)}
+function scanCard(s,t,msg){let info='';
+ if(s){const k=cid(),c=D.c.find(x=>x.id==k)||{},p=pd(s.id,S.m,k);info=E(c.name||'')+'<br>'+S.m+' පැමිණි දින: <b>'+pc(s.id,S.m,k)+'</b> · ගාස්තුව: <b style="color:'+(p?'#16a56a':'#e0527a')+'">'+(p?'ගෙවා ඇත':'ගෙවා නැත')+'</b>'}
+ scanPop(s,t,msg,info);
+ const mg=$('#msg');if(mg)mg.innerHTML='<div class="ms '+(t=='ok'?'ok':'er')+'">'+(s?E(s.name)+' – ':'')+msg+'</div>'}
 const fs=raw=>{raw=String(raw==null?'':raw).trim();const U=raw.toUpperCase(),eq=v=>D.s.find(x=>String(x.id).toUpperCase()==String(v).toUpperCase());let s=eq(raw);if(s)return s;
  const m=raw.match(/[?&#](?:s|id)=([^&#\s]+)/i);if(m){try{s=eq(decodeURIComponent(m[1]))}catch(e){}if(s)return s}return null};
 function mark(id){const s=fs(id);
@@ -264,11 +269,15 @@ B.reg=()=>{$$('[data-rc]').forEach(b=>b.onclick=()=>openReg(b.dataset.rc))};
 /* ---- ගාස්තු ගෙවීම ---- */
 V.fee=()=>`<div class="rib">ගාස්තු ගෙවීම</div><div class="c" style="--k:#ffa133">${cpick()}<label class="ml" style="margin-top:12px">මාසය (මෙම මාසය දක්වා හිඟ ගණන් බලයි) <input type="month" id="m" class="in" style="width:auto" value="${S.m}"></label>
 <div class="up"><b>QR කේතය ස්කෑන් කර ගෙවීම සටහන් කරන්න</b><p class="mu" style="margin:6px 0">ශිෂ්‍යයා ඉකුත් මාසවල ගාස්තු ගෙවා නැත්නම්, දැන් ගෙවන ගාස්තුව ගෙවා නැති පැරණිතම මාසයට එක් වේ.</p><button class="b w" id="cs">කැමරාවෙන් QR කේතය ස්කෑන් කරන්න</button><video id="v" playsinline muted hidden></video><div style="margin-top:10px"><input type="file" id="fi" accept="image/*"></div><div class="row"><input id="mi" class="in" placeholder="හෝ හැඳුනුම් අංකය ටයිප් කරන්න"><button class="b" id="mb">සටහන් කරන්න</button></div><div id="msg"></div></div><div id="fs" class="sum"></div><div class="cgr" id="fc"></div><div class="sc"><table><tbody id="fr"></tbody></table></div></div>`;
-function payFee(id){const c=cs();if(!c)return say('පන්තියක් තෝරන්න.',0);const s=st(id);if(!s)return say('හැඳුනුම් අංකය හමු නොවීය: '+E(id),0);
- if(!(s.cl||[]).includes(c.id))return say(E(s.name)+' මෙම පන්තියට ('+E(c.name)+') අයත් නොවේ.',0);
- const a=arr(s,c);if(!a.length)return say(E(s.name)+' – '+S.m+' දක්වා සියලු ගාස්තු ගෙවා ඇත.',0);
- const m=a[0];((D.f[m]=D.f[m]||{})[c.id]=D.f[m][c.id]||{})[s.id]=ld();save();
- say('✔ '+E(s.name)+' – '+m+' මාසයේ ගාස්තුව ('+rs(c.fee)+') සටහන් කළා'+(a.length>1?' · තවත් හිඟ මාස '+(a.length-1)+'ක් ඇත ('+rs((a.length-1)*c.fee)+')':'')+'.',1);fl()}
+function payFee(id){const c=cs();if(!c)return scanPop(null,'er','පන්තියක් තෝරන්න.');
+ const s=fs(id);if(!s)return scanPop(null,'er','ශිෂ්‍යයා හමු නොවීය<br><small>ස්කෑන් කළ කේතය: '+E(String(id).slice(0,40))+'</small>');
+ let c2=c;if(!(s.cl||[]).includes(c.id)){const nk=(s.cl||[]).find(x=>D.c.some(y=>y.id==x));if(!nk)return scanPop(s,'er','මෙම ශිෂ්‍යයා කිසිම පන්තියකට අයත් නොවේ');
+  S.c=nk;c2=D.c.find(x=>x.id==nk);$$('[data-pc]').forEach(b=>b.classList.toggle('on',b.dataset.pc==nk))}
+ const a=arr(s,c2);if(!a.length){fl();return scanPop(s,'dup','සියලු ගාස්තු ගෙවා ඇත','<b>'+E(c2.name)+'</b><br>'+S.m+' දක්වා හිඟයක් නැත')}
+ const m=a[0];((D.f[m]=D.f[m]||{})[c2.id]=D.f[m][c2.id]||{})[s.id]=ld();save();
+ const rest=a.length-1;
+ scanPop(s,'ok','ගාස්තුව සටහන් කළා','<b>'+E(c2.name)+'</b><br>'+m+' මාසය: <b style="color:#16a56a">'+rs(c2.fee)+'</b>'+(rest?'<br><span style="color:#e0527a;font-weight:700">තවත් හිඟ මාස '+rest+'ක් ඇත ('+rs(rest*c2.fee)+')</span>':'<br>දැන් සියල්ල ගෙවා ඇත'));
+ fl()}
 function fl(){const c=cs();if(!c){$('#fs').innerHTML='';$('#fc').innerHTML='';$('#fr').innerHTML='<tr><td class="mu">පන්තියක් නැත</td></tr>';return}const f=(D.f[S.m]||{})[c.id]||{},ms=mem(c.id);let t=0,n=0,ar=0;ms.forEach(s=>{if(f[s.id]){t+=c.fee;n++}ar+=arr(s,c).length});
  $('#fs').innerHTML=`<span>එකතු කළ: <b>${rs(t)}</b></span><span>ගෙවූ: <b>${n}/${ms.length}</b></span><span>පන්ති ගාස්තුව: <b>${rs(c.fee)}</b></span><span>ආයතන ගාස්තුව (${ip(c)}%): <b>${rs(cut(c,t))}</b></span><span>ගුරුවරයාට: <b>${rs(t-cut(c,t))}</b></span><span>හිඟ මුදල (${S.m} දක්වා): <b>${rs(ar*c.fee)}</b></span>`;
  $('#fr').innerHTML=ms.map(s=>{const a=arr(s,c);return `<tr><td>${E(s.name)}<br><small class="mu">${s.id} · ශ්‍රේණිය ${E(s.grade)}</small>${a.length?`<small style="display:block;white-space:normal;max-width:260px;color:#e0527a;font-weight:600">හිඟ: ${a.join(', ')} (${rs(a.length*c.fee)})</small>`:''}</td><td>${rs(c.fee)}<br><small class="mu">ආයතනය ${rs(cut(c,c.fee))}</small></td><td>${a.length?`<button class="sb" data-p="${s.id}">ගෙවීම සටහන් කරන්න</button>`:''}${f[s.id]?`<button class="sb pd" data-u2="${s.id}">${S.m} ගෙවා ඇත (${f[s.id]}) ✕</button>`:''}${!a.length&&!f[s.id]?'<small class="mu">මෙම මාසයට අදාළ නැත</small>':''}</td></tr>`}).join('')||'<tr><td class="mu">ශිෂ්‍යයන් නැත</td></tr>';
