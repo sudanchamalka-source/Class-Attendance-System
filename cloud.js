@@ -21,7 +21,7 @@ const LOCK=()=>document.documentElement.classList;
 let au=null,deny='',failed=false;
 (async()=>{
 if(!CFG||!CFG.apiKey||/^YOUR/i.test(CFG.apiKey)){console.info('Cloud/login off: firebase-config.js සකසා නැත');return}
-const css=document.createElement('style');css.textContent=`#lg{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow:auto;background:linear-gradient(160deg,#14246a,#1f4fd8);font-family:"Noto Sans Sinhala",system-ui,sans-serif}
+const css=document.createElement('style');css.textContent=`#lg{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;overflow:auto;background:linear-gradient(160deg,#14246a,#1f4fd8);font-family:"Poppins","Yaldevi","Noto Sans Sinhala",system-ui,sans-serif}
 #lg .lc{width:min(400px,100%);background:#fff;color:#14246a;border-radius:20px;border-top:6px solid #ffd21f;padding:26px 22px;box-shadow:0 20px 60px #0006;box-sizing:border-box}
 #lg .lo{width:72px;height:72px;margin:0 auto 10px;border-radius:50%;background:#ffd21f;border:4px solid #14246a;display:grid;place-items:center;font-size:34px;overflow:hidden}#lg .lo img{width:100%;height:100%;object-fit:cover}
 #lg h2{margin:0;text-align:center;font-size:20px}#lg p{margin:2px 0 14px;text-align:center;color:#6b7490;font-size:13px}
@@ -33,7 +33,7 @@ const css=document.createElement('style');css.textContent=`#lg{position:fixed;in
 #lg .pb{text-align:center;margin-top:16px;color:#fff;font-size:12px;opacity:.85}`;document.head.appendChild(css);
 const ft=document.querySelector('#ft'),sy=document.createElement('div'),so=document.createElement('button');
 sy.style.cssText='margin-top:8px;font-size:12px';so.textContent='⎋ ඉවත් වන්න';so.hidden=true;
-so.style.cssText='margin-left:auto;flex:none;border:0;border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.18);color:#fff;font:600 13px inherit;font-family:inherit;cursor:pointer';
+so.style.cssText='margin-left:8px;flex:none;border:0;border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.18);color:#fff;font:600 13px inherit;font-family:inherit;cursor:pointer';
 ft.append(sy);(document.querySelector('header .top')||ft).append(so);
 const st=t=>sy.textContent=t+(au&&au.currentUser?' · '+au.currentUser.email:'');
 const card=(inner)=>{let o=document.querySelector('#lg');if(!o){o=document.createElement('div');o.id='lg';document.body.appendChild(o)}LOCK().add('lock');
