@@ -172,13 +172,23 @@ function rcptPrep(s,c,m,dt){return rcptCv(s,c,m,dt).then(cv=>new Promise(r=>cv.t
 function shareRcpt(s,rp){return rp.then(async o=>{
  if(navigator.canShare&&navigator.canShare({files:[o.file]})){try{await navigator.share({files:[o.file],text:o.text});return}catch(e){if(e&&e.name=='AbortError')return}}
  dwn(o.blob,o.file.name);waOpen(s,o.text);say('රිසිට්පත් රූපය බාගත විය. WhatsApp පණිවිඩයට එය attach කරන්න (📎).',1)})}
+
+/* ---- ශබ්දය + සැකසුම් (WhatsApp auto-open) ---- */
+const OP=(()=>{try{return JSON.parse(localStorage.getItem('esk_opt'))||{}}catch(e){return{}}})();
+const opSet=(k,v)=>{OP[k]=v;try{localStorage.setItem('esk_opt',JSON.stringify(OP))}catch(e){}};
+let _ac;const beep=(f,d,t0)=>{try{_ac=_ac||new(window.AudioContext||window.webkitAudioContext)();if(_ac.state=='suspended')_ac.resume();const o=_ac.createOscillator(),g=_ac.createGain(),s=_ac.currentTime+(t0||0);o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.18,s);g.gain.exponentialRampToValueAtTime(.001,s+d);o.connect(g);g.connect(_ac.destination);o.start(s);o.stop(s+d)}catch(e){}};
+const snd=t=>{if(OP.snd===false)return;if(t=='ok'){beep(880,.12);beep(1320,.2,.13);try{const u=new SpeechSynthesisUtterance('Marked successfully');u.lang='en-US';u.rate=.95;speechSynthesis.cancel();setTimeout(()=>speechSynthesis.speak(u),300)}catch(e){}}else{beep(320,.18);beep(240,.25,.2)}};
+new MutationObserver(()=>{const b=$('#cs');if(!b||$('#opts'))return;
+ b.parentElement.insertAdjacentHTML('afterend','<div id="opts" style="display:flex;flex-wrap:wrap;gap:8px 18px;margin:6px 2px 10px;font-size:14px"><label><input type="checkbox" id="osn" '+(OP.snd!==false?'checked':'')+'> 🔊 සාර්ථක ශබ්දය</label><label><input type="checkbox" id="owa" '+(OP.wa?'checked':'')+'> 💬 ස්කෑන් කළ විට WhatsApp auto විවෘත කරන්න</label></div>');
+ $('#osn').onchange=e=>{opSet('snd',e.target.checked);if(e.target.checked)snd('ok')};$('#owa').onchange=e=>opSet('wa',e.target.checked)}).observe(document.body,{childList:true,subtree:true});
 /* ---- QR scan popup (attendance + fee) ---- */
-function scanPop(s,t,msg,info,wa,lbl){let e=$('#sp');if(!e){e=document.createElement('div');e.id='sp';e.className='ov';e.style.zIndex=70;document.body.appendChild(e)}
+function scanPop(s,t,msg,info,wa,lbl){snd(t);let e=$('#sp');if(!e){e=document.createElement('div');e.id='sp';e.className='ov';e.style.zIndex=70;document.body.appendChild(e)}
  const col={ok:'#16a56a',dup:'#f5a300',er:'#e0527a'}[t]||'#e0527a',ico={ok:'✔',dup:'⚠️',er:'✖'}[t]||'⚠️';
  const ph=s?'<div style="width:110px;height:110px;margin:0 auto 10px;border-radius:50%;overflow:hidden;background:#fff;border:4px solid '+col+';display:grid;place-items:center;font-size:52px">'+(s.ph?'<img src="'+s.ph+'" style="width:100%;height:100%;object-fit:cover" alt="">':lg())+'</div>':'<div style="font-size:60px;text-align:center">⚠️</div>';
  e.innerHTML='<div class="mb" style="--k:'+col+';text-align:center;width:min(380px,100%)">'+ph+'<div style="font-weight:700;font-size:17px;color:'+col+'">'+(s?ico+' ':'')+msg+'</div>'+(s?'<div style="font-size:22px;font-weight:700;overflow-wrap:anywhere;margin-top:6px">'+E(s.name)+'</div><div class="mu" style="font-size:14px">'+E(s.id)+' · ශ්‍රේණිය '+E(s.grade)+(s.tel?' · '+E(s.tel):'')+'</div>':'')+(info?'<div style="margin-top:10px;font-size:14px;line-height:1.7">'+info+'</div>':'')+(wa?'<button class="b w" id="spw" style="margin-top:14px;background:#25D366">'+(lbl||'💬 WhatsApp යවන්න')+(s&&s.tel?'':' (අංකයක් නැත)')+'</button>':'')+'<button class="b w" id="spx" style="margin-top:'+(wa?8:14)+'px;background:'+col+'">හරි</button></div>';
  const cl=()=>{clearTimeout(e._t);e.remove()};e.onclick=cl;$('#spx').onclick=cl;if(wa)$('#spw').onclick=ev=>{ev.stopPropagation();clearTimeout(e._t);typeof wa=='function'?wa():waOpen(s,wa)};
- navigator.vibrate&&navigator.vibrate(t=='ok'?80:[80,60,80]);clearTimeout(e._t);e._t=setTimeout(cl,wa?12000:t=='ok'?3500:5000)}
+ navigator.vibrate&&navigator.vibrate(t=='ok'?80:[80,60,80]);clearTimeout(e._t);e._t=setTimeout(cl,wa?12000:t=='ok'?3500:5000);
+ if(wa&&OP.wa&&t=='ok'){let w=1;try{w=typeof wa=='function'?(wa(),1):waOpen(s,wa)}catch(x){w=0}if(!w)$('#spw').insertAdjacentHTML('beforebegin','<div style="margin-top:8px;font-size:12px;color:#b45309">⚠ browser එක auto විවෘත කිරීම වළක්වා ඇත – පහත බොත්තම ඔබන්න</div>')}}
 function scanCard(s,t,msg){let info='';
  if(s){const k=cid(),c=D.c.find(x=>x.id==k)||{},p=pd(s.id,S.m,k);info=E(c.name||'')+'<br>'+S.m+' පැමිණි දින: <b>'+pc(s.id,S.m,k)+'</b> · ගාස්තුව: <b style="color:'+(p?'#16a56a':'#e0527a')+'">'+(p?'ගෙවා ඇත':'ගෙවා නැත')+'</b>'}
  scanPop(s,t,msg,info,(s&&t=='ok')?attTxt(s,D.c.find(x=>x.id==cid())||{}):'');
