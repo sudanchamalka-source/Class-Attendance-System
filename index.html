@@ -1,372 +1,159 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English with Sudan Sir - Attendance Management System</title>
-    <!-- Firebase SDK (v8 Compatibility Layer) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: #f4f6f9;
-            color: #333;
-            padding: 15px;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        /* Header Layout */
-        header {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            text-align: center;
-        }
-
-        .header-title h1 {
-            font-size: 26px;
-            color: #1e3a8a;
-        }
-
-        .header-title p {
-            font-size: 14px;
-            color: #6b7280;
-        }
-
-        /* Responsive Navigation Bar */
-        .nav-bar {
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: flex-start;
-        }
-
-        .nav-title {
-            font-weight: bold;
-            font-size: 16px;
-            margin-right: auto;
-            color: #1e293b;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-btn {
-            padding: 10px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            color: #4b5563;
-            background-color: #f3f4f6;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .nav-btn:hover {
-            background-color: #e5e7eb;
-            color: #111827;
-        }
-
-        .nav-btn.active {
-            background-color: #2563eb;
-            color: white;
-        }
-
-        /* Clickable Day Selection Bar */
-        .day-selection-card {
-            background: white;
-            padding: 18px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        .day-selection-card h3 {
-            font-size: 15px;
-            color: #374151;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        .day-btn {
-            padding: 14px 10px;
-            border: 2px solid #e5e7eb;
-            background: #ffffff;
-            color: #374151;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-
-        .day-btn:hover {
-            border-color: #2563eb;
-            color: #2563eb;
-            background: #eff6ff;
-        }
-
-        .day-btn.selected {
-            background: #2563eb;
-            color: white;
-            border-color: #2563eb;
-            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
-        }
-
-        /* Student List & Scanner Card */
-        .content-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .card-header h2 {
-            font-size: 20px;
-            color: #1e293b;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-            background-color: #f8fafc;
-            color: #475569;
-            font-weight: 600;
-        }
-
-        tr:hover {
-            background-color: #f1f5f9;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .status-present { background-color: #d1fae5; color: #065f46; }
-        .status-absent { background-color: #fee2e2; color: #991b1b; }
-
-        /* Responsive Breakpoints */
-        @media (max-width: 768px) {
-            .nav-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .nav-title {
-                margin-right: 0;
-                margin-bottom: 8px;
-                text-align: center;
-            }
-
-            .days-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            table {
-                font-size: 13px;
-            }
-            
-            th, td {
-                padding: 8px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>පැමිණීම් සටහන - English with Sudan Sir</title>
+  <meta name="theme-color" content="#14246b">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="shared.js"></script>
 </head>
 <body>
+<div id="chrome"></div>
 
-<div class="container">
-    <header>
-        <div class="header-title">
-            <h1>English with Sudan Sir</h1>
-            <p>Student Attendance & Class Management System</p>
-        </div>
-    </header>
+<main class="wrap">
+  <h2 class="ribbon">පැමිණීම් සටහන</h2>
 
-    <!-- Navigation Bar with Student List Link included -->
-    <div class="nav-bar">
-        <span class="nav-title">📸 Attendance Scanner</span>
-        <a href="index.html" class="nav-btn active">📸 Scanner</a>
-        <a href="students_list.html" class="nav-btn">📋 Student List</a>
-        <a href="register.html" class="nav-btn">+ New Register</a>
-        <a href="fee.html" class="nav-btn">💳 Fee Payment</a>
-        <a href="admin_fees.html" class="nav-btn">🗂️ Admin Panel</a>
-        <a href="teacher_dashboard.html" class="nav-btn">📊 Dashboard</a>
+  <section class="card" style="--accent: var(--blue)">
+    <h3>1. අද පන්ති දිනය තෝරන්න</h3>
+    <div class="chips" id="days" style="margin-bottom:0"></div>
+  </section>
+
+  <section class="card" style="--accent: var(--green)">
+    <h3>2. ශිෂ්‍ය හැඳුනුම්පතේ QR කේතය ස්කෑන් කරන්න</h3>
+    <p class="hint">ස්කෑන් කළ සැණින් නම සහ ශ්‍රේණිය පෙනී, තෝරාගත් දිනයට පැමිණීම සටහන් වේ. කැමරාව විවෘතව තබා එකින් එක ශිෂ්‍යයන් ස්කෑන් කළ හැක.</p>
+    <div id="scanner"></div>
+    <div class="row" style="margin-top:14px">
+      <div class="grow" style="margin-bottom:0">
+        <label class="label" for="manualId">හෝ ශිෂ්‍ය අංකය අතින් ඇතුළත් කරන්න</label>
+        <input type="text" id="manualId" placeholder="උදා: STU1001" autocomplete="off">
+      </div>
+      <button type="button" class="btn" id="manualBtn" style="margin-bottom:0">පැමිණීම සටහන් කරන්න</button>
     </div>
+  </section>
 
-    <!-- Clickable Day Selection (Day 1 - Day 4 Only) -->
-    <div class="day-selection-card">
-        <h3>Select Class Session Day</h3>
-        <div class="days-grid" id="daysContainer">
-            <button class="day-btn selected" onclick="selectDay(this, 'Day 1')">Day 1</button>
-            <button class="day-btn" onclick="selectDay(this, 'Day 2')">Day 2</button>
-            <button class="day-btn" onclick="selectDay(this, 'Day 3')">Day 3</button>
-            <button class="day-btn" onclick="selectDay(this, 'Day 4')">Day 4</button>
-        </div>
+  <div id="scanResult" aria-live="polite"></div>
+
+  <div class="stats">
+    <div class="stat"><b id="statTotal">0</b><span>මුළු ශිෂ්‍යයන්</span></div>
+    <div class="stat"><b id="statPresent">0</b><span>පැමිණි</span></div>
+    <div class="stat"><b id="statAbsent">0</b><span>නොපැමිණි</span></div>
+  </div>
+
+  <section class="card">
+    <div class="row between">
+      <h3 id="listTitle">1 වන දිනයේ පැමිණීම</h3>
+      <div class="field" style="margin:0; flex:1 1 240px; max-width:320px">
+        <input type="search" id="q" placeholder="නමෙන් හෝ අංකයෙන් සොයන්න" aria-label="ශිෂ්‍යයෙකු සොයන්න">
+      </div>
     </div>
-
-    <!-- Student Attendance List Card -->
-    <div class="content-card">
-        <div class="card-header">
-            <h2 id="activeDayDisplay">Attendance Record - Day 1</h2>
-            <span id="totalStudents">Total Students: 0</span>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    <th>Grade</th>
-                    <th>Attendance Status</th>
-                </tr>
-            </thead>
-            <tbody id="studentTableBody">
-                <tr>
-                    <td colspan="4" style="text-align: center;">Loading student records...</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ශිෂ්‍ය අංකය</th><th>නම</th><th>ශ්‍රේණිය</th><th>පැමිණි දිනය</th><th>තත්ත්වය</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="5" class="empty">දත්ත පූරණය වෙමින් පවතී…</td></tr></tbody>
+      </table>
     </div>
-</div>
+  </section>
+</main>
 
 <script>
-    // Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
-        authDomain: "class-management-system-8c1a1.firebaseapp.com",
-        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "class-management-system-8c1a1",
-        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
-        messagingSenderId: "759521896885",
-        appId: "1:759521896885:web:ab834180d9ab45968791fc",
-        measurementId: "G-XZW2VLFXT2"
-    };
+  mountChrome();
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
+  let students = [];
+  let activeDay = DAYS[0];
 
-    let activeSelectedDay = 'Day 1';
+  $('days').innerHTML = DAYS.map((d, i) =>
+    `<button type="button" class="chip${i === 0 ? ' on' : ''}" data-day="${d}">${DAY_SI[d]}</button>`).join('');
+  $('days').addEventListener('click', e => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    document.querySelectorAll('#days .chip').forEach(c => c.classList.toggle('on', c === btn));
+    activeDay = btn.dataset.day;
+    render();
+  });
+  $('q').addEventListener('input', render);
 
-    // Day Selection Logic
-    function selectDay(element, dayName) {
-        const buttons = document.querySelectorAll('.day-btn');
-        buttons.forEach(btn => btn.classList.remove('selected'));
+  /* ---------- ස්කෑන් කිරීම / අතින් ඇතුළත් කිරීම ---------- */
+  mountScanner('scanner', { keepOpen: true, onScan: markFromId });
+  $('manualBtn').addEventListener('click', () => { markFromId($('manualId').value); $('manualId').value = ''; });
+  $('manualId').addEventListener('keydown', e => { if (e.key === 'Enter') $('manualBtn').click(); });
 
-        element.classList.add('selected');
-        activeSelectedDay = dayName;
+  function showScan(kind, html) { $('scanResult').innerHTML = `<div class="notice ${kind}">${html}</div>`; }
 
-        document.getElementById('activeDayDisplay').innerText = `Attendance Record - ${dayName}`;
-        loadStudentAttendance(dayName);
-    }
+  async function markFromId(raw) {
+    const id = String(raw || '').trim();
+    if (!id) return toast('ශිෂ්‍ය අංකය ඇතුළත් කරන්න.', 'bad');
 
-    // Load Student Attendance Records from Firebase
-    function loadStudentAttendance(day) {
-        const tbody = document.getElementById('studentTableBody');
-        
-        db.ref('students').on('value', (snapshot) => {
-            tbody.innerHTML = '';
-            
-            if (!snapshot.exists()) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No students found in database.</td></tr>';
-                document.getElementById('totalStudents').innerText = 'Total Students: 0';
-                return;
-            }
+    const found = await findStudent(id);
+    if (!found) return showScan('bad', `<div class="scan-name">ශිෂ්‍යයෙකු හමු නොවිණි</div><p class="scan-meta">"${esc(id)}" අංකයට අදාළ ශිෂ්‍යයෙකු නැත.</p>`);
 
-            let count = 0;
-            snapshot.forEach((childSnap) => {
-                count++;
-                const stu = childSnap.val();
-                const id = childSnap.key;
-                
-                // Read attendance for the selected day or default to Absent
-                const isPresent = stu.attendance && stu.attendance[day] === true;
-                const statusBadge = isPresent 
-                    ? `<span class="status-badge status-present">Present</span>` 
-                    : `<span class="status-badge status-absent">Absent</span>`;
+    const day = activeDay;                       // ස්කෑන් කළ මොහොතේ තෝරා තිබූ දිනය
+    const flags = Object.fromEntries(DAYS.map(d => [d, (found.data.attendance || {})[d] === true]));
+    const already = flags[day];
+    let saved = null;
 
-                const row = `
-                    <tr>
-                        <td><strong>${id}</strong></td>
-                        <td>${stu.name || 'N/A'}</td>
-                        <td>${stu.grade || 'N/A'}</td>
-                        <td>${statusBadge}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
-
-            document.getElementById('totalStudents').innerText = `Total Students: ${count}`;
-        });
+    if (!already) {
+      flags[day] = true;
+      try { saved = await saveAttendance(found, flags); }
+      catch (err) { return showScan('bad', `<div class="scan-name">සටහන් කිරීම අසාර්ථකයි</div><p class="scan-meta">${esc(err.message)}</p>`); }
     }
 
-    // Initial Load
-    document.addEventListener('DOMContentLoaded', () => {
-        loadStudentAttendance(activeSelectedDay);
-    });
+    const d = found.data;
+    const when = saved ? `${saved.date} (${saved.weekday}) ${saved.time}` : `${localDate()} (${WEEKDAYS_SI[new Date().getDay()]})`;
+    showScan(already ? 'warn' : '', `
+      <div class="scan-name">${esc(d.name || found.key)}</div>
+      <p class="scan-meta">ශ්‍රේණිය: ${esc(d.grade || '-')} &nbsp;|&nbsp; අංකය: ${esc(found.key)}</p>
+      <p class="scan-meta">${already ? `${DAY_SI[day]} සඳහා පැමිණීම දැනටමත් සටහන් වී ඇත.` : `${DAY_SI[day]} සඳහා පැමිණීම සටහන් විය.`}</p>
+      <p class="scan-meta">${when}</p>
+      ${already ? '' : '<button type="button" class="btn red" id="undoBtn">අහෝසි කරන්න</button>'}`);
+
+    if (!already) {
+      toast(`${d.name || found.key} - පැමිණීම සටහන් විය.`, 'ok');
+      $('undoBtn').addEventListener('click', async () => {
+        flags[day] = false;
+        try { await saveAttendance(found, flags); showScan('warn', `<div class="scan-name">${esc(d.name || found.key)}</div><p class="scan-meta">${DAY_SI[day]} සඳහා පැමිණීම අහෝසි කරන ලදී.</p>`); }
+        catch (err) { toast('අහෝසි කිරීම අසාර්ථකයි: ' + err.message, 'bad'); }
+      });
+    }
+  }
+
+  /* ---------- ලැයිස්තුව (එකම listener එකක්) ---------- */
+  db.ref('students').on('value', snap => {
+    students = [];
+    snap.forEach(c => students.push({ key: c.key, ...c.val() }));
+    render();
+  }, err => {
+    $('rows').innerHTML = `<tr><td colspan="5" class="empty">දත්ත කියවීමට නොහැකි විය: ${esc(err.message)}</td></tr>`;
+  });
+
+  function render() {
+    const term = $('q').value.trim().toLowerCase();
+    const isPresent = s => s.attendance && s.attendance[activeDay] === true;
+    const present = students.filter(isPresent).length;
+
+    $('statTotal').textContent = students.length;
+    $('statPresent').textContent = present;
+    $('statAbsent').textContent = students.length - present;
+    $('listTitle').textContent = `${DAY_SI[activeDay]} පැමිණීම`;
+
+    const list = students.filter(s =>
+      !term || s.key.toLowerCase().includes(term) || String(s.name || '').toLowerCase().includes(term));
+
+    $('rows').innerHTML = list.length ? list.map(s => `
+      <tr>
+        <td><strong>${esc(s.key)}</strong></td>
+        <td>${esc(s.name || '-')}</td>
+        <td>${esc(s.grade || '-')}</td>
+        <td>${isPresent(s) && s.attendanceDates && s.attendanceDates[activeDay] ? esc(s.attendanceDates[activeDay]) : '-'}</td>
+        <td><span class="badge ${isPresent(s) ? 'ok' : 'bad'}">${isPresent(s) ? 'පැමිණ ඇත' : 'නොපැමිණේ'}</span></td>
+      </tr>`).join('')
+      : `<tr><td colspan="5" class="empty">${students.length ? 'සෙවුමට ගැළපෙන ශිෂ්‍යයෙකු නැත.' : 'ශිෂ්‍යයන් තවම ලියාපදිංචි කර නැත.'}</td></tr>`;
+  }
 </script>
-
 </body>
 </html>

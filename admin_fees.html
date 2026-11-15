@@ -1,199 +1,127 @@
 <!DOCTYPE html>
 <html lang="si">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Attendance & Fees</title>
-    <link rel="icon" type="image/png" href="logo.png">
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #eef2f5; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 650px; margin: auto; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { color: #003366; text-align: center; margin-top: 0; }
-        
-        .form-group { margin-bottom: 15px; }
-        label { font-weight: bold; display: block; margin-bottom: 5px; color: #444; }
-        input, select, button { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 1em; }
-        
-        .days-container { display: flex; gap: 10px; margin-top: 5px; }
-        .days-container label { font-weight: normal; background: #f0f4f8; padding: 8px; border-radius: 6px; flex: 1; text-align: center; cursor: pointer; }
-        .days-container input { width: auto; margin-right: 5px; }
-
-        .btn-submit { background: #003366; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-submit:hover { background: #002244; }
-
-        #alertBox { margin-top: 20px; text-align: center; }
-        
-        .whatsapp-btn {
-            background-color: #25D366;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
-        }
-
-        a.back-btn { text-decoration: none; color: #0056b3; display: block; text-align: center; margin-top: 20px; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>පරිපාලන පුවරුව - English with Sudan Sir</title>
+  <meta name="theme-color" content="#14246b">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="shared.js"></script>
 </head>
 <body>
+<div id="chrome"></div>
 
-<div class="container">
-    <h2>🛠️ Admin Panel - Attendance & Fees</h2>
+<main class="wrap narrow">
+  <h2 class="ribbon">පරිපාලන පුවරුව</h2>
 
-    <div class="form-group">
-        <label>ශිෂ්‍ය ID එක ඇතුළත් කරන්න:</label>
-        <input type="text" id="stuId" placeholder="e.g. STU1001">
+  <section class="card" style="--accent: var(--purple)">
+    <h3>ශිෂ්‍යයා තෝරන්න</h3>
+    <div class="row">
+      <div class="grow">
+        <label class="label" for="stuId">ශිෂ්‍ය හැඳුනුම් අංකය</label>
+        <input type="text" id="stuId" placeholder="උදා: STU1001" autocomplete="off">
+      </div>
+      <button type="button" class="btn navy" id="findBtn">සොයන්න</button>
     </div>
+    <div id="stuBox"></div>
+  </section>
 
-    <!-- Attendance Section -->
-    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #e0e0e0;">
-        <h4 style="margin: 0 0 10px 0; color: #003366;">📅 පැමිණීම සටහන් කිරීම (Attendance)</h4>
-        
-        <label>මාසය සහ සතිය/දිනය:</label>
-        <div class="days-container">
-            <label><input type="checkbox" id="day1"> 1 දින</label>
-            <label><input type="checkbox" id="day2"> 2 දින</label>
-            <label><input type="checkbox" id="day3"> 3 දින</label>
-            <label><input type="checkbox" id="day4"> 4 දින</label>
-        </div>
-        <button class="btn-submit" onclick="markAttendance()">පැමිණීම Mark කරන්න 📌</button>
+  <section class="card" style="--accent: var(--blue)">
+    <h3>පැමිණීම සටහන් කිරීම</h3>
+    <p class="hint" id="attHint">අද දින පන්තියට පැමිණි දින තෝරන්න.</p>
+    <div class="chips" id="dayChips"></div>
+    <button type="button" class="btn block" id="attBtn" disabled>පැමිණීම සටහන් කරන්න</button>
+  </section>
+
+  <section class="card" style="--accent: var(--green)">
+    <h3>පන්ති ගාස්තු සටහන් කිරීම</h3>
+    <div class="field">
+      <label class="label" for="feeMonth">අදාළ මාසය</label>
+      <select id="feeMonth"></select>
     </div>
-
-    <!-- Fee Section -->
-    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0;">
-        <h4 style="margin: 0 0 10px 0; color: #003366;">💳 පන්ති ගාස්තු සටහන් කිරීම (Fee Payment)</h4>
-        
-        <label>අදාළ මාසය තෝරන්න:</label>
-        <select id="feeMonth">
-            <option value="January">January</option>
-            <option value="February">February</option>
-            <option value="March">March</option>
-            <option value="April">April</option>
-            <option value="May">May</option>
-            <option value="June">June</option>
-            <option value="July">July</option>
-            <option value="August">August</option>
-            <option value="September">September</option>
-            <option value="October">October</option>
-            <option value="November">November</option>
-            <option value="December">December</option>
-        </select>
-
-        <label style="margin-top: 10px;">ගෙවීම් තත්ත්වය:</label>
-        <select id="feeStatus">
-            <option value="Paid">Paid (ගෙවා ඇත)</option>
-            <option value="Pending">Pending (ගෙවා නැත)</option>
-        </select>
-
-        <button class="btn-submit" onclick="markFee()" style="background: #28a745;">ගාස්තු සටහන් කරන්න 💰</button>
+    <div class="field">
+      <label class="label" for="feeStatus">ගෙවීම් තත්ත්වය</label>
+      <select id="feeStatus">
+        <option value="Paid">ගෙවා ඇත</option>
+        <option value="Pending">ගෙවා නැත</option>
+      </select>
     </div>
+    <button type="button" class="btn green block" id="feeBtn" disabled>ගාස්තුව සටහන් කරන්න</button>
+  </section>
 
-    <div id="alertBox"></div>
-
-    <a href="index.html" class="back-btn">← Main Scanner වෙත ආපසු යන්න</a>
-</div>
+  <div id="result"></div>
+</main>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAP97Utjqx54gmf9YaMsgWSK96TGTUCuSg",
-        authDomain: "class-management-system-8c1a1.firebaseapp.com",
-        databaseURL: "https://class-management-system-8c1a1-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "class-management-system-8c1a1",
-        storageBucket: "class-management-system-8c1a1.firebasestorage.app",
-        messagingSenderId: "759521896885",
-        appId: "1:759521896885:web:ab834180d9ab45968791fc",
-        measurementId: "G-XZW2VLFXT2"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  mountChrome();
+  fillMonths($('feeMonth'));
+  $('feeMonth').value = currentMonthKey();
 
-    // Helper: Phone Number Formatting
-    function formatPhone(phone) {
-        if (!phone) return "";
-        phone = phone.trim();
-        if (phone.startsWith("0")) {
-            return "94" + phone.substring(1);
-        }
-        return phone;
-    }
+  // දින 4 සඳහා checkbox (HTML හතර වරක් ලිවීම වෙනුවට එක් වරක් නිර්මාණය)
+  $('dayChips').innerHTML = DAYS.map(d =>
+    `<label class="chip"><input type="checkbox" value="${d}">${DAY_SI[d]}</label>`).join('');
+  const dayBoxes = () => [...document.querySelectorAll('#dayChips input')];
 
-    // 1. Mark Attendance & Send WhatsApp
-    function markAttendance() {
-        const id = document.getElementById('stuId').value.trim();
-        if (!id) { alert('කරුණාකර ශිෂ්‍ය ID එක ඇතුළත් කරන්න!'); return; }
+  let cur = null; // සොයාගත් ශිෂ්‍යයා { key, data }
 
-        const date = new Date().toISOString().split('T')[0];
-        const days = {
-            day1: document.getElementById('day1').checked,
-            day2: document.getElementById('day2').checked,
-            day3: document.getElementById('day3').checked,
-            day4: document.getElementById('day4').checked
-        };
+  const setActions = on => { $('attBtn').disabled = !on; $('feeBtn').disabled = !on; };
 
-        db.ref('students/' + id).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const student = snapshot.val();
-                const phone = formatPhone(student.phone);
-                const name = student.name || id;
+  async function lookup() {
+    const id = $('stuId').value.trim();
+    $('result').innerHTML = '';
+    if (!id) return toast('ශිෂ්‍ය හැඳුනුම් අංකය ඇතුළත් කරන්න.', 'bad');
+    cur = await findStudent(id);
+    renderStudentBox($('stuBox'), cur);
+    setActions(!!cur);
+    if (!cur) return toast('එම අංකයට අදාළ ශිෂ්‍යයෙකු හමු නොවිණි.', 'bad');
+    // දැනටමත් සටහන් වී ඇති දින පෙන්වන්න
+    const att = cur.data.attendance || {};
+    dayBoxes().forEach(b => b.checked = att[b.value] === true);
+  }
+  $('findBtn').addEventListener('click', lookup);
+  $('stuId').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
 
-                db.ref('manual_attendance/' + date + '/' + id).set({ days: days }).then(() => {
-                    let markedDays = [];
-                    if(days.day1) markedDays.push("Day 1");
-                    if(days.day2) markedDays.push("Day 2");
-                    if(days.day3) markedDays.push("Day 3");
-                    if(days.day4) markedDays.push("Day 4");
+  function showResult(title, msg) {
+    const phone = studentPhone(cur.data);
+    const link = waLink(phone, msg);
+    $('result').innerHTML = `<div class="notice ${link ? '' : 'warn'}"><strong>${title}</strong><br>` +
+      (link ? `<a class="btn wa" href="${link}" target="_blank" rel="noopener">වට්ස්ඇප් පණිවිඩය යවන්න</a>`
+            : 'මෙම ශිෂ්‍යයාට දුරකථන අංකයක් සටහන් කර නැති නිසා වට්ස්ඇප් පණිවිඩය යැවිය නොහැක.') + '</div>';
+  }
 
-                    const msg = `Dear Parent, Attendance updated for *${name}* (${id}) for ${date}.\nStatus: ${markedDays.join(', ') || 'Attended'}\nClass: *English with Sudan Sir*`;
-                    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  $('attBtn').addEventListener('click', async () => {
+    if (!cur) return;
+    const picked = dayBoxes().filter(b => b.checked).map(b => b.value);
+    const flags = Object.fromEntries(dayBoxes().map(b => [b.value, b.checked]));
+    let saved;
+    try { saved = await saveAttendance(cur, flags); }
+    catch (err) { return toast('සටහන් කිරීම අසාර්ථකයි: ' + err.message, 'bad'); }
+    const today = saved.date;
 
-                    document.getElementById('alertBox').innerHTML = `
-                        <div style="background:#d4edda; color:#155724; padding:15px; border-radius:10px;">
-                            ✅ පැමිණීම සටහන් විය!<br>
-                            <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">📲 WhatsApp පැමිණීමේ පණිවිඩය යවන්න</a>
-                        </div>
-                    `;
-                });
-            } else {
-                alert('මෙවැනි ශිෂ්‍යයෙකු නොමැත!');
-            }
-        });
-    }
+    const name = cur.data.name || cur.key;
+    const days = picked.length ? picked.map(d => DAY_SI[d]).join(', ') : 'පැමිණීම සටහන් විය';
+    showResult('පැමිණීම සටහන් විය.',
+      `ආදරණීය දෙමාපියනි,\nඔබගේ දරුවා *${name}* (${cur.key}) ${today} දින පන්තියට පැමිණි බව දන්වා සිටිමු.\nපැමිණි දින: ${days}\nපන්තිය: *${CONFIG.brand}*`);
+    toast('පැමිණීම සටහන් විය.', 'ok');
+  });
 
-    // 2. Mark Fee Payment & Send WhatsApp
-    function markFee() {
-        const id = document.getElementById('stuId').value.trim();
-        const month = document.getElementById('feeMonth').value;
-        const status = document.getElementById('feeStatus').value;
+  $('feeBtn').addEventListener('click', async () => {
+    if (!cur) return;
+    const month = $('feeMonth').value, status = $('feeStatus').value;
+    try {
+      await db.ref(`students/${cur.key}/fees/${month}`).set(status);
+    } catch (err) { return toast('සටහන් කිරීම අසාර්ථකයි: ' + err.message, 'bad'); }
 
-        if (!id) { alert('කරුණාකර ශිෂ්‍ය ID එක ඇතුළත් කරන්න!'); return; }
-
-        db.ref('students/' + id).once('value', (snapshot) => {
-            if (snapshot.exists()) {
-                const student = snapshot.val();
-                const phone = formatPhone(student.phone);
-                const name = student.name || id;
-
-                db.ref(`students/${id}/fees/${month}`).set(status).then(() => {
-                    const msg = `Dear Parent, Payment update for *${name}* (${id}).\nMonth: *${month}*\nStatus: *${status}*\nThank you! - *English with Sudan Sir*`;
-                    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-
-                    document.getElementById('alertBox').innerHTML = `
-                        <div style="background:#d4edda; color:#155724; padding:15px; border-radius:10px;">
-                            ✅ පන්ති ගාස්තු සටහන් විය!<br>
-                            <a href="${whatsappUrl}" target="_blank" class="whatsapp-btn">📲 WhatsApp ගාස්තු පණිවිඩය යවන්න</a>
-                        </div>
-                    `;
-                });
-            } else {
-                alert('මෙවැනි ශිෂ්‍යයෙකු නොමැත!');
-            }
-        });
-    }
+    const name = cur.data.name || cur.key;
+    showResult('පන්ති ගාස්තුව සටහන් විය.',
+      `ආදරණීය දෙමාපියනි,\n*${name}* (${cur.key}) ගේ *${MONTH_SI[month]}* මාසයේ පන්ති ගාස්තුව: *${STATUS_SI[status]}*.\nස්තූතියි!\n- *${CONFIG.brand}*`);
+    toast('ගාස්තුව සටහන් විය.', 'ok');
+    cur.data.fees = { ...(cur.data.fees || {}), [month]: status };
+    renderStudentBox($('stuBox'), cur);
+  });
 </script>
 </body>
 </html>
