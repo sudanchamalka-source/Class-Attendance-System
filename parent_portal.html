@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>දෙමාපිය පිවිසුම - English with Sudan Sir</title>
+  <meta name="theme-color" content="#14246b">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="shared.js"></script>
+</head>
+<body>
+<div id="chrome"></div>
+
+<main class="wrap narrow">
+  <h2 class="ribbon">දෙමාපිය පිවිසුම</h2>
+
+  <section class="card" style="--accent: var(--red)">
+    <h3>ඔබගේ දරුවාගේ ගාස්තු තත්ත්වය බලන්න</h3>
+    <div class="row">
+      <div class="grow">
+        <label class="label" for="stuId">ශිෂ්‍ය හැඳුනුම් අංකය</label>
+        <input type="text" id="stuId" placeholder="හැඳුනුම්පතේ ඇති අංකය ඇතුළත් කරන්න" autocomplete="off">
+      </div>
+      <button type="button" class="btn" id="checkBtn">තොරතුරු බලන්න</button>
+    </div>
+  </section>
+
+  <section class="card" id="info" style="--accent: var(--green)" hidden>
+    <h3 id="pName"></h3>
+    <dl class="kv" style="margin-bottom:16px">
+      <dt>ශ්‍රේණිය</dt><dd id="pGrade"></dd>
+      <dt id="curMonthLabel"></dt><dd id="pFee"></dd>
+    </dl>
+    <div class="label">මේ වසරේ මාසික ගාස්තු</div>
+    <div class="months" id="monthGrid"></div>
+  </section>
+
+  <p class="hint" style="text-align:center">විමසීම් සඳහා: <span id="cPhone"></span> &nbsp;|&nbsp; වට්ස්ඇප්: <span id="cWa"></span></p>
+</main>
+
+<script>
+  mountChrome({ nav: false });
+  $('cPhone').textContent = CONFIG.contactPhone;
+  $('cWa').textContent = CONFIG.contactWhatsapp;
+
+  async function checkStatus() {
+    const id = $('stuId').value.trim();
+    if (!id) return toast('ශිෂ්‍ය හැඳුනුම් අංකය ඇතුළත් කරන්න.', 'bad');
+
+    const found = await findStudent(id);
+    if (!found) { $('info').hidden = true; return toast('එම අංකයට අදාළ ශිෂ්‍යයෙකු හමු නොවිණි.', 'bad'); }
+
+    const s = found.data, fees = s.fees || {}, m = currentMonthKey();
+    $('pName').textContent = 'ශිෂ්‍යයා: ' + (s.name || found.key);
+    $('pGrade').textContent = s.grade || '-';
+    $('curMonthLabel').textContent = MONTH_SI[m] + ' මාසය';
+    // මෙම මාසය සටහන් වී නොමැති නම් "ගෙවා නැත" ලෙස පෙන්වයි
+    $('pFee').innerHTML = feeBadge(fees[m] || 'Pending');
+    $('monthGrid').innerHTML = MONTHS.map(([en, si]) =>
+      `<div class="month"><span>${si}</span>${feeBadge(fees[en])}</div>`).join('');
+    $('info').hidden = false;
+  }
+
+  $('checkBtn').addEventListener('click', checkStatus);
+  $('stuId').addEventListener('keydown', e => { if (e.key === 'Enter') checkStatus(); });
+</script>
+</body>
+</html>

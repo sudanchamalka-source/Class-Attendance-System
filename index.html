@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>පැමිණීම් සටහන - English with Sudan Sir</title>
+  <meta name="theme-color" content="#14246b">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="shared.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="shared.js"></script>
+</head>
+<body>
+<div id="chrome"></div>
+
+<main class="wrap">
+  <h2 class="ribbon">පැමිණීම් සටහන</h2>
+
+  <section class="card" style="--accent: var(--blue)">
+    <h3>1. අද පන්ති දිනය තෝරන්න</h3>
+    <div class="chips" id="days" style="margin-bottom:0"></div>
+  </section>
+
+  <section class="card" style="--accent: var(--green)">
+    <h3>2. ශිෂ්‍ය හැඳුනුම්පතේ QR කේතය ස්කෑන් කරන්න</h3>
+    <p class="hint">ස්කෑන් කළ සැණින් නම සහ ශ්‍රේණිය පෙනී, තෝරාගත් දිනයට පැමිණීම සටහන් වේ. කැමරාව විවෘතව තබා එකින් එක ශිෂ්‍යයන් ස්කෑන් කළ හැක.</p>
+    <div id="scanner"></div>
+    <div class="row" style="margin-top:14px">
+      <div class="grow" style="margin-bottom:0">
+        <label class="label" for="manualId">හෝ ශිෂ්‍ය අංකය අතින් ඇතුළත් කරන්න</label>
+        <input type="text" id="manualId" placeholder="උදා: STU1001" autocomplete="off">
+      </div>
+      <button type="button" class="btn" id="manualBtn" style="margin-bottom:0">පැමිණීම සටහන් කරන්න</button>
+    </div>
+  </section>
+
+  <div id="scanResult" aria-live="polite"></div>
+
+  <div class="stats">
+    <div class="stat"><b id="statTotal">0</b><span>මුළු ශිෂ්‍යයන්</span></div>
+    <div class="stat"><b id="statPresent">0</b><span>පැමිණි</span></div>
+    <div class="stat"><b id="statAbsent">0</b><span>නොපැමිණි</span></div>
+  </div>
+
+  <section class="card">
+    <div class="row between">
+      <h3 id="listTitle">1 වන දිනයේ පැමිණීම</h3>
+      <div class="field" style="margin:0; flex:1 1 240px; max-width:320px">
+        <input type="search" id="q" placeholder="නමෙන් හෝ අංකයෙන් සොයන්න" aria-label="ශිෂ්‍යයෙකු සොයන්න">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ශිෂ්‍ය අංකය</th><th>නම</th><th>ශ්‍රේණිය</th><th>පැමිණි දිනය</th><th>තත්ත්වය</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="5" class="empty">දත්ත පූරණය වෙමින් පවතී…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  mountChrome();
+
+  let students = [];
+  let activeDay = DAYS[0];
+
+  $('days').innerHTML = DAYS.map((d, i) =>
+    `<button type="button" class="chip${i === 0 ? ' on' : ''}" data-day="${d}">${DAY_SI[d]}</button>`).join('');
+  $('days').addEventListener('click', e => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    document.querySelectorAll('#days .chip').forEach(c => c.classList.toggle('on', c === btn));
+    activeDay = btn.dataset.day;
+    render();
+  });
+  $('q').addEventListener('input', render);
+
+  /* ---------- ස්කෑන් කිරීම / අතින් ඇතුළත් කිරීම ---------- */
+  mountScanner('scanner', { keepOpen: true, onScan: markFromId });
+  $('manualBtn').addEventListener('click', () => { markFromId($('manualId').value); $('manualId').value = ''; });
+  $('manualId').addEventListener('keydown', e => { if (e.key === 'Enter') $('manualBtn').click(); });
+
+  function showScan(kind, html) { $('scanResult').innerHTML = `<div class="notice ${kind}">${html}</div>`; }
+
+  async function markFromId(raw) {
+    const id = String(raw || '').trim();
+    if (!id) return toast('ශිෂ්‍ය අංකය ඇතුළත් කරන්න.', 'bad');
+
+    const found = await findStudent(id);
+    if (!found) return showScan('bad', `<div class="scan-name">ශිෂ්‍යයෙකු හමු නොවිණි</div><p class="scan-meta">"${esc(id)}" අංකයට අදාළ ශිෂ්‍යයෙකු නැත.</p>`);
+
+    const day = activeDay;                       // ස්කෑන් කළ මොහොතේ තෝරා තිබූ දිනය
+    const flags = Object.fromEntries(DAYS.map(d => [d, (found.data.attendance || {})[d] === true]));
+    const already = flags[day];
+    let saved = null;
+
+    if (!already) {
+      flags[day] = true;
+      try { saved = await saveAttendance(found, flags); }
+      catch (err) { return showScan('bad', `<div class="scan-name">සටහන් කිරීම අසාර්ථකයි</div><p class="scan-meta">${esc(err.message)}</p>`); }
+    }
+
+    const d = found.data;
+    const when = saved ? `${saved.date} (${saved.weekday}) ${saved.time}` : `${localDate()} (${WEEKDAYS_SI[new Date().getDay()]})`;
+    showScan(already ? 'warn' : '', `
+      <div class="scan-name">${esc(d.name || found.key)}</div>
+      <p class="scan-meta">ශ්‍රේණිය: ${esc(d.grade || '-')} &nbsp;|&nbsp; අංකය: ${esc(found.key)}</p>
+      <p class="scan-meta">${already ? `${DAY_SI[day]} සඳහා පැමිණීම දැනටමත් සටහන් වී ඇත.` : `${DAY_SI[day]} සඳහා පැමිණීම සටහන් විය.`}</p>
+      <p class="scan-meta">${when}</p>
+      ${already ? '' : '<button type="button" class="btn red" id="undoBtn">අහෝසි කරන්න</button>'}`);
+
+    if (!already) {
+      toast(`${d.name || found.key} - පැමිණීම සටහන් විය.`, 'ok');
+      $('undoBtn').addEventListener('click', async () => {
+        flags[day] = false;
+        try { await saveAttendance(found, flags); showScan('warn', `<div class="scan-name">${esc(d.name || found.key)}</div><p class="scan-meta">${DAY_SI[day]} සඳහා පැමිණීම අහෝසි කරන ලදී.</p>`); }
+        catch (err) { toast('අහෝසි කිරීම අසාර්ථකයි: ' + err.message, 'bad'); }
+      });
+    }
+  }
+
+  /* ---------- ලැයිස්තුව (එකම listener එකක්) ---------- */
+  db.ref('students').on('value', snap => {
+    students = [];
+    snap.forEach(c => students.push({ key: c.key, ...c.val() }));
+    render();
+  }, err => {
+    $('rows').innerHTML = `<tr><td colspan="5" class="empty">දත්ත කියවීමට නොහැකි විය: ${esc(err.message)}</td></tr>`;
+  });
+
+  function render() {
+    const term = $('q').value.trim().toLowerCase();
+    const isPresent = s => s.attendance && s.attendance[activeDay] === true;
+    const present = students.filter(isPresent).length;
+
+    $('statTotal').textContent = students.length;
+    $('statPresent').textContent = present;
+    $('statAbsent').textContent = students.length - present;
+    $('listTitle').textContent = `${DAY_SI[activeDay]} පැමිණීම`;
+
+    const list = students.filter(s =>
+      !term || s.key.toLowerCase().includes(term) || String(s.name || '').toLowerCase().includes(term));
+
+    $('rows').innerHTML = list.length ? list.map(s => `
+      <tr>
+        <td><strong>${esc(s.key)}</strong></td>
+        <td>${esc(s.name || '-')}</td>
+        <td>${esc(s.grade || '-')}</td>
+        <td>${isPresent(s) && s.attendanceDates && s.attendanceDates[activeDay] ? esc(s.attendanceDates[activeDay]) : '-'}</td>
+        <td><span class="badge ${isPresent(s) ? 'ok' : 'bad'}">${isPresent(s) ? 'පැමිණ ඇත' : 'නොපැමිණේ'}</span></td>
+      </tr>`).join('')
+      : `<tr><td colspan="5" class="empty">${students.length ? 'සෙවුමට ගැළපෙන ශිෂ්‍යයෙකු නැත.' : 'ශිෂ්‍යයන් තවම ලියාපදිංචි කර නැත.'}</td></tr>`;
+  }
+</script>
+</body>
+</html>
