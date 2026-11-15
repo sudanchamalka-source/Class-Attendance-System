@@ -91,7 +91,7 @@ let D;try{D=JSON.parse(localStorage.getItem('esk'))}catch(e){}
 D=D||{s:[],a:{},f:{},fee:2000,n:0,c:[],k:0,dn:{}};
 function mig(){D.s=D.s||[];D.dn=D.dn||{};D.dd=D.dd||{};D.sub=D.sub||[];if(!D.c){D.c=[];D.k=0;if(D.s.length){D.c=[{id:'C1',name:'පළමු පන්තිය',fee:D.fee||0}];D.k=1;D.s.forEach(s=>s.cl=['C1']);for(const m in D.a)D.a[m]={C1:D.a[m]};for(const m in D.f)D.f[m]={C1:D.f[m]}}}D.s.forEach(s=>s.cl=s.cl||[])}
 mig();
-const save=()=>{try{localStorage.setItem('esk',JSON.stringify(D))}catch(e){}};
+const save=()=>{try{localStorage.setItem('esk',JSON.stringify(D))}catch(e){}window.cloudDirty&&window.cloudDirty()};
 const mk=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')},today=()=>new Date().toISOString().slice(0,10);
 let S={t:'att',day:1,m:mk(),q:'',c:'',rc:[]},stream=null;
 const st=id=>D.s.find(s=>s.id==id),rs=n=>'රු. '+Number(n).toLocaleString('en-US');
@@ -310,4 +310,6 @@ V.dash=()=>{const m=S.m,P=[];D.c.forEach(c=>mem(c.id).forEach(s=>P.push({c,s,p:p
 <div class="c" style="--k:#ffa133"><h3>මෙම මාසයේ එක් දිනක්වත් නොපැමිණි</h3>${ab.map(x=>E(x.s.name)+' ('+E(x.c.name)+')').join(', ')||'—'}</div>`};
 $$('#nav button').forEach(b=>b.addEventListener('click',()=>scrollTo(0,0)));
 go('att');
-</script></body></html>
+</script><script src="firebase-config.js"></script>
+<script type="module" src="cloud.js"></script>
+</body></html>

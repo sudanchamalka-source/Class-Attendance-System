@@ -1,42 +1,28 @@
 # English with Sudan Sir – පන්ති කළමනාකරණ පද්ධතිය
-
 Powered by NEXORA TECHNOLOGY
 
-## ෆෝල්ඩර් ව්‍යුහය
-- `public/index.html` – සම්පූර්ණ යෙදුම (එක ෆයිල් එකක්)
-- `firebase.json`, `.firebaserc` – Firebase Hosting සැකසුම්
-- `.github/workflows/firebase-hosting.yml` – GitHub වෙත push කළ විට ස්වයංක්‍රීයව deploy
+## ෆයිල්
+- `public/index.html` – යෙදුම
+- `public/cloud.js` – Firestore සමමුහුර්තය + login
+- `public/firebase-config.js` – **ඔබේ Firebase config මෙහි ඇලවන්න**
+- `firestore.rules` – **ඔබේ ඊමේල් මෙහි ඇතුළත් කරන්න**
+- `firebase.json`, `.firebaserc`, `.github/workflows/firebase-hosting.yml`
 
-## 1. Firebase project එක සාදන්න
-1. https://console.firebase.google.com → **Add project**
-2. Project ID එක සටහන් කරගන්න (උදා: `sudan-sir-classes`)
-3. `.firebaserc` සහ `.github/workflows/firebase-hosting.yml` හි `YOUR-FIREBASE-PROJECT-ID` ඔබේ Project ID එකට මාරු කරන්න
+## පියවර
+1. **Authentication**: Firebase Console → Build → Authentication → Sign-in method → **Email/Password** සක්‍රිය කරන්න. Users ටැබයෙන් ඔබේ (සහ සහායකයින්ගේ) ගිණුම් සාදන්න.
+2. **Config**: Project settings → Your apps → Web app (</>) එකක් සාදා ලැබෙන `firebaseConfig` අගයන් `public/firebase-config.js` හි ඇලවන්න.
+3. **Rules**: `firestore.rules` හි `YOUR-EMAIL@gmail.com` වෙනුවට ඔබ සෑදූ ගිණුම්වල ඊමේල් ලියන්න.
+4. `.firebaserc` සහ `.github/workflows/firebase-hosting.yml` හි `YOUR-FIREBASE-PROJECT-ID` මාරු කරන්න.
+5. Deploy:
+   ```bash
+   npm install -g firebase-tools
+   firebase login
+   firebase deploy --only firestore:rules,hosting
+   ```
+6. GitHub: `git init && git add . && git commit -m "init" && git branch -M main && git remote add origin <repo-url> && git push -u origin main`, ඉන්පසු `firebase init hosting:github` එක් වරක් ධාවනය කරන්න (ස්වයංක්‍රීය deploy සඳහා).
 
-## 2. පළමු වරට deploy (පරිගණකයෙන්)
-```bash
-npm install -g firebase-tools
-firebase login
-firebase deploy --only hosting
-```
-ඉන්පසු `https://<project-id>.web.app` හි පද්ධතිය පෙනේ.
-
-## 3. GitHub වෙත යවන්න
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/<ඔබේ-නම>/english-with-sudan-sir.git
-git push -u origin main
-```
-(GitHub හි මුලින් හිස් repository එකක් සාදන්න.)
-
-## 4. GitHub → Firebase ස්වයංක්‍රීය deploy
-repository folder එකේ මෙය එක් වරක් ධාවනය කරන්න:
-```bash
-firebase init hosting:github
-```
-එය `FIREBASE_SERVICE_ACCOUNT` secret එක GitHub හි ස්වයංක්‍රීයව එක් කරයි. ඉන්පසු `main` එකට push කරන සෑම වාරයකම site එක යාවත්කාලීන වේ.
-
-## සටහන
-දත්ත (ශිෂ්‍යයන්, පැමිණීම්, ගාස්තු) ගබඩා වන්නේ එක් එක් උපාංගයේ බ්‍රවුසරයේ (localStorage) ය. Firebase Hosting මගින් සිදුවන්නේ පද්ධතිය web එකේ තැබීම පමණි. උපාංග කිහිපයක් අතර දත්ත බෙදාගැනීමට Firestore සම්බන්ධ කළ යුතුය.
+## ක්‍රියාකාරිත්වය
+- Login වූ පසු දත්ත Firestore (`cfg`, `students`, `att`, `fees` collections) සමඟ ස්වයංක්‍රීයව සමමුහුර්ත වේ.
+- පළමු වරට cloud එක හිස් නම් මෙම උපාංගයේ දත්ත උඩුගත වේ. cloud එකේ දත්ත ඇත්නම් ඒවා ගනී (පැරණි local දත්ත `esk_backup` ලෙස සුරැකේ).
+- ඕෆ්ලයින් වුවත් වැඩ කරයි; අන්තර්ජාලය ලැබුණු විට සමමුහුර්ත වේ.
+- `firebase-config.js` සකසා නැත්නම් පද්ධතිය පෙර පරිදි local-only ලෙස ක්‍රියා කරයි.

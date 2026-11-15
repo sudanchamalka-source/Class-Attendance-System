@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ප්‍රවේශය ඇත්තේ පහත ඊමේල් ලිපින සහිත, login වූ පරිශීලකයින්ට පමණි.
+    // Firebase Console → Authentication හි සාදන ගිණුම්වල ඊමේල් මෙහි ලියන්න.
+    function isStaff() {
+      return request.auth != null
+        && request.auth.token.email in [
+          'YOUR-EMAIL@gmail.com'
+          // , 'assistant@gmail.com'
+        ];
+    }
+
+    match /{col}/{docId} {
+      allow read, write: if isStaff() && col in ['cfg', 'students', 'att', 'fees'];
+    }
+  }
+}
