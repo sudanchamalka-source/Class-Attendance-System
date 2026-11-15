@@ -1,6 +1,31 @@
 <!DOCTYPE html>
 <html lang="si"><head><script>try{var _th=localStorage.getItem('esk_theme');if(_th)document.documentElement.setAttribute('data-theme',_th)}catch(e){}</script><meta charset="utf-8">
-<meta name="theme-color" content="#14246a"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14246a"><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Sudan Sir"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>/* PWA: service worker + install button + offline badge */
+(function(){
+ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
+ var dp=null,ready=function(f){document.body?f():addEventListener('DOMContentLoaded',f)};
+ function badge(id,css,t){var b=document.createElement('button');b.id=id;b.className='np';b.style.cssText='position:fixed;z-index:90;border:0;font:600 13px/1 inherit;font-family:inherit;border-radius:22px;padding:10px 16px;box-shadow:0 4px 14px rgba(0,0,0,.3);'+css;b.textContent=t;document.body.appendChild(b);return b}
+ addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;ready(function(){if(document.getElementById('pwi'))return;var b=badge('pwi','right:14px;bottom:14px;background:#ffd21f;color:#14246a;cursor:pointer','📲 App එක ස්ථාපනය කරන්න');b.onclick=function(){if(!dp)return;dp.prompt();dp.userChoice.then(function(){dp=null;b.remove()})}})});
+ addEventListener('appinstalled',function(){var b=document.getElementById('pwi');if(b)b.remove()});
+ function net(){ready(function(){var o=document.getElementById('ofl');if(navigator.onLine){if(o)o.remove();return}if(!o){o=badge('ofl','left:50%;top:10px;transform:translateX(-50%);background:#e0527a;color:#fff;pointer-events:none','📴 ඔෆ්ලයින් – දත්ත මෙම උපාංගයේ සුරැකේ')}})}
+ addEventListener('online',net);addEventListener('offline',net);net();
+ /* App icon = සර්ගේ ලාංඡනය (පරිපාලන පුවරුවේ උඩුගත කළ ID කාඩ්පත් ලාංඡනය; එය නැත්නම් logo.png) */
+ window.pwaIcon=function(src){
+  src=src||'logo.png';if(window._pis===src)return;window._pis=src;
+  var im=new Image();
+  im.onerror=function(){window._pis=null};
+  im.onload=function(){try{
+   function mk(n,d){var c=document.createElement('canvas');c.width=c.height=n;var x=c.getContext('2d');x.fillStyle='#14246a';x.fillRect(0,0,n,n);var r=n*d/2;x.fillStyle='#ffd21f';x.beginPath();x.arc(n/2,n/2,r,0,7);x.fill();x.save();x.beginPath();x.arc(n/2,n/2,r*.93,0,7);x.clip();var k=Math.max(r*1.86/im.width,r*1.86/im.height);x.drawImage(im,n/2-im.width*k/2,n/2-im.height*k/2,im.width*k,im.height*k);x.restore();return c}
+   var C={'icons/icon-192.png':mk(192,.74),'icons/icon-512.png':mk(512,.74),'icons/icon-maskable-512.png':mk(512,.7),'icons/apple-touch-icon.png':mk(180,.8)};
+   var a=document.querySelector('link[rel="apple-touch-icon"]'),f=document.querySelector('link[rel="icon"]');
+   if(a)a.href=C['icons/apple-touch-icon.png'].toDataURL('image/png');if(f)f.href=C['icons/icon-192.png'].toDataURL('image/png');
+   if(window.caches)caches.open('esk-icons').then(function(ch){Object.keys(C).forEach(function(k){C[k].toBlob(function(b){if(b)ch.put(new URL(k,location.href).href,new Response(b,{headers:{'Content-Type':'image/png'}}))},'image/png')})}).catch(function(){});
+  }catch(e){window._pis=null}};
+  im.src=src};
+ addEventListener('load',function(){setTimeout(function(){try{window.pwaIcon(typeof D!=='undefined'&&D.logo)}catch(e){}},2500)});
+})();
+</script><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>English with Sudan Sir – පන්ති කළමනාකරණ පද්ධතිය</title>
 <script src="firebase-config.js"></script><script>(function(){var c=window.FIREBASE_CONFIG;if(c&&c.apiKey&&!/^YOUR/i.test(c.apiKey))document.documentElement.classList.add("lock")})()</script><style>html.lock body>*:not(#lg){visibility:hidden!important}nav button.mn{padding:14px 30px;font-size:18px;font-weight:700;background:rgba(255,255,255,.24)}nav button.mn .ni{width:34px;height:34px}
 nav button.sm{padding:7px 12px;font-size:12px;font-weight:600;opacity:.85}nav button.sm .ni{width:20px;height:20px}
@@ -282,7 +307,7 @@ B.cls=()=>{$('#ca').onclick=()=>{const n=$('#cn').value.trim();if(!n)return say(
 const card=s=>{const u=qr(s.id);return `<div class="c idc" style="--k:#ffd21f"><img src="${u}" width="160" height="160" alt="QR"><div><b>${E(s.name)}</b><br>ශ්‍රේණිය ${E(s.grade)}<br><code>${s.id}</code><br><a class="sb" download="${s.id}.gif" href="${u}">රූපය බාගන්න</a></div></div>`};
 /* ---- ID කාඩ්පත (ක්‍රෙඩිට් කාඩ් ප්‍රමාණය) ---- */
 const PAL=[['#1f4fd8','#7a3cff'],['#ff7a18','#e0227a'],['#0aa86b','#0b7aa8'],['#f5a300','#e8431f'],['#14b8c4','#2b4fe0'],['#c026d3','#6d28d9']];
-const lg=()=>D.logo?`<img src="${D.logo}" alt="">`:'📚',bn=()=>D.nm||'English with Sudan Sir',setLogo=()=>{$('#hl').innerHTML=lg();$('#hn').textContent=bn();document.title=bn()+' – පන්ති කළමනාකරණ පද්ධතිය';try{localStorage.setItem('esk_nm',bn())}catch(e){}};setLogo();
+const lg=()=>D.logo?`<img src="${D.logo}" alt="">`:'📚',bn=()=>D.nm||'English with Sudan Sir',setLogo=()=>{$('#hl').innerHTML=lg();$('#hn').textContent=bn();document.title=bn()+' – පන්ති කළමනාකරණ පද්ධතිය';try{localStorage.setItem('esk_nm',bn())}catch(e){}window.pwaIcon&&window.pwaIcon(D.logo)};setLogo();
 const idc=(s,c)=>{const k=c?D.c.indexOf(c):0,g=PAL[k%PAL.length];return `<div class="id" style="background:linear-gradient(135deg,${g[0]},${g[1]})"><div class="it"><span>${E(c?c.name:bn())}</span><i class="il">${lg()}</i></div><div class="ib"><div class="ip">${s.ph?`<img src="${s.ph}" alt="">`:lg()}</div><div class="ix"><b>${E(s.name)}</b><small>${E(s.grade)}</small><code>${s.id}</code></div><img class="iq" src="${qr(s.id)}" alt="QR"></div><div class="if">${E(bn())}</div></div>`};
 const tt=()=>({n:'R.M.S.CHAMALKA',q:'BEd ICT, NDIT English and ICT',p:'0706562952',w:'0716562952',...(D.t||{})}),nid=()=>(D.pf||'NEL')+String(++D.n).padStart(3,'0');
 const idc2=(s,c)=>{const k=c?D.c.indexOf(c):0,g=PAL[k%PAL.length],t=tt();return `<div class="idw"><div class="zid" style="background:linear-gradient(160deg,${g[0]},${g[1]})"><div class="zh"><i class="zl">${lg()}</i><div><b>${E(bn())}</b><small>STUDENT OFFICIAL PASS</small></div>${c?`<span class="zc">${E(c.name)}</span>`:''}</div><div class="zb"><div class="zp">${s.ph?`<img src="${s.ph}" alt="">`:lg()}</div><div class="zx"><b>${E(s.name)}</b><span class="zpill">ID: ${E(s.id.replace(/^([A-Za-z]+)(\d+)$/,'$1 $2'))}</span>${s.tel?`<span>Phone: ${E(s.tel)}</span>`:''}</div><img class="zq" src="${qr(s.id)}" alt="QR"></div><div class="zf">${t.n?`<b>${E(t.n)}</b>${t.q?' ('+E(t.q)+')':''}`:''}<div>${[t.p?'📞 '+E(t.p):'',t.w?'💬 WhatsApp: '+E(t.w):''].filter(Boolean).join(' &nbsp;|&nbsp; ')}</div></div></div></div>`};
