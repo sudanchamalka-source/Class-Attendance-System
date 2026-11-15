@@ -138,12 +138,42 @@ const waOpen=(s,text)=>window.open('https://wa.me/'+wn(s&&s.tel)+'?text='+encode
 const tmn=()=>new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 const attTxt=(s,c)=>bn()+'\n━━━━━━━━━━\n✅ පැමිණීම සටහන් කළා\n\n👤 ශිෂ්‍යයා: '+s.name+' ('+s.id+')\n📚 පන්තිය: '+(c.name||'')+'\n📅 දිනය: '+(gd(S.m,S.day)||ld())+'\n🕒 වේලාව: '+tmn()+'\n\nඔබේ දරුවා අද පන්තියට පැමිණ ඇත. ස්තූතියි!\n— '+tt().n;
 const rcpt=(s,c,m,dt)=>{const rest=arr(s,c).length;return bn()+'\n🧾 ගාස්තු ගෙවීමේ රිසිට්පත\n━━━━━━━━━━\nරිසිට්පත් අංකය: '+s.id+'-'+String(m).replace('-','')+'\nදිනය: '+dt+'\n\n👤 ශිෂ්‍යයා: '+s.name+' ('+s.id+')\n📚 පන්තිය: '+c.name+'\n🗓️ මාසය: '+m+'\n💰 ගෙවූ මුදල: '+rs(c.fee)+'\n'+(rest?'⚠️ හිඟ මාස '+rest+'ක් ඇත ('+rs(rest*c.fee)+')\n':'✅ හිඟයක් නැත\n')+'\nස්තූතියි!\n— '+tt().n+(tt().p?'\n☎️ '+tt().p:'')};
+
+/* ---- රූප රිසිට්පත (ලාංඡනය සහිත) ---- */
+async function rcptCv(s,c,m,dt){const rest=arr(s,c).length;
+ try{await document.fonts.load('700 40px "Noto Sans Sinhala"');await document.fonts.load('400 40px "Noto Sans Sinhala"')}catch(e){}
+ const W=900,H=1350,F='"Noto Sans Sinhala",system-ui,sans-serif',cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d'),t=tt(),NV='#14246a',YL='#ffd21f',MU='#6b7490',GR='#16a56a',lgI=await ldi(D.logo);
+ const tx=(str,a,b,sz,w,col,al,mw)=>{str=String(str);x.font=w+' '+sz+'px '+F;while(mw&&x.measureText(str).width>mw&&sz>14){sz-=2;x.font=w+' '+sz+'px '+F}x.fillStyle=col;x.textAlign=al;x.textBaseline='alphabetic';x.fillText(str,a,b)};
+ x.fillStyle='#fff';x.fillRect(0,0,W,H);
+ x.fillStyle=NV;x.fillRect(0,0,W,262);x.fillStyle=YL;x.fillRect(0,262,W,10);
+ x.fillStyle=YL;x.beginPath();x.arc(W/2,92,64,0,7);x.fill();
+ if(lgI){x.save();x.beginPath();x.arc(W/2,92,58,0,7);x.clip();const r=Math.max(116/lgI.width,116/lgI.height);x.drawImage(lgI,W/2-lgI.width*r/2,92-lgI.height*r/2,lgI.width*r,lgI.height*r);x.restore()}
+ else{x.font='60px '+F;x.textAlign='center';x.textBaseline='middle';x.fillStyle=NV;x.fillText('📚',W/2,96)}
+ tx(bn(),W/2,204,42,'700','#fff','center',820);
+ tx('ගාස්තු ගෙවීමේ රිසිට්පත',W/2,246,26,'600',YL,'center',820);
+ const rows=[['රිසිට්පත් අංකය',s.id+'-'+String(m).replace('-','')],['දිනය',dt],['ශිෂ්‍යයා',s.name],['ශිෂ්‍ය අංකය',s.id],['පන්තිය',c.name],['මාසය',m]];
+ let y=350;rows.forEach(([a,b])=>{tx(a,60,y,26,'400',MU,'left');tx(b,W-60,y,30,'700',NV,'right',500);x.strokeStyle='#e0e5f5';x.lineWidth=2;x.beginPath();x.moveTo(60,y+26);x.lineTo(W-60,y+26);x.stroke();y+=84});
+ const by=y+14;x.fillStyle='#eefaf3';rr(x,50,by,W-100,170,22);x.fill();x.strokeStyle=GR;x.lineWidth=4;x.stroke();
+ tx('ගෙවූ මුදල',90,by+52,26,'400',MU,'left');tx(rs(c.fee),90,by+130,62,'700',GR,'left',420);
+ x.save();x.translate(W-200,by+88);x.rotate(-.2);x.strokeStyle=GR;x.lineWidth=7;rr(x,-120,-44,240,88,16);x.stroke();tx('ගෙවා ඇත',0,16,44,'700',GR,'center',210);x.restore();
+ const ay=by+250;
+ if(rest)tx('⚠ හිඟ මාස '+rest+'ක් ඇත ('+rs(rest*c.fee)+')',W/2,ay,28,'700','#e0527a','center',800);else tx('✔ හිඟයක් නැත',W/2,ay,28,'700',GR,'center',800);
+ x.strokeStyle=YL;x.lineWidth=6;x.beginPath();x.moveTo(60,ay+40);x.lineTo(W-60,ay+40);x.stroke();
+ tx(t.n,W/2,ay+90,30,'700',NV,'center',800);
+ if(t.q)tx(t.q,W/2,ay+128,22,'400',MU,'center',820);
+ if(t.p)tx('☎ '+t.p+(t.w&&t.w!=t.p?'  ·  WhatsApp '+t.w:''),W/2,ay+166,24,'600',NV,'center',820);
+ tx('ස්තූතියි!',W/2,ay+210,26,'600',MU,'center',800);
+ return cv}
+function rcptPrep(s,c,m,dt){return rcptCv(s,c,m,dt).then(cv=>new Promise(r=>cv.toBlob(b=>r({blob:b,file:new File([b],'receipt-'+s.id+'-'+m+'.png',{type:'image/png'}),text:rcpt(s,c,m,dt)}),'image/png')))}
+function shareRcpt(s,rp){return rp.then(async o=>{
+ if(navigator.canShare&&navigator.canShare({files:[o.file]})){try{await navigator.share({files:[o.file],text:o.text});return}catch(e){if(e&&e.name=='AbortError')return}}
+ dwn(o.blob,o.file.name);waOpen(s,o.text);say('රිසිට්පත් රූපය බාගත විය. WhatsApp පණිවිඩයට එය attach කරන්න (📎).',1)})}
 /* ---- QR scan popup (attendance + fee) ---- */
-function scanPop(s,t,msg,info,wa){let e=$('#sp');if(!e){e=document.createElement('div');e.id='sp';e.className='ov';e.style.zIndex=70;document.body.appendChild(e)}
+function scanPop(s,t,msg,info,wa,lbl){let e=$('#sp');if(!e){e=document.createElement('div');e.id='sp';e.className='ov';e.style.zIndex=70;document.body.appendChild(e)}
  const col={ok:'#16a56a',dup:'#f5a300',er:'#e0527a'}[t]||'#e0527a',ico={ok:'✔',dup:'⚠️',er:'✖'}[t]||'⚠️';
  const ph=s?'<div style="width:110px;height:110px;margin:0 auto 10px;border-radius:50%;overflow:hidden;background:#fff;border:4px solid '+col+';display:grid;place-items:center;font-size:52px">'+(s.ph?'<img src="'+s.ph+'" style="width:100%;height:100%;object-fit:cover" alt="">':lg())+'</div>':'<div style="font-size:60px;text-align:center">⚠️</div>';
- e.innerHTML='<div class="mb" style="--k:'+col+';text-align:center;width:min(380px,100%)">'+ph+'<div style="font-weight:700;font-size:17px;color:'+col+'">'+(s?ico+' ':'')+msg+'</div>'+(s?'<div style="font-size:22px;font-weight:700;overflow-wrap:anywhere;margin-top:6px">'+E(s.name)+'</div><div class="mu" style="font-size:14px">'+E(s.id)+' · ශ්‍රේණිය '+E(s.grade)+(s.tel?' · '+E(s.tel):'')+'</div>':'')+(info?'<div style="margin-top:10px;font-size:14px;line-height:1.7">'+info+'</div>':'')+(wa?'<button class="b w" id="spw" style="margin-top:14px;background:#25D366">💬 WhatsApp යවන්න'+(s&&s.tel?'':' (අංකයක් නැත)')+'</button>':'')+'<button class="b w" id="spx" style="margin-top:'+(wa?8:14)+'px;background:'+col+'">හරි</button></div>';
- const cl=()=>{clearTimeout(e._t);e.remove()};e.onclick=cl;$('#spx').onclick=cl;if(wa)$('#spw').onclick=ev=>{ev.stopPropagation();clearTimeout(e._t);waOpen(s,wa)};
+ e.innerHTML='<div class="mb" style="--k:'+col+';text-align:center;width:min(380px,100%)">'+ph+'<div style="font-weight:700;font-size:17px;color:'+col+'">'+(s?ico+' ':'')+msg+'</div>'+(s?'<div style="font-size:22px;font-weight:700;overflow-wrap:anywhere;margin-top:6px">'+E(s.name)+'</div><div class="mu" style="font-size:14px">'+E(s.id)+' · ශ්‍රේණිය '+E(s.grade)+(s.tel?' · '+E(s.tel):'')+'</div>':'')+(info?'<div style="margin-top:10px;font-size:14px;line-height:1.7">'+info+'</div>':'')+(wa?'<button class="b w" id="spw" style="margin-top:14px;background:#25D366">'+(lbl||'💬 WhatsApp යවන්න')+(s&&s.tel?'':' (අංකයක් නැත)')+'</button>':'')+'<button class="b w" id="spx" style="margin-top:'+(wa?8:14)+'px;background:'+col+'">හරි</button></div>';
+ const cl=()=>{clearTimeout(e._t);e.remove()};e.onclick=cl;$('#spx').onclick=cl;if(wa)$('#spw').onclick=ev=>{ev.stopPropagation();clearTimeout(e._t);typeof wa=='function'?wa():waOpen(s,wa)};
  navigator.vibrate&&navigator.vibrate(t=='ok'?80:[80,60,80]);clearTimeout(e._t);e._t=setTimeout(cl,wa?12000:t=='ok'?3500:5000)}
 function scanCard(s,t,msg){let info='';
  if(s){const k=cid(),c=D.c.find(x=>x.id==k)||{},p=pd(s.id,S.m,k);info=E(c.name||'')+'<br>'+S.m+' පැමිණි දින: <b>'+pc(s.id,S.m,k)+'</b> · ගාස්තුව: <b style="color:'+(p?'#16a56a':'#e0527a')+'">'+(p?'ගෙවා ඇත':'ගෙවා නැත')+'</b>'}
@@ -283,15 +313,15 @@ function payFee(id){const c=cs();if(!c)return scanPop(null,'er','පන්ති
  const a=arr(s,c2);if(!a.length){fl();return scanPop(s,'dup','සියලු ගාස්තු ගෙවා ඇත','<b>'+E(c2.name)+'</b><br>'+S.m+' දක්වා හිඟයක් නැත')}
  const m=a[0];((D.f[m]=D.f[m]||{})[c2.id]=D.f[m][c2.id]||{})[s.id]=ld();save();
  const rest=a.length-1;
- scanPop(s,'ok','ගාස්තුව සටහන් කළා','<b>'+E(c2.name)+'</b><br>'+m+' මාසය: <b style="color:#16a56a">'+rs(c2.fee)+'</b>'+(rest?'<br><span style="color:#e0527a;font-weight:700">තවත් හිඟ මාස '+rest+'ක් ඇත ('+rs(rest*c2.fee)+')</span>':'<br>දැන් සියල්ල ගෙවා ඇත'),rcpt(s,c2,m,ld()));
+ scanPop(s,'ok','ගාස්තුව සටහන් කළා','<b>'+E(c2.name)+'</b><br>'+m+' මාසය: <b style="color:#16a56a">'+rs(c2.fee)+'</b>'+(rest?'<br><span style="color:#e0527a;font-weight:700">තවත් හිඟ මාස '+rest+'ක් ඇත ('+rs(rest*c2.fee)+')</span>':'<br>දැන් සියල්ල ගෙවා ඇත'),(rp=>()=>shareRcpt(s,rp))(rcptPrep(s,c2,m,ld())),'🧾 රිසිට්පත (රූපය) WhatsApp යවන්න');
  fl()}
 function fl(){const c=cs();if(!c){$('#fs').innerHTML='';$('#fc').innerHTML='';$('#fr').innerHTML='<tr><td class="mu">පන්තියක් නැත</td></tr>';return}const f=(D.f[S.m]||{})[c.id]||{},ms=mem(c.id);let t=0,n=0,ar=0;ms.forEach(s=>{if(f[s.id]){t+=c.fee;n++}ar+=arr(s,c).length});
  $('#fs').innerHTML=`<span>එකතු කළ: <b>${rs(t)}</b></span><span>ගෙවූ: <b>${n}/${ms.length}</b></span><span>පන්ති ගාස්තුව: <b>${rs(c.fee)}</b></span><span>ආයතන ගාස්තුව (${ip(c)}%): <b>${rs(cut(c,t))}</b></span><span>ගුරුවරයාට: <b>${rs(t-cut(c,t))}</b></span><span>හිඟ මුදල (${S.m} දක්වා): <b>${rs(ar*c.fee)}</b></span>`;
- $('#fr').innerHTML=ms.map(s=>{const a=arr(s,c);return `<tr><td>${E(s.name)}<br><small class="mu">${s.id} · ශ්‍රේණිය ${E(s.grade)}</small>${a.length?`<small style="display:block;white-space:normal;max-width:260px;color:#e0527a;font-weight:600">හිඟ: ${a.join(', ')} (${rs(a.length*c.fee)})</small>`:''}</td><td>${rs(c.fee)}<br><small class="mu">ආයතනය ${rs(cut(c,c.fee))}</small></td><td>${a.length?`<button class="sb" data-p="${s.id}">ගෙවීම සටහන් කරන්න</button>`:''}${f[s.id]?`<button class="sb pd" data-u2="${s.id}">${S.m} ගෙවා ඇත (${f[s.id]}) ✕</button><button class="sb" data-rcp="${s.id}">🧾 රිසිට්පත</button>`:''}${!a.length&&!f[s.id]?'<small class="mu">මෙම මාසයට අදාළ නැත</small>':''}</td></tr>`}).join('')||'<tr><td class="mu">ශිෂ්‍යයන් නැත</td></tr>';
+ $('#fr').innerHTML=ms.map(s=>{const a=arr(s,c);return `<tr><td>${E(s.name)}<br><small class="mu">${s.id} · ශ්‍රේණිය ${E(s.grade)}</small>${a.length?`<small style="display:block;white-space:normal;max-width:260px;color:#e0527a;font-weight:600">හිඟ: ${a.join(', ')} (${rs(a.length*c.fee)})</small>`:''}</td><td>${rs(c.fee)}<br><small class="mu">ආයතනය ${rs(cut(c,c.fee))}</small></td><td>${a.length?`<button class="sb" data-p="${s.id}">ගෙවීම සටහන් කරන්න</button>`:''}${f[s.id]?`<button class="sb pd" data-u2="${s.id}">${S.m} ගෙවා ඇත (${f[s.id]}) ✕</button><button class="sb" data-rcp="${s.id}">🧾 රිසිට්පත (රූපය)</button>`:''}${!a.length&&!f[s.id]?'<small class="mu">මෙම මාසයට අදාළ නැත</small>':''}</td></tr>`}).join('')||'<tr><td class="mu">ශිෂ්‍යයන් නැත</td></tr>';
  $('#fc').innerHTML=ms.map(s=>{const a=arr(s,c),ok=!a.length&&f[s.id];return `<button type="button" class="cc ${ok?'ok':''}" data-fc="${s.id}" style="--k:${a.length?'#e0527a':'#16a56a'}"><b>${E(s.name)}</b><small>${s.id} · ශ්‍රේණිය ${E(s.grade)}</small>${a.length?`<small class="rd">හිඟ: මාස ${a.length} (${rs(a.length*c.fee)})</small>`:ok?'<small>'+S.m+' දක්වා ගෙවා ඇත</small>':'<small>මෙම මාසයට අදාළ නැත</small>'}</button>`}).join('');
  $$('[data-fc]').forEach(b=>b.onclick=()=>payFee(b.dataset.fc));
  $$('[data-p]').forEach(b=>b.onclick=()=>payFee(b.dataset.p));
- $$('[data-u2]').forEach(b=>b.onclick=()=>two(b,()=>{delete D.f[S.m][c.id][b.dataset.u2];save();fl()}));$$('[data-rcp]').forEach(b=>b.onclick=()=>{const s=st(b.dataset.rcp);waOpen(s,rcpt(s,c,S.m,f[s.id]))})}
+ $$('[data-u2]').forEach(b=>b.onclick=()=>two(b,()=>{delete D.f[S.m][c.id][b.dataset.u2];save();fl()}));$$('[data-rcp]').forEach(b=>b.onclick=()=>{const s=st(b.dataset.rcp);shareRcpt(s,rcptPrep(s,c,S.m,f[s.id]))})}
 B.fee=()=>{$('#m').onchange=e=>{S.m=e.target.value||mk();go('fee')};$('#cs').onclick=()=>stream?stop():cam(payFee);$('#mb').onclick=()=>{payFee($('#mi').value.trim().toUpperCase());$('#mi').value=''};$('#fi').onchange=e=>{const f=e.target.files[0];if(f)qimg(f,payFee);e.target.value=''};fl()};
 /* ---- පරිපාලන පුවරුව ---- */
 V.adm=()=>`<div class="rib">පරිපාලන පුවරුව</div>
